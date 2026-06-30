@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.secondhand.frontend.controller.LoginController"
+      alignment="CENTER"
+      spacing="18"
+      style="-fx-background-color: #f5f6fa;">
+
+    <padding>
+        <Insets top="40" right="40" bottom="40" left="40"/>
+    </padding>
+
+    <Label text="ورود به سامانه"
+           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+
+    <TextField fx:id="usernameField"
+               promptText="نام کاربری"
+               maxWidth="300"
+               prefHeight="40"
+               style="-fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #bdc3c7; -fx-background-color: #ffffff; -fx-font-size: 14px;"/>
+
+    <PasswordField fx:id="passwordField"
+                   promptText="رمز عبور"
+                   maxWidth="300"
+                   prefHeight="40"
+                   style="-fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #bdc3c7; -fx-background-color: #ffffff; -fx-font-size: 14px;"/>
+
+    <Label fx:id="errorLabel"
+           style="-fx-text-fill: #e74c3c; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+
+    <Button fx:id="loginButton"
+            text="ورود"
+            maxWidth="300"
+            prefHeight="42"
+            onAction="#handleLogin"
+            style="-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8px;"/>
+
+    <Button text="حساب ندارید؟ ثبت نام کنید"
+            onAction="#goToRegister"
+            style="-fx-background-color: transparent; -fx-text-fill: #7f8c8d; -fx-font-size: 13px; -fx-underline: true;"/>
+
+</VBox>
