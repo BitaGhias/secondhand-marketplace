@@ -31,6 +31,14 @@ public class LoginController {
 
         errorLabel.setText("");
         System.out.println("Login: " + username);
+
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/adlist.fxml"));
+            Stage stage = (Stage) usernameField.getScene().getWindow();
+            stage.setScene(new Scene(loader.load(), 600, 500));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML

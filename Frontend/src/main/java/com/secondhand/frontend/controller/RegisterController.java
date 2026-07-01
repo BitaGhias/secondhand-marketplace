@@ -46,6 +46,16 @@ public class RegisterController {
         errorLabel.setText("");
         // بعداً به backend وصل می‌کنیم
         System.out.println("Register: " + fullName + " - " + username);
+
+        try {
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/secondhand/frontend/adlist.fxml")
+            );
+            Stage stage = (Stage) usernameField.getScene().getWindow();
+            stage.setScene(new Scene(loader.load(), 600, 500));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @FXML

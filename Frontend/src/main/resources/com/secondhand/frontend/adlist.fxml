@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.HBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.secondhand.frontend.controller.AdListController"
+      spacing="15"
+      style="-fx-background-color: #f5f6fa;">
+
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+
+    <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label text="لیست آگهی‌ها"
+               style="-fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
+        <Button text="+ ثبت آگهی جدید"
+                onAction="#goToNewAd"
+                style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 13px; -fx-background-radius: 6px;"/>
+    </HBox>
+
+    <ListView fx:id="adListView"
+              VBox.vgrow="ALWAYS"
+              style="-fx-background-color: white; -fx-background-radius: 8px;"/>
+
+</VBox>
