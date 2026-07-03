@@ -55,7 +55,7 @@ public class ItemController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getItemByUser(@PathVariable Long userId) {
         try {
-            List<Item> items itemService.getItemByUser(userId);
+            List<Item> items =  itemService.getItemByUser(userId);
             return ResponseEntity.ok(items);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
