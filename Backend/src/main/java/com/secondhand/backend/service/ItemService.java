@@ -73,4 +73,10 @@ public class ItemService {
 
         itemRepository.delete(item);
     }
+
+    public List<Item> searchItems(String keyword) {
+        return itemRepository.findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
+                "APPROVED", keyword, "APPROVED", keyword
+        );
+    }
 }

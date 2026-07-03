@@ -71,4 +71,9 @@ public class ItemController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+    @GetMapping("/search")
+    public ResponseEntity<List<Item>> searchItems(@RequestParam String keyword) {
+        List<Item> results = itemService.searchItems(keyword);
+        return ResponseEntity.ok(results);
+    }
 }
