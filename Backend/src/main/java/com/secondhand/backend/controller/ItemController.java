@@ -29,4 +29,20 @@ public class ItemController {
         List<Item> items = itemService.getApprovedItems();
         return ResponseEntity.ok(items);
     }
+
+    @GetMapping("/pending")
+    public ResponseEntity<List<Item>> getPendingItems() {
+        List<Item> items = itemService.getPendingItems();
+        return ResponseEntity.ok(items);
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateItemStatus(@PathVariable Long id, @RequestParam String status) {
+        try {
+            Item updatedItem = itemService.updateItemStatus(id, status);
+            return ResponseEntity.ok(updatedItem);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
