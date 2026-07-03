@@ -31,4 +31,23 @@ public class ItemService {
     public List<Item> getApprovedItems() {
         return itemRepository.findByStatus("APPROVED");
     }
+
+    public Item updateItemStatus(Long itemId, String newStatus) {
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("آگهی مورد نظر یافت نشد"));
+
+        String statusUpper = newStatus.toUpperCase();
+
+        if (!statusUpper.equals("APPROVED") && !statusUpper.equals("REJECTED") && !statusUpper.equals("PENDING")) {
+            throw new RuntimeException("وضعیت ارسال شده معتبر نیست. باید APPROVED، REJECTED یا PENDING باشد.");
+        }
+
+        item.setStatus(statusUpper);
+        return itemRepository.save(item);
+    }
+
+    public List<Item> getPendingItems() {
+        return itemRepository.findByStatus("PENDING");
+    }
 }
