@@ -46,9 +46,19 @@ public class ItemController {
         }
     }
 
-    @GetMapping("/categoey/{categoryId")
+    @GetMapping("/categoey/{categoryId}")
     public ResponseEntity<List<Item>> getItemsByCategory(@PathVariable Long categoryId) {
         List<Item> items = itemService.getApprovedItemsByCategory(categoryId);
         return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<?> getItemByUser(@PathVariable Long userId) {
+        try {
+            List<Item> items itemService.getItemByUser(userId);
+            return ResponseEntity.ok(items);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 }
