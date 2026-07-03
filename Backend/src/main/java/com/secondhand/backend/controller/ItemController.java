@@ -61,4 +61,14 @@ public class ItemController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteItem(@PathVariable Long id, @RequestParam Long userId) {
+        try {
+            itemService.deleteItem(id, userId);
+            return ResponseEntity.ok("آگهی با موفقیت حذف شد.");
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }

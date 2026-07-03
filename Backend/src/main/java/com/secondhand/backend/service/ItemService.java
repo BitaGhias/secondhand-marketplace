@@ -61,4 +61,16 @@ public class ItemService {
         }
         return itemRepository.findByUserId(userId);
     }
+
+    public void deleteItem(Long itemId, Long userId) {
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("آگهی مورد نظر یافت نشد"));
+
+        if (!item.getUser().getId().equals(userId) && !userId.equals(1L)) {
+            throw new RuntimeException("شما اجازه حذف این آگهی را ندارید!");
+        }
+
+        itemRepository.delete(item);
+    }
 }
