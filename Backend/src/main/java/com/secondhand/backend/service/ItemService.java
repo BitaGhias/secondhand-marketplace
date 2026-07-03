@@ -50,4 +50,8 @@ public class ItemService {
     public List<Item> getPendingItems() {
         return itemRepository.findByStatus("PENDING");
     }
+
+    public List<Item> getApprovedItemsByCategory(Long categoryId) {
+        return itemRepository.findByCategoryIdAndStatus(categoryId, "APPROVED");
+    }
 }
