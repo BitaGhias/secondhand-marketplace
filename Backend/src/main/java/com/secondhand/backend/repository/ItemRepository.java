@@ -9,4 +9,8 @@ import java.util.List;
 public interface ItemRepository extends JpaRepository<Item, Long>{
     List<Item> findByStatus(String status);
     List<Item> findByUserId(Long userId);
-    List<Item> findByCategoryIdAndStatus(Long categoryId, String status);}
+    List<Item> findByCategoryIdAndStatus(Long categoryId, String status);
+    List<Item> findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
+            String status1, String titleKeyword, String status2, String descKeyword
+    );
+}
