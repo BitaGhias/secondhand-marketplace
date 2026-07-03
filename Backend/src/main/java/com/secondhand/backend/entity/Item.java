@@ -31,4 +31,8 @@ public class Item {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "category-id", nullable = false)
+    public Category category;
 }
