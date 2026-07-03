@@ -54,4 +54,11 @@ public class ItemService {
     public List<Item> getApprovedItemsByCategory(Long categoryId) {
         return itemRepository.findByCategoryIdAndStatus(categoryId, "APPROVED");
     }
+
+    public List<Item> getItemByUser(Long userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new RuntimeException("کاربر یافت نشد");
+        }
+        return itemRepository.findByUserId(userId);
+    }
 }
