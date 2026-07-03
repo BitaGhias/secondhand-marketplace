@@ -45,4 +45,10 @@ public class ItemController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/categoey/{categoryId")
+    public ResponseEntity<List<Item>> getItemsByCategory(@PathVariable Long categoryId) {
+        List<Item> items = itemService.getApprovedItemsByCategory(categoryId);
+        return ResponseEntity.ok(items);
+    }
 }
