@@ -33,6 +33,6 @@ public class Item {
     private User user;
 
     @ManyToOne
-    @JoinColumn(name = "category-id", nullable = false)
+    @JoinColumn(name = "category_id", nullable = false)
     public Category category;
 }
