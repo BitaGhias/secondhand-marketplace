@@ -11,7 +11,7 @@ import lombok.*;//جلوگیری از نوشتن کدهای تکراری
 public class User {
 
     @Id //فیلد اصلی برای شناسایی
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //مقداردهی ایدی به طور خودکار
     private Long id;//شناسه کاربران
 
     @Column(nullable = false, unique = true) //غیر تکراری و غیر خالی
