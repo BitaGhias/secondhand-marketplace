@@ -29,7 +29,6 @@ public class AuthController
     public ResponseEntity<?> loginUser(@RequestBody User loginRequest) {
         try {
             User user = userService.loginUser(loginRequest.getUsername(), loginRequest.getPassword());
-
             //  اگر موفق بود، کل مشخصات کاربر (مثل آیدی و نقش) رو به فرانت‌اَند پس میدیم
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
