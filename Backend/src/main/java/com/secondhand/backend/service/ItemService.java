@@ -1,7 +1,9 @@
 package com.secondhand.backend.service;
 
+import com.secondhand.backend.entity.City;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.User;
+import com.secondhand.backend.repository.CityRepository;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +19,17 @@ public class ItemService {
     @Autowired
     private UserRepository userRepository;
 
-    public Item createItem(Item item, Long userId) {
+    @Autowired
+    public CityRepository cityRepository;
+
+    public Item createItem(Item item, Long userId, Long cityId) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
+
+        City city = cityRepository.findById(cityId)
+                .orElseThrow(() -> new RuntimeException("شهر مورد نظر یافت نشد"));
+        item.city = city;
 
         //اگر کاربر وجود داشت، او را به عنوان «صاحب آگهی» معرفی می‌کنیم
         item.setUser(user);
@@ -78,5 +87,9 @@ public class ItemService {
         return itemRepository.findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
                 "APPROVED", keyword, "APPROVED", keyword
         );
+    }
+
+    public List<Item> getItemsByCity(Long cityId) {
+        return itemRepository.findByStatusAndCityId("APPROVED", cityId);
     }
 }
