@@ -39,11 +39,13 @@ public class AuthService
         }
     }
 
-    public boolean login(String username, String password)
-    {
-        try
-        {
-            String jsonInput = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", username, password);
+    public boolean login(String username, String password) {
+        try {
+            // ساخت رشته استاندارد JSON برای لاگین
+            String jsonInput = "{" +
+                    "\"username\":\"" + username + "\"," +
+                    "\"password\":\"" + password + "\"" +
+                    "}";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/login"))
@@ -53,10 +55,14 @@ public class AuthService
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
+            // اضافه کردن لاگ برای اینکه ببینیم سرور دقیقاً چه کدی برمی‌گرداند
+            System.out.println("--- LOGIN RESPONSE ---");
+            System.out.println("Status Code: " + response.statusCode());
+            System.out.println("Response Body: " + response.body());
+
             return response.statusCode() == 200;
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
+            System.err.println("خطا در ارسال درخواست لاگین لایه شبکه:");
             e.printStackTrace();
             return false;
         }
