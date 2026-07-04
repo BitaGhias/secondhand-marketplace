@@ -14,6 +14,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY) //مقداردهی ایدی به طور خودکار
     private Long id;//شناسه کاربران
 
+    @Column(nullable = false)
+    private String fullName;
+
     @Column(nullable = false, unique = true) //غیر تکراری و غیر خالی
     private String username;
 
