@@ -10,6 +10,7 @@ module com.secondhand.frontend {
     requires org.kordamp.bootstrapfx.core;
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
+    requires java.net.http;
 
     opens com.secondhand.frontend to javafx.fxml;
     exports com.secondhand.frontend;

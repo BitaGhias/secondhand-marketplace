@@ -11,8 +11,11 @@ import lombok.*;//جلوگیری از نوشتن کدهای تکراری
 public class User {
 
     @Id //فیلد اصلی برای شناسایی
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //مقداردهی ایدی به طور خودکار
+    @GeneratedValue(strategy = GenerationType.TABLE)
     private Long id;//شناسه کاربران
+
+    @Column(nullable = false)
+    private String fullName;
 
     @Column(nullable = false, unique = true) //غیر تکراری و غیر خالی
     private String username;
@@ -21,5 +24,6 @@ public class User {
     private String password;
 
     private String role = "ROLE_USER";
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean active = true;
 }
