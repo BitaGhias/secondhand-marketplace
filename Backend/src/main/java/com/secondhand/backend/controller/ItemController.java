@@ -15,9 +15,10 @@ public class ItemController {
     private ItemService itemService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createItem(@RequestBody Item item, @RequestParam Long userId) {
+    public ResponseEntity<?> createItem(@RequestBody Item item, @RequestParam Long userId,
+                                        @RequestParam Long cityId) {
         try {
-            Item createdItem = itemService.createItem(item, userId);
+            Item createdItem = itemService.createItem(item, userId, cityId);
             return ResponseEntity.ok(createdItem);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -75,5 +76,10 @@ public class ItemController {
     public ResponseEntity<List<Item>> searchItems(@RequestParam String keyword) {
         List<Item> results = itemService.searchItems(keyword);
         return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/city/{cityId}")
+    public ResponseEntity<List<Item>> getItemsByCity(@PathVariable Long cityId) {
+        return ResponseEntity.ok(itemService.getItemsByCity(cityId));
     }
 }

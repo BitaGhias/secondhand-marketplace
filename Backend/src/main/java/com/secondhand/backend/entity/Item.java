@@ -35,4 +35,8 @@ public class Item {
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
     public Category category;
+
+    @ManyToOne
+    @JoinColumn(name = "city-id", nullable = false)
+    public City city;
 }
