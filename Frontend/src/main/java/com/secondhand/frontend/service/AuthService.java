@@ -13,10 +13,12 @@ public class AuthService
 
     public boolean register(String fullName, String username, String password) {
         try {
-            String jsonInput = String.format(
-                    "{\"fullName\":\"%s\",\"username\":\"%s\",\"password\":\"%s\"}",
-                    fullName, username, password
-            );
+            String jsonInput = "{" +
+                    "\"fullName\":\"" + fullName + "\"," +
+                    "\"username\":\"" + username + "\"," +
+                    "\"password\":\"" + password + "\"," +
+                    "\"active\":true" +
+                    "}";
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/register"))
@@ -27,7 +29,10 @@ public class AuthService
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            return response.statusCode() == 200;
+            System.out.println("Server Response Status Code: " + response.statusCode());
+            System.out.println("Server Response Body: " + response.body());
+
+            return response.statusCode() == 200 || response.statusCode() == 201;
         } catch (Exception e) {
             e.printStackTrace();
             return false;
