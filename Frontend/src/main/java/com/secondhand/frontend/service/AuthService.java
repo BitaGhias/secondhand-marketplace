@@ -8,7 +8,7 @@ import java.net.http.HttpResponse;
 public class AuthService
 {
     private final HttpClient httpClient = HttpClient.newHttpClient();
-    private final String BASE_URL = "http://localhost:8080/api/auth/login";
+    private final String BASE_URL = "http://localhost:8080/api/auth";
     public boolean login(String username, String password)
     {
         try
