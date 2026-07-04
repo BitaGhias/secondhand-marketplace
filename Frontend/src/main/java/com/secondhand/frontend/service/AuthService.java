@@ -4,6 +4,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 
 public class AuthService
 {
@@ -12,7 +13,6 @@ public class AuthService
 
     public boolean register(String fullName, String username, String password) {
         try {
-            // ساخت بدنه JSON شامل سه فیلد اصلی که بک‌اِند برای ساخت کاربر نیاز دارد
             String jsonInput = String.format(
                     "{\"fullName\":\"%s\",\"username\":\"%s\",\"password\":\"%s\"}",
                     fullName, username, password
@@ -20,8 +20,9 @@ public class AuthService
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/register"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonInput))
+                    .header("Content-Type", "application/json; charset=UTF-8")
+                    // اعمال فرمت UTF-8 برای پشتیبانی از زبان فارسی
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonInput, StandardCharsets.UTF_8))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -41,8 +42,8 @@ public class AuthService
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(BASE_URL + "/login"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(jsonInput))
+                    .header("Content-Type", "application/json; charset=UTF-8")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonInput, StandardCharsets.UTF_8))
                     .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
