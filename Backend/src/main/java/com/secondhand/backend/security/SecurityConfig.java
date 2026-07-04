@@ -15,21 +15,26 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // غیرفعال کردن CSRF برای اینکه بتوانیم با سیستم‌های تست و فرانت به API درخواست بزنیم
+                // غیرفعال کردن CSRF برای هماهنگی با فرانت‌اِند کلاینت
                 .csrf(csrf -> csrf.disable())
+
+                // باز کردن مسیرهای احراز هویت و قفل کردن بقیه بخش‌ها
                 .authorizeHttpRequests(auth -> auth
-                        // باز کردن مسیرهای ثبت‌نام و ورود برای همه بدون نیاز به احراز هویت
                         .requestMatchers("/api/auth/**").permitAll()
-                        // قفل بودن بقیه مسیرهای برنامه
                         .anyRequest().authenticated()
-                );
+                )
+
+                // غیرفعال کردن فرم ورود و مکانیزم‌های پیش‌فرض اسپرینگ سیکیوریتی
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable())
+                .logout(logout -> logout.disable());
 
         return http.build();
     }
 
+    // برگرداندن انکودر استاندارد BCrypt برای امنیت پسوردها
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // ابزار رمزنگاری پسوردها در دیتابیس (اگر هنوز استفاده نکردی بعداً لازم می‌شود)
         return new BCryptPasswordEncoder();
     }
 }

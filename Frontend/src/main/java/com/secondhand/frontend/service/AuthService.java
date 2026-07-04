@@ -44,7 +44,9 @@ public class AuthService
             // ساخت رشته استاندارد JSON برای لاگین
             String jsonInput = "{" +
                     "\"username\":\"" + username + "\"," +
-                    "\"password\":\"" + password + "\"" +
+                    "\"password\":\"" + password + "\"," +
+                    "\"fullName\":\"\"," +
+                    "\"active\":true" +
                     "}";
 
             HttpRequest request = HttpRequest.newBuilder()
