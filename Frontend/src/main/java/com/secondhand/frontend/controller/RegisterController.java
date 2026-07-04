@@ -1,5 +1,6 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.service.AuthService;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -25,6 +26,9 @@ public class RegisterController {
     @FXML
     private Label errorLabel;
 
+    // تعریف سرویس احراز هویت برای ارتباط با بک‌اِند
+    private final AuthService authService = new AuthService();
+
     @FXML
     private void handleRegister() {
         String fullName = fullNameField.getText().trim();
@@ -43,19 +47,37 @@ public class RegisterController {
             return;
         }
 
-        errorLabel.setText("");
-        // بعداً به backend وصل می‌کنیم
-        System.out.println("Register: " + fullName + " - " + username);
+        errorLabel.setText("در حال ثبت نام...");
 
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/secondhand/frontend/adlist.fxml")
-            );
-            Stage stage = (Stage) usernameField.getScene().getWindow();
-            stage.setScene(new Scene(loader.load(), 600, 500));
-        } catch (Exception e) {
+        // ساخت تسک برای اجرای متد شبکه در ترد پس‌زمینه برای جلوگیری از فریز شدن UI
+        javafx.concurrent.Task<Boolean> registerTask = new javafx.concurrent.Task<>() {
+            @Override
+            protected Boolean call() throws Exception {
+                // صدا زدن متد ثبت‌نام با ۳ پارامتر ورودی
+                return authService.register(fullName, username, password);
+            }
+        };
+
+        // هندل کردن نتیجه موفقیت‌آمیز
+        registerTask.setOnSucceeded(event -> {
+            boolean success = registerTask.getValue();
+            if (success) {
+                System.out.println("ثبت‌نام با موفقیت انجام شد: " + username);
+                // هدایت کاربر به صفحه لاگین (ترجیحاً بهتره اول لاگین کنه)
+                goToLogin();
+            } else {
+                errorLabel.setText("نام کاربری تکراری است یا خطایی رخ داده!");
+            }
+        });
+
+        registerTask.setOnFailed(event -> {
+            Throwable e = registerTask.getException();
             e.printStackTrace();
-        }
+            errorLabel.setText("خطا در اتصال به سرور!");
+        });
+
+        // اجرای ترد
+        new Thread(registerTask).start();
     }
 
     @FXML
@@ -66,6 +88,7 @@ public class RegisterController {
             stage.setScene(new Scene(loader.load(), 500, 420));
         } catch (Exception e) {
             e.printStackTrace();
+            errorLabel.setText("خطا در بارگذاری صفحه ورود");
         }
     }
 }
