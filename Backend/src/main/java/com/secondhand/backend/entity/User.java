@@ -24,6 +24,10 @@ public class User {
     private String password;
 
     private String role = "ROLE_USER";
+
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean active = true;
+
+    @Column(nullable = false)
+    public boolean isBlocked = false;
 }
