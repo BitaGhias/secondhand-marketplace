@@ -1,6 +1,7 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.entity.Favorite;
+import com.secondhand.backend.dto.FavoriteRequest;
+import com.secondhand.backend.dto.FavoriteResponse;
 import com.secondhand.backend.service.FavoriteService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,22 +13,22 @@ import java.util.List;
 public class FavoriteController {
 
     @Autowired
-    public FavoriteService favoriteService;
+    private FavoriteService favoriteService;
 
     @PostMapping("/add")
-    public ResponseEntity<?> addFavorite(@RequestParam Long userId, @RequestParam Long itemId) {
+    public ResponseEntity<?> addFavorite(@RequestBody FavoriteRequest request) {
         try {
-            Favorite favorite = favoriteService.addFavorite(userId, itemId);
-            return ResponseEntity.ok(favorite);
+            FavoriteResponse response = favoriteService.addFavorite(request);
+            return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @DeleteMapping("/remove")
-    public ResponseEntity<?> removeFavorite(@RequestParam Long userId, @RequestParam Long itemId) {
+    public ResponseEntity<?> removeFavorite(@RequestBody FavoriteRequest request) {
         try {
-            favoriteService.removeFavorite(userId, itemId);
+            favoriteService.removeFavorite(request);
             return ResponseEntity.ok("آگهی با موفقیت از لیست علاقه‌مندی‌ها حذف شد.");
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -35,7 +36,7 @@ public class FavoriteController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<List<Favorite>> getUserFavorites(@PathVariable Long userId) {
+    public ResponseEntity<List<FavoriteResponse>> getUserFavorites(@PathVariable Long userId) {
         return ResponseEntity.ok(favoriteService.getUserFavorites(userId));
     }
 }
