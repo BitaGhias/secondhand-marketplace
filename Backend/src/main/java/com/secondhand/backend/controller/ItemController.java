@@ -1,6 +1,7 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.entity.Item;
+import com.secondhand.backend.dto.ItemCreateRequest;
+import com.secondhand.backend.dto.ItemResponse;
 import com.secondhand.backend.service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,10 +16,9 @@ public class ItemController {
     private ItemService itemService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createItem(@RequestBody Item item, @RequestParam Long userId,
-                                        @RequestParam Long cityId) {
+    public ResponseEntity<?> createItem(@RequestBody ItemCreateRequest request) {
         try {
-            Item createdItem = itemService.createItem(item, userId, cityId);
+            ItemResponse createdItem = itemService.addItem(request);
             return ResponseEntity.ok(createdItem);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -26,37 +26,44 @@ public class ItemController {
     }
 
     @GetMapping("/approved")
-    public ResponseEntity<List<Item>> getApprovedItems() {
-        List<Item> items = itemService.getApprovedItems();
+    public ResponseEntity<List<ItemResponse>> getApprovedItems() {
+        List<ItemResponse> items = itemService.getApprovedItems();
         return ResponseEntity.ok(items);
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<List<Item>> getPendingItems() {
-        List<Item> items = itemService.getPendingItems();
-        return ResponseEntity.ok(items);
+    public ResponseEntity<?> getPendingItems(@RequestParam Long adminId) {
+        try {
+            List<ItemResponse> items = itemService.getPendingItems(adminId);
+            return ResponseEntity.ok(items);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<?> updateItemStatus(@PathVariable Long id, @RequestParam String status) {
+    public ResponseEntity<?> updateItemStatus(
+            @PathVariable Long id,
+            @RequestParam Long adminId,
+            @RequestParam String status) {
         try {
-            Item updatedItem = itemService.updateItemStatus(id, status);
+            ItemResponse updatedItem = itemService.updateItemStatus(adminId, id, status);
             return ResponseEntity.ok(updatedItem);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @GetMapping("/categoey/{categoryId}")
-    public ResponseEntity<List<Item>> getItemsByCategory(@PathVariable Long categoryId) {
-        List<Item> items = itemService.getApprovedItemsByCategory(categoryId);
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<List<ItemResponse>> getItemsByCategory(@PathVariable Long categoryId) {
+        List<ItemResponse> items = itemService.getApprovedItemsByCategory(categoryId);
         return ResponseEntity.ok(items);
     }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<?> getItemByUser(@PathVariable Long userId) {
         try {
-            List<Item> items =  itemService.getItemByUser(userId);
+            List<ItemResponse> items = itemService.getItemByUser(userId);
             return ResponseEntity.ok(items);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -72,21 +79,22 @@ public class ItemController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
     @GetMapping("/search")
-    public ResponseEntity<List<Item>> searchItems(@RequestParam String keyword) {
-        List<Item> results = itemService.searchItems(keyword);
+    public ResponseEntity<List<ItemResponse>> searchItems(@RequestParam String keyword) {
+        List<ItemResponse> results = itemService.searchItems(keyword);
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/city/{cityId}")
-    public ResponseEntity<List<Item>> getItemsByCity(@PathVariable Long cityId) {
+    public ResponseEntity<List<ItemResponse>> getItemsByCity(@PathVariable Long cityId) {
         return ResponseEntity.ok(itemService.getItemsByCity(cityId));
     }
 
     @PutMapping("/{id}/sold")
     public ResponseEntity<?> markAsSold(@PathVariable Long id, @RequestParam Long userId) {
         try {
-            Item updatedItem = itemService.markAsSold(id, userId);
+            ItemResponse updatedItem = itemService.markAsSold(id, userId);
             return ResponseEntity.ok(updatedItem);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
