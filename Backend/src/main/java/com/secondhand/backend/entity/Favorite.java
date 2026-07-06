@@ -12,14 +12,13 @@ public class Favorite {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    public User user;
+    private User user;
 
-    // متصل به آگهی نشان شده
     @ManyToOne
     @JoinColumn(name = "item_id", nullable = false)
-    public Item item;
+    private Item item;
 }

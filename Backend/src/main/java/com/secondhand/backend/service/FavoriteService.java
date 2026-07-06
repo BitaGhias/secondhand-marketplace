@@ -1,5 +1,7 @@
 package com.secondhand.backend.service;
 
+import com.secondhand.backend.dto.FavoriteRequest;
+import com.secondhand.backend.dto.FavoriteResponse;
 import com.secondhand.backend.entity.Favorite;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.User;
@@ -8,6 +10,7 @@ import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -15,41 +18,57 @@ import java.util.Optional;
 public class FavoriteService {
 
     @Autowired
-    public FavoriteRepository favoriteRepository;
+    private FavoriteRepository favoriteRepository;
 
     @Autowired
-    public UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    public ItemRepository itemRepository;
+    private ItemRepository itemRepository;
 
-    public Favorite addFavorite(Long userId, Long itemId) {
+    private FavoriteResponse convertToResponse(Favorite favorite) {
+        return new FavoriteResponse(
+                favorite.getId(),
+                favorite.getItem() != null ? favorite.getItem().getId() : null,
+                favorite.getItem() != null ? favorite.getItem().getTitle() : "آگهی حذف شده",
+                favorite.getItem() != null ? favorite.getItem().getPrice() : 0.0,
+                favorite.getItem() != null ? favorite.getItem().getStatus() : "UNKNOWN",
+                favorite.getUser() != null ? favorite.getUser().getId() : null
+        );
+    }
 
-        Optional<Favorite> alreadyFavorited = favoriteRepository.findByUserIdAndItemId(userId, itemId);
+    public FavoriteResponse addFavorite(FavoriteRequest request) {
+        Optional<Favorite> alreadyFavorited = favoriteRepository.findByUserIdAndItemId(request.getUserId(), request.getItemId());
         if (alreadyFavorited.isPresent()) {
             throw new RuntimeException("این آگهی از قبل در لیست علاقه‌مندی‌های شما وجود دارد");
         }
 
-        User user = userRepository.findById(userId)
+        User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
 
         Favorite favorite = new Favorite();
-        favorite.user = user;
-        favorite.item = item;
+        favorite.setUser(user);
+        favorite.setItem(item);
 
-        return favoriteRepository.save(favorite);
+        Favorite saved = favoriteRepository.save(favorite);
+        return convertToResponse(saved);
     }
 
-    public void removeFavorite(Long userId, Long itemId) {
-        Favorite favorite = favoriteRepository.findByUserIdAndItemId(userId, itemId)
+    public void removeFavorite(FavoriteRequest request) {
+        Favorite favorite = favoriteRepository.findByUserIdAndItemId(request.getUserId(), request.getItemId())
                 .orElseThrow(() -> new RuntimeException("این آگهی در لیست علاقه‌مندی‌های شما نیست"));
 
         favoriteRepository.delete(favorite);
     }
 
-    public List<Favorite> getUserFavorites(Long userId) {
-        return favoriteRepository.findByUserId(userId);
+    public List<FavoriteResponse> getUserFavorites(Long userId) {
+        List<Favorite> favorites = favoriteRepository.findByUserId(userId);
+        List<FavoriteResponse> responses = new ArrayList<>();
+        for (Favorite f : favorites) {
+            responses.add(convertToResponse(f));
+        }
+        return responses;
     }
 }
