@@ -23,7 +23,7 @@ public class Item {
     @Column(nullable = false)
     private Double price;
 
-    private String status = "PENDING"; // وضعیت آگهی: PENDING (منتظر تایید)، APPROVED (تایید شده)، REJECTED (رد شده)
+    private String status = "PENDING"; //  PENDING ، APPROVED ، REJECTED
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
