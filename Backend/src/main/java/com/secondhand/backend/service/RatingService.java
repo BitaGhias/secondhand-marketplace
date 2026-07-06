@@ -1,5 +1,7 @@
 package com.secondhand.backend.service;
 
+import com.secondhand.backend.dto.RatingCreateRequest;
+import com.secondhand.backend.dto.RatingResponse;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.Rating;
 import com.secondhand.backend.entity.User;
@@ -15,45 +17,59 @@ import java.util.Optional;
 public class RatingService {
 
     @Autowired
-    public RatingRepository ratingRepository;
+    private RatingRepository ratingRepository;
 
     @Autowired
-    public UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    public ItemRepository itemRepository;
+    private ItemRepository itemRepository;
 
-    public Rating addRating(Long itemId, Long raterId, int score, String comment) {
+    private RatingResponse convertToResponse(Rating rating) {
+        return new RatingResponse(
+                rating.getId(),
+                rating.getScore(),
+                rating.getComment(),
+                rating.getItem() != null ? rating.getItem().getId() : null,
+                rating.getItem() != null ? rating.getItem().getTitle() : "آگهی حذف شده",
+                rating.getRater() != null ? rating.getRater().getId() : null,
+                rating.getRater() != null ? rating.getRater().getUsername() : "کاربر ناشناس",
+                rating.getSeller() != null ? rating.getSeller().getId() : null,
+                rating.getSeller() != null ? rating.getSeller().getUsername() : "کاربر ناشناس"
+        );
+    }
 
-        if (score < 1 || score > 5) {
+    public RatingResponse addRating(RatingCreateRequest request) {
+        if (request.getScore() < 1 || request.getScore() > 5) {
             throw new RuntimeException("امتیاز وارد شده باید عددی بین ۱ تا ۵ باشد!");
         }
 
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
 
-        User rater = userRepository.findById(raterId)
+        User rater = userRepository.findById(request.getRaterId())
                 .orElseThrow(() -> new RuntimeException("کاربر ثبت‌کننده امتیاز یافت نشد"));
 
         User seller = item.getUser();
 
-        if (seller.getId().equals(raterId)) {
+        if (seller.getId().equals(request.getRaterId())) {
             throw new RuntimeException("شما نمی‌توانید به خودتان امتیاز بدهید!");
         }
 
-        Optional<Rating> existingRating = ratingRepository.findByRaterIdAndItemId(raterId, itemId);
+        Optional<Rating> existingRating = ratingRepository.findByRaterIdAndItemId(request.getRaterId(), request.getItemId());
         if (existingRating.isPresent()) {
             throw new RuntimeException("شما قبلاً برای این آگهی امتیاز ثبت کرده‌اید!");
         }
 
         Rating rating = new Rating();
-        rating.score = score;
-        rating.comment = comment;
-        rating.item = item;
-        rating.rater = rater;
-        rating.seller = seller;
+        rating.setScore(request.getScore());
+        rating.setComment(request.getComment());
+        rating.setItem(item);
+        rating.setRater(rater);
+        rating.setSeller(seller);
 
-        return ratingRepository.save(rating);
+        Rating savedRating = ratingRepository.save(rating);
+        return convertToResponse(savedRating);
     }
 
     public double getSellerAverageRating(Long sellerId) {
@@ -64,7 +80,7 @@ public class RatingService {
 
         double sum = 0;
         for (Rating r : ratings) {
-            sum += r.score;
+            sum += r.getScore();
         }
         return sum / ratings.size();
     }
