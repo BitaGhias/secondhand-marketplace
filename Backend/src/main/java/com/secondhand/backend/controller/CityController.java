@@ -1,6 +1,7 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.entity.City;
+import com.secondhand.backend.dto.CityRequest;
+import com.secondhand.backend.dto.CityResponse;
 import com.secondhand.backend.service.CityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,18 +13,18 @@ import java.util.List;
 public class CityController {
 
     @Autowired
-    public CityService cityService;
+    private CityService cityService;
 
     @GetMapping
-    public ResponseEntity<List<City>> getAllCities() {
+    public ResponseEntity<List<CityResponse>> getAllCities() {
         return ResponseEntity.ok(cityService.getAllCities());
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addCity(@RequestParam String name) {
+    public ResponseEntity<?> addCity(@RequestBody CityRequest request) {
         try {
-            City city = cityService.addCity(name);
-            return ResponseEntity.ok(city);
+            CityResponse cityResponse = cityService.addCity(request);
+            return ResponseEntity.ok(cityResponse);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
