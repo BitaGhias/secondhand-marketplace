@@ -24,6 +24,10 @@ public class UserService {
         User user = userRepository.findByUsername(username).orElseThrow(() ->
                 new RuntimeException("نام کاربری یا رمز عبور اشتباه است"));
 
+        if (user.isBlocked) {
+            throw new RuntimeException("حساب کاربری شما توسط ادمین مسدود شده است!");
+        }
+
         // مقایسه مستقیم و متنی پسوردها
         if (!user.getPassword().equals(password)) {
             throw new RuntimeException("نام کاربری یا رمز عبور اشتباه است");
