@@ -1,6 +1,7 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.entity.Category;
+import com.secondhand.backend.dto.CategoryRequest;
+import com.secondhand.backend.dto.CategoryResponse;
 import com.secondhand.backend.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -12,11 +13,12 @@ import java.util.List;
 public class CategoryController {
 
     @Autowired
-    public CategoryService categoryService;
+    private CategoryService categoryService;
 
-    public ResponseEntity<?> createCategory(@RequestBody Category category) {
+    @PostMapping("/create")
+    public ResponseEntity<?> createCategory(@RequestBody CategoryRequest request) {
         try {
-            Category created = categoryService.createCategory(category);
+            CategoryResponse created = categoryService.createCategory(request);
             return ResponseEntity.ok(created);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -24,7 +26,7 @@ public class CategoryController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<List<Category>> getAllCategories() {
+    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
         return ResponseEntity.ok(categoryService.getAllCategories());
     }
 }
