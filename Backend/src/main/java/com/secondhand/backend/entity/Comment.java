@@ -12,18 +12,16 @@ public class Comment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
 
     @Column(nullable = false)
-    public String text;
+    private String text;
 
-    // متصل به آگهی مورد نظر
     @ManyToOne
     @JoinColumn(name = "item_id", nullable = false)
-    public Item item;
+    private Item item;
 
-    // کاربری که کامنت را گذاشته است
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    public User user;
+    private User user;
 }
