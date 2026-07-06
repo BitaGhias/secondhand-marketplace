@@ -36,7 +36,7 @@ public class ItemService {
                 item.getPrice(),
                 item.getStatus(),
                 item.category != null ? item.category.getName() : "بدون دسته‌بندی",
-                item.city != null ? item.city.name : "بدون شهر",
+                item.city != null ? item.city.getName() : "بدون شهر",
                 item.getUser() != null ? item.getUser().getUsername() : "کاربر ناشناس",
                 item.getUser() != null ? item.getUser().getId() : null
         );
