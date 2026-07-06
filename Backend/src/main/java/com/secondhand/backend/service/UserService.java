@@ -1,5 +1,6 @@
 package com.secondhand.backend.service;
 
+import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.UserRegisterRequest;
 import com.secondhand.backend.dto.UserResponse;
 import com.secondhand.backend.entity.User;
@@ -56,9 +57,12 @@ public class UserService {
         return convertToResponse(user);
     }
 
-    public List<UserResponse> getAllUsers(Long adminId) {
-        if (!adminId.equals(1L)) {
-            throw new RuntimeException("شما دسترسی به این عملیات را ندارید!");
+    public List<UserResponse> getAllUsers(Long requesterId) {
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new RuntimeException("کاربر درخواست‌کننده یافت نشد"));
+
+        if (requester.getRole() != Role.ADMIN) {
+            throw new RuntimeException("شما دسترسی ادمین به این عملیات را ندارید!");
         }
 
         List<User> users = userRepository.findAll();
@@ -70,18 +74,23 @@ public class UserService {
     }
 
     public UserResponse toggleUserBlockStatus(Long adminId, Long userId, boolean block) {
-        if (!adminId.equals(1L)) {
-            throw new RuntimeException("شما دسترسی به این عملیات را ندارید!");
-        }
-        if (userId.equals(1L)) {
-            throw new RuntimeException("شما نمی‌توانید حساب ادمین اصلی را مسدود کنید!");
+        User requester = userRepository.findById(adminId)
+                .orElseThrow(() -> new RuntimeException("کاربر درخواست‌کننده یافت نشد"));
+
+        if (requester.getRole() != Role.ADMIN) {
+            throw new RuntimeException("شما دسترسی ادمین به این عملیات را ندارید!");
         }
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("کاربر مورد نظر یافت نشد"));
 
-        user.setBlocked(block);
-        User updatedUser = userRepository.save(user);
+        if (targetUser.getRole() == Role.ADMIN) {
+            throw new RuntimeException("شما نمی‌توانید حساب‌های سطح ادمین را مسدود کنید!");
+        }
+
+        targetUser.setBlocked(block);
+        User updatedUser = userRepository.save(targetUser);
+
         return convertToResponse(updatedUser);
     }
 }

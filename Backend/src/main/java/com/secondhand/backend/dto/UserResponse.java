@@ -1,5 +1,6 @@
 package com.secondhand.backend.dto;
 
+import com.secondhand.backend.constant.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,6 +12,6 @@ public class UserResponse {
     private Long id;
     private String fullName;
     private String username;
-    private String role;
+    private Role role;
     private boolean isBlocked;
 }

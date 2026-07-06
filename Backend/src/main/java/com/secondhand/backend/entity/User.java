@@ -1,5 +1,6 @@
 package com.secondhand.backend.entity;
 
+import com.secondhand.backend.constant.Role;
 import jakarta.persistence.*;//کد های ما رو به دیتابیس وصل میکنه
 import lombok.*;//جلوگیری از نوشتن کدهای تکراری
 
@@ -23,7 +24,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    private String role = "ROLE_USER";
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role = Role.USER;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean active = true;
