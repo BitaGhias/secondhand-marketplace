@@ -91,5 +91,18 @@ public class ItemService {
 
     public List<Item> getItemsByCity(Long cityId) {
         return itemRepository.findByStatusAndCityId("APPROVED", cityId);
+
+    }
+
+    public Item markAsSold(Long itemId, Long userId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
+
+        if (!item.getUser().getId().equals(userId)) {
+            throw new RuntimeException("شما مالک این آگهی نیستید و اجازه تغییر وضعیت آن را ندارید!");
+        }
+
+        item.setStatus("SOLD");
+        return itemRepository.save(item);
     }
 }

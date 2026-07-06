@@ -82,4 +82,14 @@ public class ItemController {
     public ResponseEntity<List<Item>> getItemsByCity(@PathVariable Long cityId) {
         return ResponseEntity.ok(itemService.getItemsByCity(cityId));
     }
+
+    @PutMapping("/{id}/sold")
+    public ResponseEntity<?> markAsSold(@PathVariable Long id, @RequestParam Long userId) {
+        try {
+            Item updatedItem = itemService.markAsSold(id, userId);
+            return ResponseEntity.ok(updatedItem);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
