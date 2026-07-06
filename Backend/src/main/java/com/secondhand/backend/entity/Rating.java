@@ -12,25 +12,22 @@ public class Rating {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
 
     @Column(nullable = false)
-    public int score;
+    private int score;
 
-    public String comment;
+    private String comment;
 
-    //  مربوط به کدام آگهی است؟
     @ManyToOne
     @JoinColumn(name = "item_id", nullable = false)
-    public Item item;
+    private Item item;
 
-    // کاربری که امتیاز را ثبت کرده (خریدار)
     @ManyToOne
     @JoinColumn(name = "rater_id", nullable = false)
-    public User rater;
+    private User rater;
 
-    // فروشنده‌ای که امتیاز را دریافت کرده است
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
-    public User seller;
+    private User seller;
 }
