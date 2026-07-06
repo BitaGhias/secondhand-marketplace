@@ -1,26 +1,43 @@
 package com.secondhand.backend.service;
 
+import com.secondhand.backend.dto.CategoryRequest;
+import com.secondhand.backend.dto.CategoryResponse;
 import com.secondhand.backend.entity.Category;
 import com.secondhand.backend.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
 public class CategoryService {
 
     @Autowired
-    public CategoryRepository categoryRepository; // استخدام مأمور دیتابیس دسته‌بندی‌ها
+    private CategoryRepository categoryRepository;
 
-    public Category createCategory(Category category) {
-        Category existing = categoryRepository.findByName(category.name);
+    private CategoryResponse convertToResponse(Category category) {
+        return new CategoryResponse(category.getId(), category.getName());
+    }
+
+    public CategoryResponse createCategory(CategoryRequest request) {
+        Category existing = categoryRepository.findByName(request.getName());
         if (existing != null) {
             throw new RuntimeException("این دسته‌بندی از قبل وجود دارد");
         }
-        return categoryRepository.save(category);
+
+        Category category = new Category();
+        category.setName(request.getName());
+
+        Category saved = categoryRepository.save(category);
+        return convertToResponse(saved);
     }
 
-    public List<Category> getAllCategories() {
-        return categoryRepository.findAll();
+    public List<CategoryResponse> getAllCategories() {
+        List<Category> categories = categoryRepository.findAll();
+        List<CategoryResponse> responses = new ArrayList<>();
+        for (Category cat : categories) {
+            responses.add(convertToResponse(cat));
+        }
+        return responses;
     }
 }
