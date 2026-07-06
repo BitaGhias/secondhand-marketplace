@@ -1,16 +1,12 @@
 package com.secondhand.backend.service;
 
-import com.secondhand.backend.entity.ChatMessage;
-import com.secondhand.backend.entity.Conversation;
-import com.secondhand.backend.entity.Item;
-import com.secondhand.backend.entity.User;
-import com.secondhand.backend.repository.ChatMessageRepository;
-import com.secondhand.backend.repository.ConversationRepository;
-import com.secondhand.backend.repository.ItemRepository;
-import com.secondhand.backend.repository.UserRepository;
+import com.secondhand.backend.dto.*;
+import com.secondhand.backend.entity.*;
+import com.secondhand.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,23 +15,41 @@ public class ConversationService {
 
     @Autowired
     public ConversationRepository conversationRepository;
-
     @Autowired
     public ChatMessageRepository chatMessageRepository;
-
     @Autowired
     public UserRepository userRepository;
-
     @Autowired
     public ItemRepository itemRepository;
 
-    public Conversation startConversation(Long itemId, Long buyerId) {
+    private ConversationResponse convertToConversationResponse(Conversation conv) {
+        return new ConversationResponse(
+                conv.id,
+                conv.item != null ? conv.item.getId() : null,
+                conv.item != null ? conv.item.getTitle() : "آگهی حذف شده",
+                conv.buyer != null ? conv.buyer.getId() : null,
+                conv.buyer != null ? conv.buyer.getUsername() : "ناشناس",
+                conv.seller != null ? conv.seller.getId() : null,
+                conv.seller != null ? conv.seller.getUsername() : "ناشناس"
+        );
+    }
+
+    private ChatMessageResponse convertToMessageResponse(ChatMessage msg) {
+        return new ChatMessageResponse(
+                msg.id,
+                msg.conversation != null ? msg.conversation.id : null,
+                msg.sender != null ? msg.sender.getId() : null,
+                msg.sender != null ? msg.sender.getUsername() : "ناشناس",
+                msg.text,
+                msg.timestamp
+        );
+    }
+
+    public ConversationResponse startConversation(Long itemId, Long buyerId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
-
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new RuntimeException("خریدار یافت نشد"));
-
         User seller = item.getUser();
 
         if (seller.getId().equals(buyerId)) {
@@ -44,7 +58,7 @@ public class ConversationService {
 
         Optional<Conversation> existing = conversationRepository.findByBuyerIdAndSellerIdAndItemId(buyerId, seller.getId(), itemId);
         if (existing.isPresent()) {
-            return existing.get();
+            return convertToConversationResponse(existing.get());
         }
 
         Conversation conversation = new Conversation();
@@ -52,38 +66,45 @@ public class ConversationService {
         conversation.buyer = buyer;
         conversation.seller = seller;
 
-        return conversationRepository.save(conversation);
+        Conversation saved = conversationRepository.save(conversation);
+        return convertToConversationResponse(saved);
     }
 
-    public ChatMessage sendMessage(Long conversationId, Long senderId, String text) {
-
-        Conversation conversation = conversationRepository.findById(conversationId)
+    public ChatMessageResponse sendMessage(ChatMessageRequest request) {
+        Conversation conversation = conversationRepository.findById(request.getConversationId())
                 .orElseThrow(() -> new RuntimeException("مکالمه یافت نشد"));
-
-        User sender = userRepository.findById(senderId)
+        User sender = userRepository.findById(request.getSenderId())
                 .orElseThrow(() -> new RuntimeException("فرستنده یافت نشد"));
 
-        // بررسی اینکه فرستنده حتما خریدار یا فروشنده همین مکالمه باشد
-        if (!conversation.buyer.getId().equals(senderId) && !conversation.seller.getId().equals(senderId)) {
+        if (!conversation.buyer.getId().equals(request.getSenderId()) && !conversation.seller.getId().equals(request.getSenderId())) {
             throw new RuntimeException("شما عضو این مکالمه نیستید!");
         }
 
         ChatMessage message = new ChatMessage();
         message.conversation = conversation;
         message.sender = sender;
-        message.text = text;
+        message.text = request.getText();
         message.timestamp = LocalDateTime.now();
 
-        return chatMessageRepository.save(message);
+        ChatMessage saved = chatMessageRepository.save(message);
+        return convertToMessageResponse(saved);
     }
 
-    // دریافت لیست پیام های داخل یک مکالمه
-    public List<ChatMessage> getMessages(Long conversationId) {
-        return chatMessageRepository.findByConversationIdOrderByTimestampAsc(conversationId);
+    public List<ChatMessageResponse> getMessages(Long conversationId) {
+        List<ChatMessage> messages = chatMessageRepository.findByConversationIdOrderByTimestampAsc(conversationId);
+        List<ChatMessageResponse> responses = new ArrayList<>();
+        for (ChatMessage msg : messages) {
+            responses.add(convertToMessageResponse(msg));
+        }
+        return responses;
     }
 
-    //  دریافت تمام مکالمات یک کاربر
-    public List<Conversation> getUserConversations(Long userId) {
-        return conversationRepository.findByBuyerIdOrSellerId(userId, userId);
+    public List<ConversationResponse> getUserConversations(Long userId) {
+        List<Conversation> conversations = conversationRepository.findByBuyerIdOrSellerId(userId, userId);
+        List<ConversationResponse> responses = new ArrayList<>();
+        for (Conversation conv : conversations) {
+            responses.add(convertToConversationResponse(conv));
+        }
+        return responses;
     }
 }
