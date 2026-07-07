@@ -16,7 +16,6 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
 
-    //متد کمکی برای تدیل راحت تر
     public UserResponse convertToResponse(User user) {
         return new UserResponse(
                 user.getId(),

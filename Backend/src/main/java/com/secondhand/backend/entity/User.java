@@ -1,24 +1,24 @@
 package com.secondhand.backend.entity;
 
 import com.secondhand.backend.constant.Role;
-import jakarta.persistence.*;//کد های ما رو به دیتابیس وصل میکنه
-import lombok.*;//جلوگیری از نوشتن کدهای تکراری
+import jakarta.persistence.*;
+import lombok.*;
 
 @Entity
 @Table(name = "users")
-@Data                //  تولید خودکار Getter، Setter، toString، equals و hashCode
-@NoArgsConstructor   //  تولید سازنده بدون آرگومان
-@AllArgsConstructor  //  تولید سازنده با تمام آرگومان‌ها
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class User {
 
-    @Id //فیلد اصلی برای شناسایی
-    @GeneratedValue(strategy = GenerationType.TABLE)
-    private Long id;//شناسه کاربران
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String fullName;
 
-    @Column(nullable = false, unique = true) //غیر تکراری و غیر خالی
+    @Column(nullable = false, unique = true)
     private String username;
 
     @Column(nullable = false)
@@ -28,9 +28,9 @@ public class User {
     @Column(nullable = false)
     private Role role = Role.USER;
 
-    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
+    @Column(nullable = false)
     private boolean active = true;
 
     @Column(nullable = false)
-    public boolean isBlocked = false;
+    private boolean blocked = false;
 }
