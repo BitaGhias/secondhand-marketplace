@@ -1,15 +1,13 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.dto.LoginRequest;
-import com.secondhand.backend.dto.LoginResponse;
-import com.secondhand.backend.dto.UserRegisterRequest;
-import com.secondhand.backend.dto.UserResponse;
-import com.secondhand.backend.dto.ErrorResponse;
+import com.secondhand.backend.dto.*;
 import com.secondhand.backend.service.UserService;
+import com.secondhand.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -18,6 +16,9 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegisterRequest request) {
@@ -38,8 +39,13 @@ public class AuthController {
                     request.getPassword()
             );
 
-            // فعلاً token رو خالی میذاریم
-            LoginResponse loginResponse = new LoginResponse(userResponse, "jwt-token-here");
+            String token = jwtUtil.generateToken(
+                    userResponse.getUsername(),
+                    userResponse.getId(),
+                    userResponse.getRole().name()
+            );
+
+            LoginResponse loginResponse = new LoginResponse(userResponse, token);
             return ResponseEntity.ok(loginResponse);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
