@@ -1,2 +1,28 @@
+# Compiled files
+target/
+*.class
+
+# IDE
 .idea/
-secondhand.sqlite
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# Database
+*.db
+*.sqlite
+identifier.db
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Maven
+.mvn/
+mvnw
+mvnw.cmd
