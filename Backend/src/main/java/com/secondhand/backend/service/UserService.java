@@ -6,6 +6,7 @@ import com.secondhand.backend.dto.UserResponse;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +16,9 @@ public class UserService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     public UserResponse convertToResponse(User user) {
         return new UserResponse(
@@ -34,7 +38,10 @@ public class UserService {
         User user = new User();
         user.setFullName(request.getFullName());
         user.setUsername(request.getUsername());
-        user.setPassword(request.getPassword());
+
+        String encodedPassword = passwordEncoder.encode(request.getPassword());
+        user.setPassword(encodedPassword);
+
         user.setBlocked(false);
 
         User savedUser = userRepository.save(user);
@@ -49,7 +56,7 @@ public class UserService {
             throw new RuntimeException("حساب کاربری شما توسط ادمین مسدود شده است!");
         }
 
-        if (!user.getPassword().equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new RuntimeException("نام کاربری یا رمز عبور اشتباه است");
         }
 
