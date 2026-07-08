@@ -9,5 +9,4 @@ public class ItemCreateRequest {
     private double price;
     private Long categoryId;
     private Long cityId;
-    private Long userId;
 }

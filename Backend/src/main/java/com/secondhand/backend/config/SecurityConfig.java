@@ -54,7 +54,7 @@ public class SecurityConfig {
                         //  مسیرهای ادمین
                         .requestMatchers("/api/auth/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/items/pending").hasRole("ADMIN")
-                        .requestMatchers("/api/items/**/status").hasRole("ADMIN")
+                        .requestMatchers("/api/items/*/status").hasRole("ADMIN")
 
                         .anyRequest().authenticated()  // بقیه مسیرها نیاز به احراز هویت دارن
                 )
