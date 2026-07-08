@@ -3,8 +3,11 @@ package com.secondhand.backend.controller;
 import com.secondhand.backend.dto.ItemCreateRequest;
 import com.secondhand.backend.dto.ItemResponse;
 import com.secondhand.backend.service.ItemService;
+import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -15,10 +18,21 @@ public class ItemController {
     @Autowired
     private ItemService itemService;
 
+    @Autowired
+    private UserService userService;
+
+    private Long getCurrentUserId() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        return userService.getUserIdByUsername(username);
+    }
+
     @PostMapping("/create")
     public ResponseEntity<?> createItem(@RequestBody ItemCreateRequest request) {
         try {
-            ItemResponse createdItem = itemService.addItem(request);
+            Long userId = getCurrentUserId();
+            ItemResponse createdItem = itemService.addItem(request , userId);
             return ResponseEntity.ok(createdItem);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
