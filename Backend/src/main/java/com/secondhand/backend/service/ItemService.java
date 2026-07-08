@@ -50,8 +50,8 @@ public class ItemService {
         return responses;
     }
 
-    public ItemResponse addItem(ItemCreateRequest request) {
-        User user = userRepository.findById(request.getUserId())
+    public ItemResponse addItem(ItemCreateRequest request, Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new RuntimeException("دسته‌بندی یافت نشد"));
