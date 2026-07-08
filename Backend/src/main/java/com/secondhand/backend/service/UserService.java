@@ -99,4 +99,10 @@ public class UserService {
 
         return convertToResponse(updatedUser);
     }
+
+    public Long getUserIdByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
+        return user.getId();
+    }
 }
