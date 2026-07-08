@@ -26,9 +26,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter { // هر در
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request,
+            HttpServletRequest request, // هر چیزی که فرانت به سرور میفرسته
             HttpServletResponse response,
-            FilterChain filterChain
+            FilterChain filterChain // ایستگاه بعدی
     ) throws ServletException, IOException { //متد اصلی فیلتر
 
         String authHeader = request.getHeader("Authorization"); // انگار داری مجوز میخونی
@@ -37,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter { // هر در
         String username = null;
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            token = authHeader.substring(7); // حدف Bearer
+            token = authHeader.substring(7); // برگردوندن توکن بدون Bearer
             try {
                 username = jwtUtil.extractUsername(token);
             } catch (Exception e) {

@@ -6,6 +6,8 @@ import com.secondhand.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +21,14 @@ public class UserController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    // متد کمکی برای گرفتن userId از توکن
+    private Long getCurrentUserId() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        return userService.getUserIdByUsername(username);
+    }
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody UserRegisterRequest request) {
@@ -53,9 +63,11 @@ public class UserController {
         }
     }
 
+    // گرفتن لیست کاربران (بدون adminId از توکن میگیریم)
     @GetMapping("/admin/all")
-    public ResponseEntity<?> getAllUsers(@RequestParam Long adminId) {
+    public ResponseEntity<?> getAllUsers() {
         try {
+            Long adminId = getCurrentUserId();
             List<UserResponse> users = userService.getAllUsers(adminId);
             return ResponseEntity.ok(users);
         } catch (RuntimeException e) {
@@ -64,12 +76,13 @@ public class UserController {
         }
     }
 
+    // مسدود کردن کاربر (بدون adminId  از توکن میگیریم)
     @PostMapping("/admin/toggle-block")
     public ResponseEntity<?> toggleBlock(
-            @RequestParam Long adminId,
             @RequestParam Long userId,
             @RequestParam boolean block) {
         try {
+            Long adminId = getCurrentUserId();
             UserResponse response = userService.toggleUserBlockStatus(adminId, userId, block);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
