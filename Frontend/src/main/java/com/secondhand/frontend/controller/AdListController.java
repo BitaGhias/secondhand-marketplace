@@ -15,12 +15,7 @@ public class AdListController {
 
     @FXML
     public void initialize() {
-        ObservableList<String> fakeAds = FXCollections.observableArrayList(
-                "گوشی سامسونگ A52 - 5,000,000 تومان - تهران",
-                "لپ‌تاپ ایسوس - 12,000,000 تومان - اصفهان",
-                "دوچرخه کوهستان - 2,500,000 تومان - شیراز"
-        );
-        adListView.setItems(fakeAds);
+
     }
 
     @FXML
