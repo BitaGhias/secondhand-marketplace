@@ -18,21 +18,22 @@ public class ItemResponse {
     public ItemResponse() {}
 
     public ItemResponse(Long id, String title, String description, double price, String status,
-                        String categoryName, String cityName, String ownerUsername, Long ownerId,
-                        List<ImageResponse> images) {
+                        String categoryName, String parentCategoryName, String cityName,
+                        String ownerUsername, Long ownerId, List<ImageResponse> images) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.price = price;
         this.status = status;
         this.categoryName = categoryName;
-        this.parentCategoryName = "";
+        this.parentCategoryName = parentCategoryName;
         this.cityName = cityName;
         this.ownerUsername = ownerUsername;
         this.ownerId = ownerId;
         this.images = images;
     }
 
+    // ===== Getters =====
     public Long getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
@@ -45,6 +46,7 @@ public class ItemResponse {
     public Long getOwnerId() { return ownerId; }
     public List<ImageResponse> getImages() { return images; }
 
+    // ===== Setters =====
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }

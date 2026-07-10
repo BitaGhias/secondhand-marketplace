@@ -43,7 +43,6 @@ public class ItemService {
 
     private ItemResponse convertToResponse(Item item) {
         List<Image> images = imageRepository.findByItemId(item.getId());
-
         List<ImageResponse> imageResponses = new ArrayList<>();
         for (Image img : images) {
             imageResponses.add(new ImageResponse(img.getId(), img.getImagePath()));
@@ -63,6 +62,7 @@ public class ItemService {
                 item.getPrice(),
                 item.getStatus().name(),
                 categoryName,
+                parentCategoryName,  // ← این رو اضافه کن
                 item.getCity() != null ? item.getCity().getName() : "بدون شهر",
                 item.getUser() != null ? item.getUser().getUsername() : "کاربر ناشناس",
                 item.getUser() != null ? item.getUser().getId() : null,
