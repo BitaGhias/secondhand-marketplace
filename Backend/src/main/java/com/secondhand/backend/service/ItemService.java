@@ -41,7 +41,6 @@ public class ItemService {
     @Autowired
     private ImageRepository imageRepository;
 
-
     private void validateUserIsActiveAndNotBlocked(User user) {
         if (!user.isActive()) {
             throw new ForbiddenException("حساب کاربری شما فعال نیست!");
@@ -87,6 +86,47 @@ public class ItemService {
         }
     }
 
+
+    private void validateImages(List<MultipartFile> images) {
+        if (images == null || images.isEmpty()) {
+            return;
+        }
+
+        //  محدودیت تعداد تصاویر
+        if (images.size() > 5) {
+            throw new BadRequestException("تعداد تصاویر نباید بیشتر از ۵ باشد!");
+        }
+
+        for (MultipartFile file : images) {
+            if (!file.isEmpty()) {
+                //  بررسی نوع فایل
+                String contentType = file.getContentType();
+                if (contentType == null || !contentType.startsWith("image/")) {
+                    throw new BadRequestException("فایل ارسال شده تصویر نیست!");
+                }
+
+                String originalFileName = file.getOriginalFilename();
+                if (originalFileName != null) {
+                    String extension = "";
+                    if (originalFileName.contains(".")) {
+                        extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase();
+                    }
+
+                    List<String> allowedExtensions = List.of(".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp");
+                    if (!allowedExtensions.contains(extension)) {
+                        throw new BadRequestException("فرمت فایل تصویر مجاز نیست! فرمت‌های مجاز: jpg, jpeg, png, gif, bmp, webp");
+                    }
+                }
+
+                //  بررسی حجم فایل (حداکثر ۵ مگابایت)
+                long maxSize = 5 * 1024 * 1024;  // 5 MB
+                if (file.getSize() > maxSize) {
+                    throw new BadRequestException("حجم تصویر نباید بیشتر از ۵ مگابایت باشد!");
+                }
+            }
+        }
+    }
+
     private ItemResponse convertToResponse(Item item) {
         List<Image> images = imageRepository.findByItemId(item.getId());
         List<ImageResponse> imageResponses = new ArrayList<>();
@@ -123,7 +163,6 @@ public class ItemService {
         return responses;
     }
 
-
     public ItemResponse addItem(ItemCreateRequest request, Long userId) {
 
         User user = userRepository.findById(userId)
@@ -131,8 +170,10 @@ public class ItemService {
         validateUserIsActiveAndNotBlocked(user);
 
         validateItemTitleAndDescription(request.getTitle(), request.getDescription());
-
         validateItemPrice(request.getPrice());
+
+        // اعتبارسنجی تصاویر
+        validateImages(request.getImages());
 
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی یافت نشد"));
@@ -186,12 +227,10 @@ public class ItemService {
         return convertToResponse(savedItem);
     }
 
-
     public List<ItemResponse> getApprovedItems() {
         List<Item> items = itemRepository.findByStatus(ItemStatus.APPROVED.name());
         return convertToResponseList(items);
     }
-
 
     public ItemResponse updateItemStatus(Long requesterAdminId, Long itemId, String newStatus) {
         User requester = userRepository.findById(requesterAdminId)
@@ -222,7 +261,6 @@ public class ItemService {
             throw new BadRequestException("وضعیت ارسال شده معتبر نیست. باید APPROVED یا REJECTED باشد.");
         }
 
-        // ادمین فقط می‌تونه APPROVED یا REJECTED کنه
         if (status != ItemStatus.APPROVED && status != ItemStatus.REJECTED) {
             throw new BadRequestException("ادمین فقط می‌تواند آگهی را تایید (APPROVED) یا رد (REJECTED) کند!");
         }
@@ -236,7 +274,6 @@ public class ItemService {
         return convertToResponse(updatedItem);
     }
 
-
     public List<ItemResponse> getPendingItems(Long requesterAdminId) {
         User requester = userRepository.findById(requesterAdminId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -247,12 +284,10 @@ public class ItemService {
         return convertToResponseList(items);
     }
 
-
     public List<ItemResponse> getApprovedItemsByCategory(Long categoryId) {
         List<Item> items = itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED.name());
         return convertToResponseList(items);
     }
-
 
     public List<ItemResponse> getItemByUser(Long userId) {
         if (!userRepository.existsById(userId)) {
@@ -261,7 +296,6 @@ public class ItemService {
         List<Item> items = itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED.name());
         return convertToResponseList(items);
     }
-
 
     public void deleteItem(Long itemId, Long userId) {
 
@@ -281,7 +315,7 @@ public class ItemService {
             try {
                 Path filePath = Paths.get(image.getImagePath());
                 if (Files.exists(filePath)) {
-                    Files.delete(filePath);  // حذف فایل از روی دیسک
+                    Files.delete(filePath);
                     System.out.println("🗑️ تصویر حذف شد: " + image.getImagePath());
                 }
             } catch (IOException e) {
@@ -305,7 +339,6 @@ public class ItemService {
         );
         return convertToResponseList(items);
     }
-
 
     public List<ItemResponse> getItemsByCity(Long cityId) {
         if (!cityRepository.existsById(cityId)) {
@@ -341,7 +374,6 @@ public class ItemService {
         return convertToResponse(updatedItem);
     }
 
-
     public ItemResponse getItemById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
@@ -351,7 +383,6 @@ public class ItemService {
         }
         return convertToResponse(item);
     }
-
 
     public ItemResponse updateItem(Long itemId, Long userId, ItemUpdateRequest request) {
         User user = userRepository.findById(userId)
