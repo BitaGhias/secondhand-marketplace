@@ -26,7 +26,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING) // بخاطر اینکه به صورت رشته در DB ذحیره شه
     @Column(nullable = false)
     private Role role = Role.USER;
 

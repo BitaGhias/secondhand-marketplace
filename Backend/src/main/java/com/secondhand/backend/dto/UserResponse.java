@@ -30,7 +30,7 @@ public class UserResponse {
     public Role getRole() { return role; }
     public boolean isBlocked() { return blocked; }
     public String getPhoneNumber() { return phoneNumber; }
-    public String getEmail() { return email; }  // ← اضافه شد
+    public String getEmail() { return email; }
 
     public void setId(Long id) { this.id = id; }
     public void setFullName(String fullName) { this.fullName = fullName; }
@@ -38,5 +38,5 @@ public class UserResponse {
     public void setRole(Role role) { this.role = role; }
     public void setBlocked(boolean blocked) { this.blocked = blocked; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
-    public void setEmail(String email) { this.email = email; }  // ← اضافه شد
+    public void setEmail(String email) { this.email = email; }
 }

@@ -1,7 +1,7 @@
 package com.secondhand.backend.config;
 
 import com.secondhand.backend.filter.JwtAuthenticationFilter;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Autowired; // برای تزریق وابستگی ها
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -14,13 +14,13 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity // فعال کردن امنیت وب
-public class SecurityConfig {
+public class SecurityConfig { // بررسی درخواست ها قبل از رسیدن به کنترلر
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception { // برگردوندن زنجیره فیلتر های امنیتی
         http
                 //  غیرفعال کردن CSRF
                 .csrf(AbstractHttpConfigurer::disable)
@@ -67,7 +67,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/cities/add").hasRole("ADMIN")
                         .requestMatchers("/api/auth/admin/make-admin").hasRole("ADMIN")
 
-                        .anyRequest().authenticated()  // بقیه مسیرها نیاز به احراز هویت دارن
+                        .anyRequest().authenticated()  // بقیه مسیرها نیاز به توکن دارن
                 )
 
                 //  اضافه کردن فیلتر JWT قبل از فیلتر پیش‌فرض Spring Security

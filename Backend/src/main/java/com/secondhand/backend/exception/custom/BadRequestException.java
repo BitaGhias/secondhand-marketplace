@@ -5,3 +5,6 @@ public class BadRequestException extends RuntimeException {
         super(message);
     }
 }
+//BadRequest
+//400
+//داده ارسالی نامعتبر است

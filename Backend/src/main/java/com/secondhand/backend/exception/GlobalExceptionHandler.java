@@ -1,23 +1,25 @@
 package com.secondhand.backend.exception;
 
 import com.secondhand.backend.exception.custom.*;
-import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.http.HttpStatus;
+import jakarta.servlet.http.HttpServletRequest; // برای گرفتن اطلاعات درخواست
+import org.springframework.http.HttpStatus; // شامل همه کدهای وضعیت
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+//مدیریت کننده متمرکز خطاها
+//هر جا هر خطایی پرتاب شه ان را میگیره و به پیام کامل تری تبدیلش میکنه
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler { // به Spring میگه این کلاس خطاهای همه کنترلرها رو مدیریت کنه
 
     // 400 Bad Request
-    @ExceptionHandler(BadRequestException.class)
+    @ExceptionHandler(BadRequestException.class) // اجرا هنگامی که این خطا پرتاب شه
     public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
         ErrorResponse error = new ErrorResponse(
                 ex.getMessage(),
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
-                request.getRequestURI()
+                HttpStatus.BAD_REQUEST.value(), // Status Code
+                HttpStatus.BAD_REQUEST.getReasonPhrase(), //اسم خطای انگلیسی
+                request.getRequestURI() // برای دریفات مسیر خطا
         );
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }

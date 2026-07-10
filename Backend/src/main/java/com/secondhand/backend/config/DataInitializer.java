@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer implements CommandLineRunner { //با اولین ران، یه ادمین و کابر تست میسازه
 
     @Autowired
     private UserRepository userRepository;
@@ -17,7 +17,7 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Override
+    @Override // اجرا پس از بالا اومدن کامل برنامه
     public void run(String... args) throws Exception {
         // بررسی وجود ادمین
         if (!userRepository.existsByUsername("admin")) {

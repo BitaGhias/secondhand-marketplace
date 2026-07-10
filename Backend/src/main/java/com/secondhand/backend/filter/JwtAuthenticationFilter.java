@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
-@Component
+@Component // این کلاس رو بساز و توی انبار نگهش دار
 public class JwtAuthenticationFilter extends OncePerRequestFilter { // هر درخواست یه بار از این فیلتر عبور میکنه
 
     @Autowired

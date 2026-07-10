@@ -58,6 +58,35 @@ public class UserController {
         return ResponseEntity.ok(loginResponse);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+        UserResponse response = userService.getUserById(id);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/profile")
+    public ResponseEntity<UserResponse> getMyProfile() {
+        Long userId = getCurrentUserId();
+        UserResponse response = userService.getUserById(userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/profile")
+    public ResponseEntity<UserResponse> updateMyProfile(@RequestBody UserUpdateRequest request) {
+        Long userId = getCurrentUserId();
+        UserResponse response = userService.updateUserProfile(userId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<UserResponse> changePassword(
+            @RequestParam String oldPassword,
+            @RequestParam String newPassword) {
+        Long userId = getCurrentUserId();
+        UserResponse response = userService.changePassword(userId, oldPassword, newPassword);
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/admin/all")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
         Long adminId = getCurrentUserId();
