@@ -49,13 +49,20 @@ public class ItemService {
             imageResponses.add(new ImageResponse(img.getId(), img.getImagePath()));
         }
 
+        // دریافت نام دسته‌بندی و والد آن
+        String categoryName = item.getCategory() != null ? item.getCategory().getName() : "بدون دسته‌بندی";
+        String parentCategoryName = "";
+        if (item.getCategory() != null && item.getCategory().getParent() != null) {
+            parentCategoryName = item.getCategory().getParent().getName();
+        }
+
         return new ItemResponse(
                 item.getId(),
                 item.getTitle(),
                 item.getDescription(),
                 item.getPrice(),
                 item.getStatus().name(),
-                item.getCategory() != null ? item.getCategory().getName() : "بدون دسته‌بندی",
+                categoryName,
                 item.getCity() != null ? item.getCity().getName() : "بدون شهر",
                 item.getUser() != null ? item.getUser().getUsername() : "کاربر ناشناس",
                 item.getUser() != null ? item.getUser().getId() : null,
