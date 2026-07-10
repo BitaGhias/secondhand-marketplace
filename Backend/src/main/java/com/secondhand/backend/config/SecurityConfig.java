@@ -45,12 +45,16 @@ public class SecurityConfig {
                         ).permitAll()
 
                         //  مسیرهای محافظت‌شده نیاز به توکن دارن
-                        .requestMatchers("/api/items/create").authenticated()
-                        .requestMatchers("/api/items/**").authenticated()
-                        .requestMatchers("/api/chat/**").authenticated()
-                        .requestMatchers("/api/favorites/**").authenticated()
-                        .requestMatchers("/api/ratings/**").authenticated()
-                        .requestMatchers("/api/comments/**").authenticated()
+                        .requestMatchers(
+                                "/api/items/create",
+                                "/api/items/user",
+                                "/api/items/*/sold",
+                                "/api/chat/**",
+                                "/api/favorites/**",
+                                "/api/ratings/**",
+                                "/api/comments/**"
+                        ).authenticated()
+
 
                         //  مسیرهای ادمین
                         .requestMatchers("/api/auth/admin/**").hasRole("ADMIN")
