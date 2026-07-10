@@ -37,29 +37,45 @@ public class UserService {
     }
 
     public UserResponse registerUser(UserRegisterRequest request) {
+
+        if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
+            throw new BadRequestException("نام کامل الزامی است!");
+        }
+
+        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+            throw new BadRequestException("نام کاربری الزامی است!");
+        }
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new BadRequestException("نام کاربری تکراری است!");
         }
 
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new BadRequestException("رمز عبور الزامی است!");
+        }
+
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new BadRequestException("ایمیل الزامی است!");
+        }
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("ایمیل تکراری است!");
         }
 
-        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
-            if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
-                throw new BadRequestException("شماره تلفن تکراری است!");
-            }
+        if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty()) {
+            throw new BadRequestException("شماره تلفن الزامی است!");
+        }
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new BadRequestException("شماره تلفن تکراری است!");
         }
 
         User user = new User();
         user.setFullName(request.getFullName());
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setEmail(request.getEmail());
         user.setRole(Role.USER);
         user.setBlocked(false);
         user.setActive(true);
-        user.setPhoneNumber(request.getPhoneNumber());
-        user.setEmail(request.getEmail());
 
         User savedUser = userRepository.save(user);
         return convertToResponse(savedUser);

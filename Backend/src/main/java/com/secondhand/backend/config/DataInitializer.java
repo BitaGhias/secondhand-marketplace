@@ -32,7 +32,7 @@ public class DataInitializer implements CommandLineRunner {
             admin.setEmail("admin@example.com");
 
             userRepository.save(admin);
-            System.out.println("✅ ادمین پیش‌فرض ایجاد شد: username=admin, password=admin123, email=admin@example.com");
+            System.out.println("✅ ادمین پیش‌فرض ایجاد شد: username=admin, password=admin123, phone=09123456789");
         }
 
         // ایجاد کاربر تست
@@ -48,7 +48,7 @@ public class DataInitializer implements CommandLineRunner {
             testUser.setEmail("test@example.com");
 
             userRepository.save(testUser);
-            System.out.println("✅ کاربر تست ایجاد شد: username=testuser, password=123456, email=test@example.com");
+            System.out.println("✅ کاربر تست ایجاد شد: username=testuser, password=123456, phone=09123456788");
         }
     }
 }

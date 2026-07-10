@@ -3,12 +3,12 @@ package com.secondhand.backend.entity;
 import com.secondhand.backend.constant.Role;
 import jakarta.persistence.*;
 
-@Entity
+@Entity //برای ساخت جدول توی DB
 @Table(name = "users")
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //برای تولید خودکار مقدار فیلد
     private Long id;
 
     @Column(nullable = false)
@@ -20,7 +20,7 @@ public class User {
     @Column(nullable = false)
     private String password; // پسورد هش شده
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
 
     @Column(nullable = false, unique = true)
