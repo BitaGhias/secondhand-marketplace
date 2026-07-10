@@ -2,13 +2,9 @@ package com.secondhand.backend.entity;
 
 import com.secondhand.backend.constant.Role;
 import jakarta.persistence.*;
-import lombok.*;
 
 @Entity
 @Table(name = "users")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class User {
 
     @Id
@@ -24,6 +20,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;
@@ -34,6 +33,34 @@ public class User {
     @Column(nullable = false)
     private boolean blocked = false;
 
-    @Column(name = "phone_number")
-    private String phoneNumber;
+    public User() {}
+
+    public User(Long id, String fullName, String username, String password, String phoneNumber, Role role, boolean active, boolean blocked) {
+        this.id = id;
+        this.fullName = fullName;
+        this.username = username;
+        this.password = password;
+        this.phoneNumber = phoneNumber;
+        this.role = role;
+        this.active = active;
+        this.blocked = blocked;
+    }
+
+    public Long getId() { return id; }
+    public String getFullName() { return fullName; }
+    public String getUsername() { return username; }
+    public String getPassword() { return password; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public Role getRole() { return role; }
+    public boolean isActive() { return active; }
+    public boolean isBlocked() { return blocked; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public void setUsername(String username) { this.username = username; }
+    public void setPassword(String password) { this.password = password; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public void setRole(Role role) { this.role = role; }
+    public void setActive(boolean active) { this.active = active; }
+    public void setBlocked(boolean blocked) { this.blocked = blocked; }
 }
