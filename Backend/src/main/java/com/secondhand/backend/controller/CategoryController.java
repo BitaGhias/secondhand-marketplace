@@ -16,13 +16,9 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @PostMapping("/create")
-    public ResponseEntity<?> createCategory(@RequestBody CategoryRequest request) {
-        try {
-            CategoryResponse created = categoryService.createCategory(request);
-            return ResponseEntity.ok(created);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<CategoryResponse> createCategory(@RequestBody CategoryRequest request) {
+        CategoryResponse created = categoryService.createCategory(request);
+        return ResponseEntity.ok(created);
     }
 
     @GetMapping("/all")

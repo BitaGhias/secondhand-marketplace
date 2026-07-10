@@ -5,6 +5,8 @@ import com.secondhand.backend.dto.RatingResponse;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.Rating;
 import com.secondhand.backend.entity.User;
+import com.secondhand.backend.exception.custom.BadRequestException;
+import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.RatingRepository;
 import com.secondhand.backend.repository.UserRepository;
@@ -41,24 +43,24 @@ public class RatingService {
 
     public RatingResponse addRating(RatingCreateRequest request, Long raterId) {
         if (request.getScore() < 1 || request.getScore() > 5) {
-            throw new RuntimeException("امتیاز وارد شده باید عددی بین ۱ تا ۵ باشد!");
+            throw new BadRequestException("امتیاز وارد شده باید عددی بین ۱ تا ۵ باشد!");
         }
 
         Item item = itemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
         User rater = userRepository.findById(raterId)
-                .orElseThrow(() -> new RuntimeException("کاربر ثبت‌کننده امتیاز یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر ثبت‌کننده امتیاز یافت نشد"));
 
         User seller = item.getUser();
 
         if (seller.getId().equals(raterId)) {
-            throw new RuntimeException("شما نمی‌توانید به خودتان امتیاز بدهید!");
+            throw new BadRequestException("شما نمی‌توانید به خودتان امتیاز بدهید!");
         }
 
         Optional<Rating> existingRating = ratingRepository.findByRaterIdAndItemId(raterId, request.getItemId());
         if (existingRating.isPresent()) {
-            throw new RuntimeException("شما قبلاً برای این آگهی امتیاز ثبت کرده‌اید!");
+            throw new BadRequestException("شما قبلاً برای این آگهی امتیاز ثبت کرده‌اید!");
         }
 
         Rating rating = new Rating();

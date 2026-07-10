@@ -1,5 +1,7 @@
 package com.secondhand.backend.dto;
 
+import java.util.List;
+
 public class ItemResponse {
     private Long id;
     private String title;
@@ -10,11 +12,13 @@ public class ItemResponse {
     private String cityName;
     private String ownerUsername;
     private Long ownerId;
+    private List<ImageResponse> images;
 
     public ItemResponse() {}
 
     public ItemResponse(Long id, String title, String description, double price, String status,
-                        String categoryName, String cityName, String ownerUsername, Long ownerId) {
+                        String categoryName, String cityName, String ownerUsername, Long ownerId,
+                        List<ImageResponse> images) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -24,6 +28,7 @@ public class ItemResponse {
         this.cityName = cityName;
         this.ownerUsername = ownerUsername;
         this.ownerId = ownerId;
+        this.images = images;
     }
 
     public Long getId() { return id; }
@@ -35,6 +40,7 @@ public class ItemResponse {
     public String getCityName() { return cityName; }
     public String getOwnerUsername() { return ownerUsername; }
     public Long getOwnerId() { return ownerId; }
+    public List<ImageResponse> getImages() { return images; }
 
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
@@ -45,4 +51,5 @@ public class ItemResponse {
     public void setCityName(String cityName) { this.cityName = cityName; }
     public void setOwnerUsername(String ownerUsername) { this.ownerUsername = ownerUsername; }
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
+    public void setImages(List<ImageResponse> images) { this.images = images; }
 }

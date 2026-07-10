@@ -22,7 +22,6 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    // متد کمکی برای گرفتن userId از توکن
     private Long getCurrentUserId() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -31,63 +30,41 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody UserRegisterRequest request) {
-        try {
-            UserResponse response = userService.registerUser(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse(e.getMessage(), 400));
-        }
+    public ResponseEntity<UserResponse> registerUser(@RequestBody UserRegisterRequest request) {
+        UserResponse response = userService.registerUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> loginUser(@RequestBody LoginRequest request) {
-        try {
-            UserResponse userResponse = userService.loginUser(
-                    request.getUsername(),
-                    request.getPassword()
-            );
+    public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequest request) {
+        UserResponse userResponse = userService.loginUser(
+                request.getUsername(),
+                request.getPassword()
+        );
 
-            String token = jwtUtil.generateToken(
-                    userResponse.getUsername(),
-                    userResponse.getId(),
-                    userResponse.getRole().name()
-            );
+        String token = jwtUtil.generateToken(
+                userResponse.getUsername(),
+                userResponse.getId(),
+                userResponse.getRole().name()
+        );
 
-            LoginResponse loginResponse = new LoginResponse(userResponse, token);
-            return ResponseEntity.ok(loginResponse);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ErrorResponse(e.getMessage(), 401));
-        }
+        LoginResponse loginResponse = new LoginResponse(userResponse, token);
+        return ResponseEntity.ok(loginResponse);
     }
 
-    // گرفتن لیست کاربران (بدون adminId از توکن میگیریم)
     @GetMapping("/admin/all")
-    public ResponseEntity<?> getAllUsers() {
-        try {
-            Long adminId = getCurrentUserId();
-            List<UserResponse> users = userService.getAllUsers(adminId);
-            return ResponseEntity.ok(users);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ErrorResponse(e.getMessage(), 403));
-        }
+    public ResponseEntity<List<UserResponse>> getAllUsers() {
+        Long adminId = getCurrentUserId();
+        List<UserResponse> users = userService.getAllUsers(adminId);
+        return ResponseEntity.ok(users);
     }
 
-    // مسدود کردن کاربر (بدون adminId  از توکن میگیریم)
     @PostMapping("/admin/toggle-block")
-    public ResponseEntity<?> toggleBlock(
+    public ResponseEntity<UserResponse> toggleBlock(
             @RequestParam Long userId,
             @RequestParam boolean block) {
-        try {
-            Long adminId = getCurrentUserId();
-            UserResponse response = userService.toggleUserBlockStatus(adminId, userId, block);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ErrorResponse(e.getMessage(), 403));
-        }
+        Long adminId = getCurrentUserId();
+        UserResponse response = userService.toggleUserBlockStatus(adminId, userId, block);
+        return ResponseEntity.ok(response);
     }
 }

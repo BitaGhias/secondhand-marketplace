@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/items/approved",
+                                "/api/items/{id}",
                                 "/api/categories/all",
                                 "/api/cities",
                                 "/api/items/search",
@@ -48,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/items/create",
                                 "/api/items/user",
+                                "/api/items/{id}",
                                 "/api/items/*/sold",
                                 "/api/chat/**",
                                 "/api/favorites/**",

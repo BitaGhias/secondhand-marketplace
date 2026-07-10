@@ -28,14 +28,10 @@ public class RatingController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addRating(@RequestBody RatingCreateRequest request) {
-        try {
-            Long raterId = getCurrentUserId();
-            RatingResponse response = ratingService.addRating(request, raterId);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<RatingResponse> addRating(@RequestBody RatingCreateRequest request) {
+        Long raterId = getCurrentUserId();
+        RatingResponse response = ratingService.addRating(request, raterId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/seller/{sellerId}/average")

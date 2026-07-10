@@ -1,7 +1,14 @@
 package com.secondhand.backend.controller;
 
+import com.secondhand.backend.constant.ItemStatus;
+import com.secondhand.backend.dto.ImageResponse;
 import com.secondhand.backend.dto.ItemCreateRequest;
 import com.secondhand.backend.dto.ItemResponse;
+import com.secondhand.backend.dto.ItemUpdateRequest;
+import com.secondhand.backend.entity.Image;
+import com.secondhand.backend.entity.Item;
+import com.secondhand.backend.repository.ImageRepository;
+import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.service.ItemService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +16,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -21,6 +31,12 @@ public class ItemController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ImageRepository imageRepository;
+
+    @Autowired
+    private ItemRepository itemRepository;
+
     private Long getCurrentUserId() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
@@ -28,15 +44,27 @@ public class ItemController {
         return userService.getUserIdByUsername(username);
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<?> createItem(@RequestBody ItemCreateRequest request) {
-        try {
-            Long userId = getCurrentUserId();
-            ItemResponse createdItem = itemService.addItem(request, userId);
-            return ResponseEntity.ok(createdItem);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    @PostMapping(value = "/create", consumes = "multipart/form-data")
+    public ResponseEntity<ItemResponse> createItem(
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam("price") Double price,
+            @RequestParam("categoryId") Long categoryId,
+            @RequestParam("cityId") Long cityId,
+            @RequestParam(value = "images", required = false) List<MultipartFile> images) {
+
+        Long userId = getCurrentUserId();
+
+        ItemCreateRequest request = new ItemCreateRequest();
+        request.setTitle(title);
+        request.setDescription(description);
+        request.setPrice(price);
+        request.setCategoryId(categoryId);
+        request.setCityId(cityId);
+        request.setImages(images);
+
+        ItemResponse createdItem = itemService.addItem(request, userId);
+        return ResponseEntity.ok(createdItem);
     }
 
     @GetMapping("/approved")
@@ -46,27 +74,19 @@ public class ItemController {
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<?> getPendingItems() {
-        try {
-            Long adminId = getCurrentUserId();
-            List<ItemResponse> items = itemService.getPendingItems(adminId);
-            return ResponseEntity.ok(items);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<List<ItemResponse>> getPendingItems() {
+        Long adminId = getCurrentUserId();
+        List<ItemResponse> items = itemService.getPendingItems(adminId);
+        return ResponseEntity.ok(items);
     }
 
     @PutMapping("/{id}/status")
-    public ResponseEntity<?> updateItemStatus(
+    public ResponseEntity<ItemResponse> updateItemStatus(
             @PathVariable Long id,
             @RequestParam String status) {
-        try {
-            Long adminId = getCurrentUserId();
-            ItemResponse updatedItem = itemService.updateItemStatus(adminId, id, status);
-            return ResponseEntity.ok(updatedItem);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+        Long adminId = getCurrentUserId();
+        ItemResponse updatedItem = itemService.updateItemStatus(adminId, id, status);
+        return ResponseEntity.ok(updatedItem);
     }
 
     @GetMapping("/category/{categoryId}")
@@ -76,25 +96,26 @@ public class ItemController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<?> getMyItems() {
-        try {
-            Long userId = getCurrentUserId();
-            List<ItemResponse> items = itemService.getItemByUser(userId);
-            return ResponseEntity.ok(items);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<List<ItemResponse>> getMyItems() {
+        Long userId = getCurrentUserId();
+        List<ItemResponse> items = itemService.getItemByUser(userId);
+        return ResponseEntity.ok(items);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteItem(@PathVariable Long id) {
-        try {
-            Long userId = getCurrentUserId();
-            itemService.deleteItem(id, userId);
-            return ResponseEntity.ok("آگهی با موفقیت حذف شد.");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<String> deleteItem(@PathVariable Long id) {
+        Long userId = getCurrentUserId();
+        itemService.deleteItem(id, userId);
+        return ResponseEntity.ok("آگهی با موفقیت حذف شد.");
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ItemResponse> updateItem(
+            @PathVariable Long id,
+            @RequestBody ItemUpdateRequest request) {
+        Long userId = getCurrentUserId();
+        ItemResponse updatedItem = itemService.updateItem(id, userId, request);
+        return ResponseEntity.ok(updatedItem);
     }
 
     @GetMapping("/search")
@@ -109,13 +130,33 @@ public class ItemController {
     }
 
     @PutMapping("/{id}/sold")
-    public ResponseEntity<?> markAsSold(@PathVariable Long id) {
-        try {
-            Long userId = getCurrentUserId();
-            ItemResponse updatedItem = itemService.markAsSold(id, userId);
-            return ResponseEntity.ok(updatedItem);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<ItemResponse> markAsSold(@PathVariable Long id) {
+        Long userId = getCurrentUserId();
+        ItemResponse updatedItem = itemService.markAsSold(id, userId);
+        return ResponseEntity.ok(updatedItem);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<ItemResponse> getItemById(@PathVariable Long id) {
+        ItemResponse item = itemService.getItemById(id);
+        return ResponseEntity.ok(item);
+    }
+
+    @GetMapping("/{id}/images")
+    public ResponseEntity<List<ImageResponse>> getItemImages(@PathVariable Long id) {
+        Item item = itemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
+
+        if (item.getStatus() != ItemStatus.APPROVED) {
+            throw new RuntimeException("این آگهی قابل نمایش نیست");
         }
+
+        List<Image> images = imageRepository.findByItemId(id);
+        List<ImageResponse> responses = new ArrayList<>();
+        for (Image img : images) {
+            responses.add(new ImageResponse(img.getId(), img.getImagePath()));
+        }
+
+        return ResponseEntity.ok(responses);
     }
 }

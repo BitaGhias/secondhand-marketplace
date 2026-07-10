@@ -3,6 +3,7 @@ package com.secondhand.backend.service;
 import com.secondhand.backend.dto.CityRequest;
 import com.secondhand.backend.dto.CityResponse;
 import com.secondhand.backend.entity.City;
+import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.repository.CityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class CityService {
 
     public CityResponse addCity(CityRequest request) {
         cityRepository.findByName(request.getName()).ifPresent(c -> {
-            throw new RuntimeException("این شهر از قبل در سیستم ثبت شده است!");
+            throw new BadRequestException("این شهر از قبل در سیستم ثبت شده است!");
         });
 
         City city = new City();
