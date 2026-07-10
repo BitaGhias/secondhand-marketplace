@@ -7,6 +7,8 @@ import com.secondhand.backend.dto.ItemResponse;
 import com.secondhand.backend.dto.ItemUpdateRequest;
 import com.secondhand.backend.entity.Image;
 import com.secondhand.backend.entity.Item;
+import com.secondhand.backend.exception.custom.BadRequestException;
+import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.ImageRepository;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.service.ItemService;
@@ -126,7 +128,8 @@ public class ItemController {
 
     @GetMapping("/city/{cityId}")
     public ResponseEntity<List<ItemResponse>> getItemsByCity(@PathVariable Long cityId) {
-        return ResponseEntity.ok(itemService.getItemsByCity(cityId));
+        List<ItemResponse> items = itemService.getItemsByCity(cityId);
+        return ResponseEntity.ok(items);
     }
 
     @PutMapping("/{id}/sold")
@@ -144,11 +147,12 @@ public class ItemController {
 
     @GetMapping("/{id}/images")
     public ResponseEntity<List<ImageResponse>> getItemImages(@PathVariable Long id) {
+
         Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
         if (item.getStatus() != ItemStatus.APPROVED) {
-            throw new RuntimeException("این آگهی قابل نمایش نیست");
+            throw new BadRequestException("این آگهی قابل نمایش نیست");
         }
 
         List<Image> images = imageRepository.findByItemId(id);
