@@ -4,6 +4,7 @@ import com.secondhand.backend.dto.CategoryRequest;
 import com.secondhand.backend.dto.CategoryResponse;
 import com.secondhand.backend.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
@@ -18,11 +19,46 @@ public class CategoryController {
     @PostMapping("/create")
     public ResponseEntity<CategoryResponse> createCategory(@RequestBody CategoryRequest request) {
         CategoryResponse created = categoryService.createCategory(request);
-        return ResponseEntity.ok(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @GetMapping("/all")
     public ResponseEntity<List<CategoryResponse>> getAllCategories() {
-        return ResponseEntity.ok(categoryService.getAllCategories());
+        return ResponseEntity.ok(categoryService.getAllCategoriesWithCount());
+    }
+
+    @GetMapping("/roots")
+    public ResponseEntity<List<CategoryResponse>> getRootCategories() {
+        return ResponseEntity.ok(categoryService.getRootCategories());
+    }
+
+    @GetMapping("/{id}/subcategories")
+    public ResponseEntity<List<CategoryResponse>> getSubcategories(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.getSubcategories(id));
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.getCategoryById(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CategoryResponse> updateCategory(
+            @PathVariable Long id,
+            @RequestBody CategoryRequest request) {
+        CategoryResponse updated = categoryService.updateCategory(id, request);
+        return ResponseEntity.ok(updated);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return ResponseEntity.ok("دسته‌بندی با موفقیت حذف شد.");
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<List<CategoryResponse>> getPopularCategories(
+            @RequestParam(defaultValue = "5") int limit) {
+        return ResponseEntity.ok(categoryService.getPopularCategories(limit));
     }
 }
