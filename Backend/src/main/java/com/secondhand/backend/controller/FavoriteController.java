@@ -29,25 +29,17 @@ public class FavoriteController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addFavorite(@RequestBody FavoriteRequest request) {
-        try {
-            Long userId = getCurrentUserId();
-            FavoriteResponse response = favoriteService.addFavorite(request, userId);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<FavoriteResponse> addFavorite(@RequestBody FavoriteRequest request) {
+        Long userId = getCurrentUserId();
+        FavoriteResponse response = favoriteService.addFavorite(request, userId);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/remove")
-    public ResponseEntity<?> removeFavorite(@RequestBody FavoriteRequest request) {
-        try {
-            Long userId = getCurrentUserId();
-            favoriteService.removeFavorite(request, userId);
-            return ResponseEntity.ok("آگهی با موفقیت از لیست علاقه‌مندی‌ها حذف شد.");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<String> removeFavorite(@RequestBody FavoriteRequest request) {
+        Long userId = getCurrentUserId();
+        favoriteService.removeFavorite(request, userId);
+        return ResponseEntity.ok("آگهی با موفقیت از لیست علاقه‌مندی‌ها حذف شد.");
     }
 
     @GetMapping("/user")
