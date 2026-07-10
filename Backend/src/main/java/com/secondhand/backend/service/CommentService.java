@@ -36,8 +36,8 @@ public class CommentService {
         );
     }
 
-    public CommentResponse addComment(CommentCreateRequest request) {
-        User user = userRepository.findById(request.getUserId())
+    public CommentResponse addComment(CommentCreateRequest request, Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
 
         Item item = itemRepository.findById(request.getItemId())
