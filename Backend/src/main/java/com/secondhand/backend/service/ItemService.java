@@ -175,8 +175,7 @@ public class ItemService {
         return convertToResponse(item);
     }
 
-    public ItemResponse updateItem(Long itemId, Long userId,
-                                   ItemUpdateRequest request) {
+    public ItemResponse updateItem(Long itemId, Long userId, ItemUpdateRequest request) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("آگهی مورد نظر یافت نشد"));
 
@@ -191,20 +190,32 @@ public class ItemService {
             throw new RuntimeException("آگهی رد شده قابل ویرایش نیست!");
         }
 
-        Category category = categoryRepository.findById(request.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("دسته‌بندی یافت نشد"));
 
-        City city = cityRepository.findById(request.getCityId())
-                .orElseThrow(() -> new RuntimeException("شهر یافت نشد"));
+        if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
+            item.setTitle(request.getTitle());
+        }
 
-        item.setTitle(request.getTitle());
-        item.setDescription(request.getDescription());
-        item.setPrice(request.getPrice());
-        item.setCategory(category);
-        item.setCity(city);
+        if (request.getDescription() != null && !request.getDescription().trim().isEmpty()) {
+            item.setDescription(request.getDescription());
+        }
+
+        if (request.getPrice() != null && request.getPrice() > 0) {
+            item.setPrice(request.getPrice());
+        }
+
+        if (request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId())
+                    .orElseThrow(() -> new RuntimeException("دسته‌بندی یافت نشد"));
+            item.setCategory(category);
+        }
+
+        if (request.getCityId() != null) {
+            City city = cityRepository.findById(request.getCityId())
+                    .orElseThrow(() -> new RuntimeException("شهر یافت نشد"));
+            item.setCity(city);
+        }
 
         Item updatedItem = itemRepository.save(item);
-
         return convertToResponse(updatedItem);
     }
 }
