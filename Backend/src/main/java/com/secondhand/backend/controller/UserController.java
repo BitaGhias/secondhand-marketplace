@@ -1,6 +1,7 @@
 package com.secondhand.backend.controller;
 
 import com.secondhand.backend.dto.*;
+import com.secondhand.backend.exception.ErrorResponse;
 import com.secondhand.backend.service.UserService;
 import com.secondhand.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new ErrorResponse(e.getMessage(), 400));
         }
+    }
     }
 
     @PostMapping("/login")
