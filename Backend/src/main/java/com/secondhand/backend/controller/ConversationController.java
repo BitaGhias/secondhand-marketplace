@@ -2,8 +2,11 @@ package com.secondhand.backend.controller;
 
 import com.secondhand.backend.dto.*;
 import com.secondhand.backend.service.ConversationService;
+import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -12,11 +15,22 @@ import java.util.List;
 public class ConversationController {
 
     @Autowired
-    public ConversationService conversationService;
+    private ConversationService conversationService;
+
+    @Autowired
+    private UserService userService;
+
+    private Long getCurrentUserId() {
+        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
+                .getAuthentication().getPrincipal();
+        String username = userDetails.getUsername();
+        return userService.getUserIdByUsername(username);
+    }
 
     @PostMapping("/conversation")
-    public ResponseEntity<?> startConversation(@RequestParam Long itemId, @RequestParam Long buyerId) {
+    public ResponseEntity<?> startConversation(@RequestParam Long itemId) {
         try {
+            Long buyerId = getCurrentUserId();  // از JWT میگیریم
             ConversationResponse response = conversationService.startConversation(itemId, buyerId);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
@@ -27,7 +41,8 @@ public class ConversationController {
     @PostMapping("/message")
     public ResponseEntity<?> sendMessage(@RequestBody ChatMessageRequest request) {
         try {
-            ChatMessageResponse response = conversationService.sendMessage(request);
+            Long senderId = getCurrentUserId();
+            ChatMessageResponse response = conversationService.sendMessage(request, senderId);
             return ResponseEntity.ok(response);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -39,8 +54,9 @@ public class ConversationController {
         return ResponseEntity.ok(conversationService.getMessages(conversationId));
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<ConversationResponse>> getUserConversations(@PathVariable Long userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<ConversationResponse>> getUserConversations() {
+        Long userId = getCurrentUserId();
         return ResponseEntity.ok(conversationService.getUserConversations(userId));
     }
 }
