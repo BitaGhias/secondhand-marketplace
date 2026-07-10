@@ -3,6 +3,7 @@ package com.secondhand.backend.service;
 import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.UserRegisterRequest;
 import com.secondhand.backend.dto.UserResponse;
+import com.secondhand.backend.dto.UserUpdateRequest;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;
@@ -42,6 +43,12 @@ public class UserService {
 
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("ایمیل تکراری است!");
+        }
+
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+                throw new BadRequestException("شماره تلفن تکراری است!");
+            }
         }
 
         User user = new User();
@@ -131,5 +138,39 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
         return user.getId();
+    }
+
+    public UserResponse updateUserProfile(Long userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+
+        // بررسی شماره تلفن تکراری (اگه تغییر کرده باشه)
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            // اگه شماره تلفن جدید با شماره قبلی فرق داره
+            if (!request.getPhoneNumber().equals(user.getPhoneNumber())) {
+                if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+                    throw new BadRequestException("شماره تلفن تکراری است!");
+                }
+                user.setPhoneNumber(request.getPhoneNumber());
+            }
+        }
+
+        // بررسی ایمیل تکراری (اگه تغییر کرده باشه)
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            if (!request.getEmail().equals(user.getEmail())) {
+                if (userRepository.existsByEmail(request.getEmail())) {
+                    throw new BadRequestException("ایمیل تکراری است!");
+                }
+                user.setEmail(request.getEmail());
+            }
+        }
+
+        // به‌روزرسانی نام کامل
+        if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+            user.setFullName(request.getFullName());
+        }
+
+        User updatedUser = userRepository.save(user);
+        return convertToResponse(updatedUser);
     }
 }

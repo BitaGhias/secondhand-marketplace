@@ -10,6 +10,9 @@ public interface UserRepository extends JpaRepository<User,Long>
     //نوع Entity که باهاش کار میکنه : User و نوع Id : Long
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+    boolean existsByPhoneNumber(String phoneNumber);
+
     Optional<User> findByUsername(String username);//برای خطا ندادن برنامه در صورت پیدا نکردن
     Optional<User> findByEmail(String email);
+    Optional<User> findByPhoneNumber(String phoneNumber);
 }
