@@ -118,4 +118,14 @@ public class ItemController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getItemById(@PathVariable Long id) {
+        try {
+            ItemResponse item = itemService.getItemById(id);
+            return ResponseEntity.ok(item);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
