@@ -1,6 +1,10 @@
 package com.secondhand.backend.controller;
 
+import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.*;
+import com.secondhand.backend.entity.User;
+import com.secondhand.backend.exception.custom.ResourceNotFoundException;
+import com.secondhand.backend.repository.UserRepository;
 import com.secondhand.backend.service.UserService;
 import com.secondhand.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 @RestController
@@ -21,6 +24,9 @@ public class UserController {
 
     @Autowired
     private JwtUtil jwtUtil;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private Long getCurrentUserId() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
@@ -66,5 +72,20 @@ public class UserController {
         Long adminId = getCurrentUserId();
         UserResponse response = userService.toggleUserBlockStatus(adminId, userId, block);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/admin/make-admin")
+    public ResponseEntity<UserResponse> makeAdmin(@RequestParam Long userId) {
+        Long adminId = getCurrentUserId();
+        UserResponse response = userService.makeAdmin(adminId, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/admin/is-admin")
+    public ResponseEntity<Boolean> isAdmin() {
+        Long userId = getCurrentUserId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        return ResponseEntity.ok(user.getRole() == Role.ADMIN);
     }
 }
