@@ -18,13 +18,27 @@ import java.util.List;
 @Service
 public class UserService {
 
-    @Autowired // یه ابزار ازش برام بساز
+    @Autowired
     private UserRepository userRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    // ==================== تبدیل ====================
+
+    private boolean isValidEmail(String email) {
+        if (email == null) return false;
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        return email.matches(emailRegex);
+    }
+
+    private boolean isValidPhoneNumber(String phone) {
+        if (phone == null) return false;
+        // شماره باید با 09 شروع بشه و 11 رقم باشه
+        String phoneRegex = "^09[0-9]{9}$";
+        return phone.matches(phoneRegex);
+    }
+
+
     public UserResponse convertToResponse(User user) {
         return new UserResponse(
                 user.getId(),
@@ -37,7 +51,7 @@ public class UserService {
         );
     }
 
-    // ==================== ثبت‌نام ====================
+
     public UserResponse registerUser(UserRegisterRequest request) {
 
         if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
@@ -58,12 +72,18 @@ public class UserService {
         if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
             throw new BadRequestException("ایمیل الزامی است!");
         }
+        if (!isValidEmail(request.getEmail())) {
+            throw new BadRequestException("فرمت ایمیل نامعتبر است!");
+        }
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("ایمیل تکراری است!");
         }
 
         if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty()) {
             throw new BadRequestException("شماره تلفن الزامی است!");
+        }
+        if (!isValidPhoneNumber(request.getPhoneNumber())) {
+            throw new BadRequestException("فرمت شماره تلفن نامعتبر است! باید با 09 شروع شود و 11 رقم باشد.");
         }
         if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
             throw new BadRequestException("شماره تلفن تکراری است!");
@@ -83,7 +103,7 @@ public class UserService {
         return convertToResponse(savedUser);
     }
 
-    // ==================== ورود ====================
+
     public UserResponse loginUser(String username, String password) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new BadRequestException("نام کاربری یا رمز عبور اشتباه است"));
@@ -99,28 +119,28 @@ public class UserService {
         return convertToResponse(user);
     }
 
-    // ==================== گرفتن کاربر با آی‌دی ====================
+
     public UserResponse getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
         return convertToResponse(user);
     }
 
-    // ==================== گرفتن کاربر با نام کاربری ====================
+
     public UserResponse getUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
         return convertToResponse(user);
     }
 
-    // ==================== گرفتن userId با نام کاربری ====================
+
     public Long getUserIdByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
         return user.getId();
     }
 
-    // ==================== گرفتن لیست همه کاربران (فقط ادمین) ====================
+
     public List<UserResponse> getAllUsers(Long requesterId) {
         User requester = userRepository.findById(requesterId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -137,7 +157,7 @@ public class UserService {
         return responses;
     }
 
-    // ==================== مسدود/فعال‌سازی کاربر (فقط ادمین) ====================
+
     public UserResponse toggleUserBlockStatus(Long adminId, Long userId, boolean block) {
         User requester = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -159,7 +179,7 @@ public class UserService {
         return convertToResponse(updatedUser);
     }
 
-    // ==================== تبدیل به ادمین (فقط ادمین) ====================
+
     public UserResponse makeAdmin(Long adminId, Long userId) {
         User requester = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -177,18 +197,19 @@ public class UserService {
         return convertToResponse(updatedUser);
     }
 
-    // ==================== ویرایش پروفایل کاربر (خود کاربر) ====================
+
     public UserResponse updateUserProfile(Long userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
 
-        // به‌روزرسانی نام کامل
         if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
             user.setFullName(request.getFullName());
         }
 
-        // بررسی شماره تلفن تکراری (اگه تغییر کرده باشه)
         if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            if (!isValidPhoneNumber(request.getPhoneNumber())) {
+                throw new BadRequestException("فرمت شماره تلفن نامعتبر است! باید با 09 شروع شود و 11 رقم باشد.");
+            }
             if (!request.getPhoneNumber().equals(user.getPhoneNumber())) {
                 if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
                     throw new BadRequestException("شماره تلفن تکراری است!");
@@ -197,8 +218,10 @@ public class UserService {
             }
         }
 
-        // بررسی ایمیل تکراری (اگه تغییر کرده باشه)
         if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            if (!isValidEmail(request.getEmail())) {
+                throw new BadRequestException("فرمت ایمیل نامعتبر است!");
+            }
             if (!request.getEmail().equals(user.getEmail())) {
                 if (userRepository.existsByEmail(request.getEmail())) {
                     throw new BadRequestException("ایمیل تکراری است!");
@@ -211,27 +234,23 @@ public class UserService {
         return convertToResponse(updatedUser);
     }
 
-    // ==================== تغییر رمز عبور (خود کاربر) ====================
+
     public UserResponse changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
 
-        // بررسی درستی رمز قدیم
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
             throw new BadRequestException("رمز عبور فعلی اشتباه است!");
         }
 
-        // بررسی رمز جدید (نمی‌تونه خالی باشه)
         if (newPassword == null || newPassword.trim().isEmpty()) {
             throw new BadRequestException("رمز عبور جدید نمی‌تواند خالی باشد!");
         }
 
-        // بررسی اینکه رمز جدید با رمز قدیم یکی نباشه
         if (passwordEncoder.matches(newPassword, user.getPassword())) {
             throw new BadRequestException("رمز عبور جدید نمی‌تواند با رمز قبلی یکسان باشد!");
         }
 
-        // هش کردن رمز جدید
         user.setPassword(passwordEncoder.encode(newPassword));
         User updatedUser = userRepository.save(user);
 
