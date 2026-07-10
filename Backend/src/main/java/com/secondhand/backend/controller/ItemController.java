@@ -32,7 +32,7 @@ public class ItemController {
     public ResponseEntity<?> createItem(@RequestBody ItemCreateRequest request) {
         try {
             Long userId = getCurrentUserId();
-            ItemResponse createdItem = itemService.addItem(request , userId);
+            ItemResponse createdItem = itemService.addItem(request, userId);
             return ResponseEntity.ok(createdItem);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -46,8 +46,9 @@ public class ItemController {
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<?> getPendingItems(@RequestParam Long adminId) {
+    public ResponseEntity<?> getPendingItems() {
         try {
+            Long adminId = getCurrentUserId();
             List<ItemResponse> items = itemService.getPendingItems(adminId);
             return ResponseEntity.ok(items);
         } catch (RuntimeException e) {
@@ -58,9 +59,9 @@ public class ItemController {
     @PutMapping("/{id}/status")
     public ResponseEntity<?> updateItemStatus(
             @PathVariable Long id,
-            @RequestParam Long adminId,
             @RequestParam String status) {
         try {
+            Long adminId = getCurrentUserId();
             ItemResponse updatedItem = itemService.updateItemStatus(adminId, id, status);
             return ResponseEntity.ok(updatedItem);
         } catch (RuntimeException e) {
@@ -74,9 +75,10 @@ public class ItemController {
         return ResponseEntity.ok(items);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<?> getItemByUser(@PathVariable Long userId) {
+    @GetMapping("/user")
+    public ResponseEntity<?> getMyItems() {
         try {
+            Long userId = getCurrentUserId();
             List<ItemResponse> items = itemService.getItemByUser(userId);
             return ResponseEntity.ok(items);
         } catch (RuntimeException e) {
@@ -85,8 +87,9 @@ public class ItemController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteItem(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<?> deleteItem(@PathVariable Long id) {
         try {
+            Long userId = getCurrentUserId();
             itemService.deleteItem(id, userId);
             return ResponseEntity.ok("آگهی با موفقیت حذف شد.");
         } catch (RuntimeException e) {
@@ -106,8 +109,9 @@ public class ItemController {
     }
 
     @PutMapping("/{id}/sold")
-    public ResponseEntity<?> markAsSold(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<?> markAsSold(@PathVariable Long id) {
         try {
+            Long userId = getCurrentUserId();
             ItemResponse updatedItem = itemService.markAsSold(id, userId);
             return ResponseEntity.ok(updatedItem);
         } catch (RuntimeException e) {
