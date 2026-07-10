@@ -5,6 +5,7 @@ import com.secondhand.backend.dto.CommentResponse;
 import com.secondhand.backend.entity.Comment;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.User;
+import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.CommentRepository;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.UserRepository;
@@ -38,10 +39,10 @@ public class CommentService {
 
     public CommentResponse addComment(CommentCreateRequest request, Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
 
         Item item = itemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
         Comment comment = new Comment();
         comment.setText(request.getText());
