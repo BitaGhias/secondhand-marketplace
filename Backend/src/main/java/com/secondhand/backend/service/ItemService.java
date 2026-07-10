@@ -151,7 +151,8 @@ public class ItemService {
                 item.getCity() != null ? item.getCity().getName() : "بدون شهر",
                 item.getUser() != null ? item.getUser().getUsername() : "کاربر ناشناس",
                 item.getUser() != null ? item.getUser().getId() : null,
-                imageResponses
+                imageResponses,
+                item.getRejectionReason()
         );
     }
 
@@ -232,7 +233,7 @@ public class ItemService {
         return convertToResponseList(items);
     }
 
-    public ItemResponse updateItemStatus(Long requesterAdminId, Long itemId, String newStatus) {
+    public ItemResponse updateItemStatus(Long requesterAdminId, Long itemId, String newStatus, String rejectionReason) {
         User requester = userRepository.findById(requesterAdminId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
 
@@ -267,6 +268,17 @@ public class ItemService {
 
         if (item.getStatus() == status) {
             throw new BadRequestException("آگهی در حال حاضر در وضعیت " + status.name() + " قرار دارد!");
+        }
+
+
+        if (status == ItemStatus.REJECTED) {
+            if (rejectionReason == null || rejectionReason.trim().isEmpty()) {
+                throw new BadRequestException("لطفاً دلیل رد کردن آگهی را وارد کنید!");
+            }
+            item.setRejectionReason(rejectionReason);
+        } else {
+            // اگه تایید شد، توضیح قبلی رو پاک کن
+            item.setRejectionReason(null);
         }
 
         item.setStatus(status);

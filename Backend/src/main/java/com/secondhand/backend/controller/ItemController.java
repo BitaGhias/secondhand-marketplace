@@ -85,9 +85,10 @@ public class ItemController {
     @PutMapping("/{id}/status")
     public ResponseEntity<ItemResponse> updateItemStatus(
             @PathVariable Long id,
-            @RequestParam String status) {
+            @RequestParam String status,
+            @RequestParam(required = false) String rejectionReason) {
         Long adminId = getCurrentUserId();
-        ItemResponse updatedItem = itemService.updateItemStatus(adminId, id, status);
+        ItemResponse updatedItem = itemService.updateItemStatus(adminId, id, status, rejectionReason);
         return ResponseEntity.ok(updatedItem);
     }
 
