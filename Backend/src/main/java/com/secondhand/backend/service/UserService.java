@@ -30,13 +30,18 @@ public class UserService {
                 user.getUsername(),
                 user.getRole(),
                 user.isBlocked(),
-                user.getPhoneNumber()
+                user.getPhoneNumber(),
+                user.getEmail()
         );
     }
 
     public UserResponse registerUser(UserRegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new BadRequestException("نام کاربری تکراری است!");
+        }
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("ایمیل تکراری است!");
         }
 
         User user = new User();
@@ -47,6 +52,7 @@ public class UserService {
         user.setBlocked(false);
         user.setActive(true);
         user.setPhoneNumber(request.getPhoneNumber());
+        user.setEmail(request.getEmail());
 
         User savedUser = userRepository.save(user);
         return convertToResponse(savedUser);
@@ -104,13 +110,6 @@ public class UserService {
         return convertToResponse(updatedUser);
     }
 
-    public Long getUserIdByUsername(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        return user.getId();
-    }
-
-
     public UserResponse makeAdmin(Long adminId, Long userId) {
         User requester = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -119,14 +118,18 @@ public class UserService {
             throw new ForbiddenException("شما دسترسی ادمین به این عملیات را ندارید!");
         }
 
-        //  پیدا کردن کاربر هدف
         User targetUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر مورد نظر یافت نشد"));
 
-        //  تغییر نقش به ادمین
         targetUser.setRole(Role.ADMIN);
         User updatedUser = userRepository.save(targetUser);
 
         return convertToResponse(updatedUser);
+    }
+
+    public Long getUserIdByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        return user.getId();
     }
 }

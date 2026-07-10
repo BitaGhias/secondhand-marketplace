@@ -29,14 +29,13 @@ public class DataInitializer implements CommandLineRunner {
             admin.setActive(true);
             admin.setBlocked(false);
             admin.setPhoneNumber("09123456789");
+            admin.setEmail("admin@example.com");
 
             userRepository.save(admin);
-            System.out.println("✅ ادمین پیش‌فرض ایجاد شد: username=admin, password=admin123");
-        } else {
-            System.out.println("ℹ️ ادمین قبلاً وجود دارد.");
+            System.out.println("✅ ادمین پیش‌فرض ایجاد شد: username=admin, password=admin123, email=admin@example.com");
         }
 
-        //  ایجاد یه کاربر تست
+        // ایجاد کاربر تست
         if (!userRepository.existsByUsername("testuser")) {
             User testUser = new User();
             testUser.setFullName("کاربر تست");
@@ -46,9 +45,10 @@ public class DataInitializer implements CommandLineRunner {
             testUser.setActive(true);
             testUser.setBlocked(false);
             testUser.setPhoneNumber("09123456788");
+            testUser.setEmail("test@example.com");
 
             userRepository.save(testUser);
-            System.out.println("✅ کاربر تست ایجاد شد: username=testuser, password=123456");
+            System.out.println("✅ کاربر تست ایجاد شد: username=testuser, password=123456, email=test@example.com");
         }
     }
 }
