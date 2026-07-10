@@ -163,4 +163,14 @@ public class ItemService {
         Item updatedItem = itemRepository.save(item);
         return convertToResponse(updatedItem);
     }
+
+    public ItemResponse getItemById(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("آگهی مورد نظر یافت نشد"));
+
+        if (item.getStatus() != ItemStatus.APPROVED) {
+            throw new RuntimeException("این آگهی قابل نمایش نیست");
+        }
+        return convertToResponse(item);
+    }
 }
