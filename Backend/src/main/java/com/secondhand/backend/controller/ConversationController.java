@@ -28,25 +28,17 @@ public class ConversationController {
     }
 
     @PostMapping("/conversation")
-    public ResponseEntity<?> startConversation(@RequestParam Long itemId) {
-        try {
-            Long buyerId = getCurrentUserId();  // از JWT میگیریم
-            ConversationResponse response = conversationService.startConversation(itemId, buyerId);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<ConversationResponse> startConversation(@RequestParam Long itemId) {
+        Long buyerId = getCurrentUserId();
+        ConversationResponse response = conversationService.startConversation(itemId, buyerId);
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/message")
-    public ResponseEntity<?> sendMessage(@RequestBody ChatMessageRequest request) {
-        try {
-            Long senderId = getCurrentUserId();
-            ChatMessageResponse response = conversationService.sendMessage(request, senderId);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<ChatMessageResponse> sendMessage(@RequestBody ChatMessageRequest request) {
+        Long senderId = getCurrentUserId();
+        ChatMessageResponse response = conversationService.sendMessage(request, senderId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/messages/{conversationId}")

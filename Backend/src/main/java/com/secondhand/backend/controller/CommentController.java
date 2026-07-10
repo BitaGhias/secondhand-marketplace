@@ -29,14 +29,10 @@ public class CommentController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addComment(@RequestBody CommentCreateRequest request) {
-        try {
-            Long userId = getCurrentUserId();
-            CommentResponse response = commentService.addComment(request, userId);
-            return ResponseEntity.ok(response);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<CommentResponse> addComment(@RequestBody CommentCreateRequest request) {
+        Long userId = getCurrentUserId();
+        CommentResponse response = commentService.addComment(request, userId);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/item/{itemId}")
