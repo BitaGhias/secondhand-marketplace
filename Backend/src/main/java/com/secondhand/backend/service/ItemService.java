@@ -190,7 +190,8 @@ public class ItemService {
             throw new ForbiddenException("شما اجازه حذف این آگهی را ندارید!");
         }
 
-        itemRepository.delete(item);
+        item.setStatus(ItemStatus.DELETED);
+        itemRepository.save(item);
     }
 
     public List<ItemResponse> searchItems(String keyword) {
