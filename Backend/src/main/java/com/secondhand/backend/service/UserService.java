@@ -26,7 +26,8 @@ public class UserService {
                 user.getFullName(),
                 user.getUsername(),
                 user.getRole(),
-                user.isBlocked()
+                user.isBlocked(),
+                user.getPhoneNumber()
         );
     }
 
@@ -42,6 +43,7 @@ public class UserService {
         user.setRole(Role.USER);
         user.setBlocked(false);
         user.setActive(true);
+        user.setPhoneNumber(request.getPhoneNumber());
 
         User savedUser = userRepository.save(user);
         return convertToResponse(savedUser);

@@ -14,4 +14,5 @@ public class UserResponse {
     private String username;
     private Role role;
     private boolean blocked;
+    private String phoneNumber;
 }
