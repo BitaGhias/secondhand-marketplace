@@ -37,6 +37,7 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/login",
                                 "/api/items/approved",
+                                "/api/items/{id}",
                                 "/api/categories/all",
                                 "/api/cities",
                                 "/api/items/search",
