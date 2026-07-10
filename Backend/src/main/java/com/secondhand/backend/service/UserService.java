@@ -38,11 +38,10 @@ public class UserService {
         User user = new User();
         user.setFullName(request.getFullName());
         user.setUsername(request.getUsername());
-
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        user.setPassword(encodedPassword);
-
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.USER);
         user.setBlocked(false);
+        user.setActive(true);
 
         User savedUser = userRepository.save(user);
         return convertToResponse(savedUser);
