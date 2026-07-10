@@ -1,13 +1,17 @@
 package com.secondhand.backend.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class LoginResponse {
     private UserResponse user;
-    private String token;  // فعلاً خالی
+    private String token;
+
+    public LoginResponse() {}
+    public LoginResponse(UserResponse user, String token) {
+        this.user = user;
+        this.token = token;
+    }
+
+    public UserResponse getUser() { return user; }
+    public String getToken() { return token; }
+    public void setUser(UserResponse user) { this.user = user; }
+    public void setToken(String token) { this.token = token; }
 }

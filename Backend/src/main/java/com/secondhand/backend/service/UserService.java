@@ -26,7 +26,8 @@ public class UserService {
                 user.getFullName(),
                 user.getUsername(),
                 user.getRole(),
-                user.isBlocked()
+                user.isBlocked(),
+                user.getPhoneNumber()
         );
     }
 
@@ -38,11 +39,11 @@ public class UserService {
         User user = new User();
         user.setFullName(request.getFullName());
         user.setUsername(request.getUsername());
-
-        String encodedPassword = passwordEncoder.encode(request.getPassword());
-        user.setPassword(encodedPassword);
-
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(Role.USER);
         user.setBlocked(false);
+        user.setActive(true);
+        user.setPhoneNumber(request.getPhoneNumber());
 
         User savedUser = userRepository.save(user);
         return convertToResponse(savedUser);

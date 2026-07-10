@@ -1,13 +1,9 @@
 package com.secondhand.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 
 @Entity
 @Table(name = "ratings")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Rating {
 
     @Id
@@ -30,4 +26,29 @@ public class Rating {
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
+
+    public Rating() {}
+
+    public Rating(Long id, int score, String comment, Item item, User rater, User seller) {
+        this.id = id;
+        this.score = score;
+        this.comment = comment;
+        this.item = item;
+        this.rater = rater;
+        this.seller = seller;
+    }
+
+    public Long getId() { return id; }
+    public int getScore() { return score; }
+    public String getComment() { return comment; }
+    public Item getItem() { return item; }
+    public User getRater() { return rater; }
+    public User getSeller() { return seller; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setScore(int score) { this.score = score; }
+    public void setComment(String comment) { this.comment = comment; }
+    public void setItem(Item item) { this.item = item; }
+    public void setRater(User rater) { this.rater = rater; }
+    public void setSeller(User seller) { this.seller = seller; }
 }

@@ -1,10 +1,17 @@
 package com.secondhand.backend.dto;
 
-import lombok.Data;
-
-@Data
 public class ChatMessageRequest {
     private Long conversationId;
-    private Long senderId;
     private String text;
+
+    public ChatMessageRequest() {}
+    public ChatMessageRequest(Long conversationId, String text) {
+        this.conversationId = conversationId;
+        this.text = text;
+    }
+
+    public Long getConversationId() { return conversationId; }
+    public String getText() { return text; }
+    public void setConversationId(Long conversationId) { this.conversationId = conversationId; }
+    public void setText(String text) { this.text = text; }
 }

@@ -4,6 +4,7 @@ import com.secondhand.backend.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -44,17 +45,23 @@ public class SecurityConfig {
                         ).permitAll()
 
                         //  مسیرهای محافظت‌شده نیاز به توکن دارن
-                        .requestMatchers("/api/items/create").authenticated()
-                        .requestMatchers("/api/items/**").authenticated()
-                        .requestMatchers("/api/chat/**").authenticated()
-                        .requestMatchers("/api/favorites/**").authenticated()
-                        .requestMatchers("/api/ratings/**").authenticated()
-                        .requestMatchers("/api/comments/**").authenticated()
+                        .requestMatchers(
+                                "/api/items/create",
+                                "/api/items/user",
+                                "/api/items/*/sold",
+                                "/api/chat/**",
+                                "/api/favorites/**",
+                                "/api/ratings/**",
+                                "/api/comments/**"
+                        ).authenticated()
+
 
                         //  مسیرهای ادمین
                         .requestMatchers("/api/auth/admin/**").hasRole("ADMIN")
                         .requestMatchers("/api/items/pending").hasRole("ADMIN")
                         .requestMatchers("/api/items/*/status").hasRole("ADMIN")
+                        .requestMatchers("/api/categories/create").hasRole("ADMIN")
+                        .requestMatchers("/api/cities/add").hasRole("ADMIN")
 
                         .anyRequest().authenticated()  // بقیه مسیرها نیاز به احراز هویت دارن
                 )

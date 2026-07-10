@@ -1,10 +1,5 @@
 package com.secondhand.backend.dto;
 
-import lombok.*;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class FavoriteResponse {
     private Long id;
     private Long itemId;
@@ -12,4 +7,29 @@ public class FavoriteResponse {
     private double itemPrice;
     private String itemStatus;
     private Long userId;
+
+    public FavoriteResponse() {}
+
+    public FavoriteResponse(Long id, Long itemId, String itemTitle, double itemPrice, String itemStatus, Long userId) {
+        this.id = id;
+        this.itemId = itemId;
+        this.itemTitle = itemTitle;
+        this.itemPrice = itemPrice;
+        this.itemStatus = itemStatus;
+        this.userId = userId;
+    }
+
+    public Long getId() { return id; }
+    public Long getItemId() { return itemId; }
+    public String getItemTitle() { return itemTitle; }
+    public double getItemPrice() { return itemPrice; }
+    public String getItemStatus() { return itemStatus; }
+    public Long getUserId() { return userId; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setItemId(Long itemId) { this.itemId = itemId; }
+    public void setItemTitle(String itemTitle) { this.itemTitle = itemTitle; }
+    public void setItemPrice(double itemPrice) { this.itemPrice = itemPrice; }
+    public void setItemStatus(String itemStatus) { this.itemStatus = itemStatus; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }

@@ -1,13 +1,9 @@
 package com.secondhand.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 
 @Entity
 @Table(name = "cities")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class City {
 
     @Id
@@ -16,4 +12,17 @@ public class City {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    public City() {}
+
+    public City(Long id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public Long getId() { return id; }
+    public String getName() { return name; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setName(String name) { this.name = name; }
 }

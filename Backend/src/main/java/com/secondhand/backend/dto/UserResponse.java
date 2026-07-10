@@ -1,17 +1,37 @@
 package com.secondhand.backend.dto;
 
 import com.secondhand.backend.constant.Role;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class UserResponse {
     private Long id;
     private String fullName;
     private String username;
     private Role role;
     private boolean blocked;
+    private String phoneNumber;
+
+    public UserResponse() {}
+
+    public UserResponse(Long id, String fullName, String username, Role role, boolean blocked, String phoneNumber) {
+        this.id = id;
+        this.fullName = fullName;
+        this.username = username;
+        this.role = role;
+        this.blocked = blocked;
+        this.phoneNumber = phoneNumber;
+    }
+
+    public Long getId() { return id; }
+    public String getFullName() { return fullName; }
+    public String getUsername() { return username; }
+    public Role getRole() { return role; }
+    public boolean isBlocked() { return blocked; }
+    public String getPhoneNumber() { return phoneNumber; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setFullName(String fullName) { this.fullName = fullName; }
+    public void setUsername(String username) { this.username = username; }
+    public void setRole(Role role) { this.role = role; }
+    public void setBlocked(boolean blocked) { this.blocked = blocked; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 }

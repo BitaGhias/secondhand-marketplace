@@ -32,18 +32,18 @@ public class FavoriteService {
                 favorite.getItem() != null ? favorite.getItem().getId() : null,
                 favorite.getItem() != null ? favorite.getItem().getTitle() : "آگهی حذف شده",
                 favorite.getItem() != null ? favorite.getItem().getPrice() : 0.0,
-                favorite.getItem() != null ? favorite.getItem().getStatus() : "UNKNOWN",
+                favorite.getItem() != null ? favorite.getItem().getStatus().toString() : "UNKNOWN",
                 favorite.getUser() != null ? favorite.getUser().getId() : null
         );
     }
 
-    public FavoriteResponse addFavorite(FavoriteRequest request) {
-        Optional<Favorite> alreadyFavorited = favoriteRepository.findByUserIdAndItemId(request.getUserId(), request.getItemId());
+    public FavoriteResponse addFavorite(FavoriteRequest request, Long userId) {
+        Optional<Favorite> alreadyFavorited = favoriteRepository.findByUserIdAndItemId(userId, request.getItemId());
         if (alreadyFavorited.isPresent()) {
             throw new RuntimeException("این آگهی از قبل در لیست علاقه‌مندی‌های شما وجود دارد");
         }
 
-        User user = userRepository.findById(request.getUserId())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
@@ -56,8 +56,8 @@ public class FavoriteService {
         return convertToResponse(saved);
     }
 
-    public void removeFavorite(FavoriteRequest request) {
-        Favorite favorite = favoriteRepository.findByUserIdAndItemId(request.getUserId(), request.getItemId())
+    public void removeFavorite(FavoriteRequest request, Long userId) {
+        Favorite favorite = favoriteRepository.findByUserIdAndItemId(userId, request.getItemId())
                 .orElseThrow(() -> new RuntimeException("این آگهی در لیست علاقه‌مندی‌های شما نیست"));
 
         favoriteRepository.delete(favorite);

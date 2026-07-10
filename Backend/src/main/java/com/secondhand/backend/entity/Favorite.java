@@ -1,13 +1,9 @@
 package com.secondhand.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 
 @Entity
 @Table(name = "favorites")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Favorite {
 
     @Id
@@ -21,4 +17,20 @@ public class Favorite {
     @ManyToOne
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
+
+    public Favorite() {}
+
+    public Favorite(Long id, User user, Item item) {
+        this.id = id;
+        this.user = user;
+        this.item = item;
+    }
+
+    public Long getId() { return id; }
+    public User getUser() { return user; }
+    public Item getItem() { return item; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setUser(User user) { this.user = user; }
+    public void setItem(Item item) { this.item = item; }
 }
