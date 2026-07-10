@@ -49,6 +49,7 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/items/create",
                                 "/api/items/user",
+                                "/api/items/{id}",
                                 "/api/items/*/sold",
                                 "/api/chat/**",
                                 "/api/favorites/**",
