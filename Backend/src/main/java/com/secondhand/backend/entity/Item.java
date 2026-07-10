@@ -40,9 +40,13 @@ public class Item {
     @JoinColumn(name = "city_id", nullable = false)
     private City city;
 
+    @Column(name = "rejection_reason")
+    private String rejectionReason;
+
     public Item() {}
 
-    public Item(Long id, String title, String description, Double price, ItemStatus status, LocalDateTime createdAt, User user, Category category, City city) {
+    public Item(Long id, String title, String description, Double price, ItemStatus status,
+                LocalDateTime createdAt, User user, Category category, City city, String rejectionReason) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -52,6 +56,7 @@ public class Item {
         this.user = user;
         this.category = category;
         this.city = city;
+        this.rejectionReason = rejectionReason;
     }
 
     public Long getId() { return id; }
@@ -63,6 +68,7 @@ public class Item {
     public User getUser() { return user; }
     public Category getCategory() { return category; }
     public City getCity() { return city; }
+    public String getRejectionReason() { return rejectionReason; }
 
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
@@ -73,4 +79,5 @@ public class Item {
     public void setUser(User user) { this.user = user; }
     public void setCategory(Category category) { this.category = category; }
     public void setCity(City city) { this.city = city; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
 }
