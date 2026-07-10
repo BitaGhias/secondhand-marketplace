@@ -10,7 +10,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -38,7 +37,7 @@ public class CategoryService {
     }
 
     public CategoryResponse createCategory(CategoryRequest request) {
-        // بررسی تکراری نبودن نام
+
         categoryRepository.findByName(request.getName())
                 .ifPresent(c -> {
                     throw new BadRequestException("این دسته‌بندی از قبل وجود دارد");
@@ -80,7 +79,7 @@ public class CategoryService {
         return responses;
     }
 
-    //  دریافت دسته‌بندی‌های ریشه
+    //  دریافت دسته‌بندی‌های پدر
     public List<CategoryResponse> getRootCategories() {
         List<Category> roots = categoryRepository.findByParentIsNull();
         List<CategoryResponse> responses = new ArrayList<>();
@@ -117,7 +116,6 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی یافت نشد"));
 
-        // بررسی تکراری نبودن نام (به جز خودش)
         categoryRepository.findByNameAndIdNot(request.getName(), id)
                 .ifPresent(c -> {
                     throw new BadRequestException("این نام دسته‌بندی قبلاً استفاده شده است");
@@ -125,7 +123,6 @@ public class CategoryService {
 
         category.setName(request.getName());
 
-        // به‌روزرسانی والد (اگه تغییر کرده)
         if (request.getParentId() != null) {
             // جلوگیری از اینکه دسته‌بندی والد خودش باشه
             if (request.getParentId().equals(id)) {
@@ -154,7 +151,6 @@ public class CategoryService {
             throw new BadRequestException("این دسته‌بندی دارای زیردسته است. ابتدا زیردسته‌ها را حذف کنید!");
         }
 
-        // بررسی وجود آگهی فعال در این دسته‌بندی
         Long itemCount = categoryRepository.countApprovedItemsByCategoryId(id);
         if (itemCount > 0) {
             throw new BadRequestException("این دسته‌بندی دارای " + itemCount + " آگهی فعال است. ابتدا آگهی‌ها را حذف یا تغییر دسته‌بندی دهید!");
@@ -163,8 +159,7 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
-    //  دریافت دسته‌بندی‌های محبوب
-    public List<CategoryResponse> getPopularCategories(int limit) {
+    public List<CategoryResponse> getPopularCategories(int limit) { // تعداد دسته بندی هایی که میخوایم برگردونیم3
         List<Object[]> results = categoryRepository.countItemsByCategory();
 
         // مرتب‌سازی بر اساس تعداد (نزولی)

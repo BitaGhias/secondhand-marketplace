@@ -15,7 +15,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@RestController
+@RestController // کلاسی برای دریافت HTTP و برگرداندن پاسخ JSON
 @RequestMapping("/api/auth")
 public class UserController {
 
@@ -114,7 +114,7 @@ public class UserController {
     public ResponseEntity<Boolean> isAdmin() {
         Long userId = getCurrentUserId();
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد")); // استثناعه چون کنترلر در اینجا مستقیم با ریپازیتوری کار میکنه
         return ResponseEntity.ok(user.getRole() == Role.ADMIN);
     }
 }

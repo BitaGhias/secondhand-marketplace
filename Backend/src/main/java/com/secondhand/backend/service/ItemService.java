@@ -41,6 +41,52 @@ public class ItemService {
     @Autowired
     private ImageRepository imageRepository;
 
+
+    private void validateUserIsActiveAndNotBlocked(User user) {
+        if (!user.isActive()) {
+            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
+        }
+        if (user.isBlocked()) {
+            throw new ForbiddenException("حساب کاربری شما مسدود شده است!");
+        }
+    }
+
+    private void validateItemPrice(double price) {
+        if (price <= 0) {
+            throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
+        }
+    }
+
+    private void validateItemTitleAndDescription(String title, String description) {
+        if (title == null || title.trim().isEmpty()) {
+            throw new BadRequestException("عنوان آگهی نمی‌تواند خالی باشد!");
+        }
+        if (description == null || description.trim().isEmpty()) {
+            throw new BadRequestException("توضیحات آگهی نمی‌تواند خالی باشد!");
+        }
+    }
+
+    private void validateUserIsAdmin(User user) {
+        if (user.getRole() != Role.ADMIN) {
+            throw new ForbiddenException("شما دسترسی ادمین به این عملیات را ندارید!");
+        }
+    }
+
+    private void validateUserIsOwnerOrAdmin(Item item, Long userId, User requester) {
+        if (!item.getUser().getId().equals(userId) && requester.getRole() != Role.ADMIN) {
+            throw new ForbiddenException("شما اجازه این عملیات را ندارید!");
+        }
+    }
+
+    private void validateItemNotSoldOrDeleted(Item item) {
+        if (item.getStatus() == ItemStatus.SOLD) {
+            throw new BadRequestException("آگهی فروخته شده قابل تغییر نیست!");
+        }
+        if (item.getStatus() == ItemStatus.DELETED) {
+            throw new BadRequestException("آگهی حذف شده قابل تغییر نیست!");
+        }
+    }
+
     private ItemResponse convertToResponse(Item item) {
         List<Image> images = imageRepository.findByItemId(item.getId());
         List<ImageResponse> imageResponses = new ArrayList<>();
@@ -48,7 +94,6 @@ public class ItemService {
             imageResponses.add(new ImageResponse(img.getId(), img.getImagePath()));
         }
 
-        // دریافت نام دسته‌بندی و والد آن
         String categoryName = item.getCategory() != null ? item.getCategory().getName() : "بدون دسته‌بندی";
         String parentCategoryName = "";
         if (item.getCategory() != null && item.getCategory().getParent() != null) {
@@ -62,7 +107,7 @@ public class ItemService {
                 item.getPrice(),
                 item.getStatus().name(),
                 categoryName,
-                parentCategoryName,  // ← این رو اضافه کن
+                parentCategoryName,
                 item.getCity() != null ? item.getCity().getName() : "بدون شهر",
                 item.getUser() != null ? item.getUser().getUsername() : "کاربر ناشناس",
                 item.getUser() != null ? item.getUser().getId() : null,
@@ -78,9 +123,17 @@ public class ItemService {
         return responses;
     }
 
+
     public ItemResponse addItem(ItemCreateRequest request, Long userId) {
+
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        validateUserIsActiveAndNotBlocked(user);
+
+        validateItemTitleAndDescription(request.getTitle(), request.getDescription());
+
+        validateItemPrice(request.getPrice());
+
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی یافت نشد"));
         City city = cityRepository.findById(request.getCityId())
@@ -133,27 +186,49 @@ public class ItemService {
         return convertToResponse(savedItem);
     }
 
+
     public List<ItemResponse> getApprovedItems() {
         List<Item> items = itemRepository.findByStatus(ItemStatus.APPROVED.name());
         return convertToResponseList(items);
     }
 
+
     public ItemResponse updateItemStatus(Long requesterAdminId, Long itemId, String newStatus) {
         User requester = userRepository.findById(requesterAdminId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
 
-        if (requester.getRole() != Role.ADMIN) {
-            throw new ForbiddenException("شما دسترسی ادمین به این عملیات را ندارید!");
-        }
+        validateUserIsAdmin(requester);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
+
+        if (item.getUser().getId().equals(requesterAdminId)) {
+            throw new BadRequestException("شما نمی‌توانید آگهی خودتان را تایید یا رد کنید!");
+        }
+
+        validateItemNotSoldOrDeleted(item);
+
+        if (item.getStatus() == ItemStatus.APPROVED) {
+            throw new BadRequestException("آگهی قبلاً تایید شده است!");
+        }
+        if (item.getStatus() == ItemStatus.REJECTED) {
+            throw new BadRequestException("آگهی قبلاً رد شده است!");
+        }
 
         ItemStatus status;
         try {
             status = ItemStatus.valueOf(newStatus.toUpperCase());
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException("وضعیت ارسال شده معتبر نیست. باید PENDING، APPROVED، REJECTED یا SOLD باشد.");
+            throw new BadRequestException("وضعیت ارسال شده معتبر نیست. باید APPROVED یا REJECTED باشد.");
+        }
+
+        // ادمین فقط می‌تونه APPROVED یا REJECTED کنه
+        if (status != ItemStatus.APPROVED && status != ItemStatus.REJECTED) {
+            throw new BadRequestException("ادمین فقط می‌تواند آگهی را تایید (APPROVED) یا رد (REJECTED) کند!");
+        }
+
+        if (item.getStatus() == status) {
+            throw new BadRequestException("آگهی در حال حاضر در وضعیت " + status.name() + " قرار دارد!");
         }
 
         item.setStatus(status);
@@ -161,71 +236,111 @@ public class ItemService {
         return convertToResponse(updatedItem);
     }
 
+
     public List<ItemResponse> getPendingItems(Long requesterAdminId) {
         User requester = userRepository.findById(requesterAdminId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
 
-        if (requester.getRole() != Role.ADMIN) {
-            throw new ForbiddenException("شما دسترسی ادمین به این عملیات را ندارید!");
-        }
+        validateUserIsAdmin(requester);
 
         List<Item> items = itemRepository.findByStatus(ItemStatus.PENDING.name());
         return convertToResponseList(items);
     }
+
 
     public List<ItemResponse> getApprovedItemsByCategory(Long categoryId) {
         List<Item> items = itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED.name());
         return convertToResponseList(items);
     }
 
+
     public List<ItemResponse> getItemByUser(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("کاربر یافت نشد");
         }
-        // آگهی‌های کاربر رو بگیر به جز DELETED
         List<Item> items = itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED.name());
         return convertToResponseList(items);
     }
 
+
     public void deleteItem(Long itemId, Long userId) {
+
         User requester = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
+
+        validateUserIsActiveAndNotBlocked(requester);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
 
-        if (!item.getUser().getId().equals(userId) && requester.getRole() != Role.ADMIN) {
-            throw new ForbiddenException("شما اجازه حذف این آگهی را ندارید!");
+        validateUserIsOwnerOrAdmin(item, userId, requester);
+        validateItemNotSoldOrDeleted(item);
+
+        List<Image> images = imageRepository.findByItemId(itemId);
+        for (Image image : images) {
+            try {
+                Path filePath = Paths.get(image.getImagePath());
+                if (Files.exists(filePath)) {
+                    Files.delete(filePath);  // حذف فایل از روی دیسک
+                    System.out.println("🗑️ تصویر حذف شد: " + image.getImagePath());
+                }
+            } catch (IOException e) {
+                System.out.println("⚠️ خطا در حذف تصویر: " + image.getImagePath() + " - " + e.getMessage());
+            }
         }
+
+        imageRepository.deleteAll(images);
 
         item.setStatus(ItemStatus.DELETED);
         itemRepository.save(item);
     }
 
     public List<ItemResponse> searchItems(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            throw new BadRequestException("کلمه کلیدی جستجو نمی‌تواند خالی باشد!");
+        }
+
         List<Item> items = itemRepository.findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
                 ItemStatus.APPROVED.name(), keyword, ItemStatus.APPROVED.name(), keyword
         );
         return convertToResponseList(items);
     }
 
+
     public List<ItemResponse> getItemsByCity(Long cityId) {
+        if (!cityRepository.existsById(cityId)) {
+            throw new ResourceNotFoundException("شهر یافت نشد");
+        }
         List<Item> items = itemRepository.findByStatusAndCityId(ItemStatus.APPROVED.name(), cityId);
         return convertToResponseList(items);
     }
 
+
     public ItemResponse markAsSold(Long itemId, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+
+        validateUserIsActiveAndNotBlocked(user);
+
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
         if (!item.getUser().getId().equals(userId)) {
-            throw new ForbiddenException("شما مالک این آگهی نیستید و اجازه تغییر وضعیت آن را ندارید!");
+            throw new ForbiddenException("شما مالک این آگهی نیستید!");
+        }
+
+        if (item.getStatus() == ItemStatus.SOLD) {
+            throw new BadRequestException("آگهی قبلاً فروخته شده است!");
+        }
+        if (item.getStatus() == ItemStatus.DELETED) {
+            throw new BadRequestException("آگهی حذف شده است!");
         }
 
         item.setStatus(ItemStatus.SOLD);
         Item updatedItem = itemRepository.save(item);
         return convertToResponse(updatedItem);
     }
+
 
     public ItemResponse getItemById(Long itemId) {
         Item item = itemRepository.findById(itemId)
@@ -237,7 +352,13 @@ public class ItemService {
         return convertToResponse(item);
     }
 
+
     public ItemResponse updateItem(Long itemId, Long userId, ItemUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+
+        validateUserIsActiveAndNotBlocked(user);
+
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
 
@@ -245,9 +366,8 @@ public class ItemService {
             throw new ForbiddenException("شما اجازه ویرایش این آگهی را ندارید!");
         }
 
-        if (item.getStatus() == ItemStatus.SOLD) {
-            throw new BadRequestException("آگهی فروخته شده قابل ویرایش نیست!");
-        }
+        validateItemNotSoldOrDeleted(item);
+
         if (item.getStatus() == ItemStatus.REJECTED) {
             throw new BadRequestException("آگهی رد شده قابل ویرایش نیست!");
         }
@@ -260,7 +380,10 @@ public class ItemService {
             item.setDescription(request.getDescription());
         }
 
-        if (request.getPrice() != null && request.getPrice() > 0) {
+        if (request.getPrice() != null) {
+            if (request.getPrice() <= 0) {
+                throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
+            }
             item.setPrice(request.getPrice());
         }
 
