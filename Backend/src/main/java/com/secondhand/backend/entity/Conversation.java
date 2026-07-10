@@ -12,19 +12,19 @@ public class Conversation {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "item_id", nullable = false)
-    public Item item;
+    private Item item;
 
     //خریدار
     @ManyToOne
     @JoinColumn(name = "buyer_id", nullable = false)
-    public User buyer;
+    private User buyer;
 
     // فروشنده‌ای که صاحب آگهی است
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
-    public User seller;
+    private User seller;
 }
