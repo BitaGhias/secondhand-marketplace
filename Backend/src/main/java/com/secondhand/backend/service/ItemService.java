@@ -86,23 +86,30 @@ public class ItemService {
         item.setCategory(category);
         item.setCity(city);
 
-        //  ذخیره آگهی در دیتابیس (اول آگهی ذخیره میشه تا ID داشته باشه)
+        //  ذخیره آگهی در دیتابیس
         Item savedItem = itemRepository.save(item);
 
         List<MultipartFile> images = request.getImages();
         if (images != null && !images.isEmpty()) {
-            // ایجاد پوشه uploads اگه وجود نداره
-            String uploadDir = "uploads/";
-            Path uploadPath = Paths.get(uploadDir);
-            if (!Files.exists(uploadPath)) {
-                Files.createDirectories(uploadPath);
-            }
+            try {
+                // ایجاد پوشه uploads اگه وجود نداره
+                String uploadDir = "uploads/";
+                Path uploadPath = Paths.get(uploadDir);
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
 
-            for (MultipartFile file : images) {
-                if (!file.isEmpty()) {
-                    try {
-                        // اسم فایل: زمان فعلی + اسم اصلی فایل
-                        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                for (MultipartFile file : images) {
+                    if (!file.isEmpty()) {
+                        // گرفتن پسوند فایل
+                        String originalFileName = file.getOriginalFilename();
+                        String extension = "";
+                        if (originalFileName != null && originalFileName.contains(".")) {
+                            extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                        }
+
+                        // اسم فایل: زمان فعلی + پسوند
+                        String fileName = System.currentTimeMillis() + extension;
                         Path filePath = uploadPath.resolve(fileName);
 
                         // ذخیره فایل روی دیسک
@@ -113,16 +120,16 @@ public class ItemService {
                         image.setImagePath(filePath.toString());
                         image.setItem(savedItem);
                         imageRepository.save(image);
-
-                    } catch (IOException e) {
-                        throw new RuntimeException("خطا در ذخیره تصویر: " + e.getMessage());
                     }
                 }
+            } catch (IOException e) {
+                throw new RuntimeException("خطا در ذخیره تصویر: " + e.getMessage());
             }
         }
 
         return convertToResponse(savedItem);
     }
+
     public List<ItemResponse> getApprovedItems() {
         List<Item> items = itemRepository.findByStatus(ItemStatus.APPROVED.name());
         return convertToResponseList(items);
