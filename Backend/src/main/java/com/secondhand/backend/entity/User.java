@@ -3,12 +3,12 @@ package com.secondhand.backend.entity;
 import com.secondhand.backend.constant.Role;
 import jakarta.persistence.*;
 
-@Entity
+@Entity //برای ساخت جدول توی DB
 @Table(name = "users")
 public class User {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY) //برای تولید خودکار مقدار فیلد
     private Long id;
 
     @Column(nullable = false)
@@ -18,12 +18,15 @@ public class User {
     private String username;
 
     @Column(nullable = false)
-    private String password;
+    private String password; // پسورد هش شده
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", nullable = false, unique = true)
     private String phoneNumber;
 
-    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Enumerated(EnumType.STRING) // بخاطر اینکه به صورت رشته در DB ذحیره شه
     @Column(nullable = false)
     private Role role = Role.USER;
 
@@ -35,12 +38,14 @@ public class User {
 
     public User() {}
 
-    public User(Long id, String fullName, String username, String password, String phoneNumber, Role role, boolean active, boolean blocked) {
+    public User(Long id, String fullName, String username, String password,
+                String phoneNumber, String email, Role role, boolean active, boolean blocked) {
         this.id = id;
         this.fullName = fullName;
         this.username = username;
         this.password = password;
         this.phoneNumber = phoneNumber;
+        this.email = email;
         this.role = role;
         this.active = active;
         this.blocked = blocked;
@@ -51,6 +56,7 @@ public class User {
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getPhoneNumber() { return phoneNumber; }
+    public String getEmail() { return email; }
     public Role getRole() { return role; }
     public boolean isActive() { return active; }
     public boolean isBlocked() { return blocked; }
@@ -60,6 +66,7 @@ public class User {
     public void setUsername(String username) { this.username = username; }
     public void setPassword(String password) { this.password = password; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public void setEmail(String email) { this.email = email; }
     public void setRole(Role role) { this.role = role; }
     public void setActive(boolean active) { this.active = active; }
     public void setBlocked(boolean blocked) { this.blocked = blocked; }

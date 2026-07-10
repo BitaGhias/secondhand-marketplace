@@ -9,26 +9,31 @@ public class ItemResponse {
     private double price;
     private String status;
     private String categoryName;
+    private String parentCategoryName;
     private String cityName;
     private String ownerUsername;
     private Long ownerId;
     private List<ImageResponse> images;
+    private String rejectionReason;
 
     public ItemResponse() {}
 
     public ItemResponse(Long id, String title, String description, double price, String status,
-                        String categoryName, String cityName, String ownerUsername, Long ownerId,
-                        List<ImageResponse> images) {
+                        String categoryName, String parentCategoryName, String cityName,
+                        String ownerUsername, Long ownerId, List<ImageResponse> images,
+                        String rejectionReason) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.price = price;
         this.status = status;
         this.categoryName = categoryName;
+        this.parentCategoryName = parentCategoryName;
         this.cityName = cityName;
         this.ownerUsername = ownerUsername;
         this.ownerId = ownerId;
         this.images = images;
+        this.rejectionReason = rejectionReason;
     }
 
     public Long getId() { return id; }
@@ -37,10 +42,12 @@ public class ItemResponse {
     public double getPrice() { return price; }
     public String getStatus() { return status; }
     public String getCategoryName() { return categoryName; }
+    public String getParentCategoryName() { return parentCategoryName; }
     public String getCityName() { return cityName; }
     public String getOwnerUsername() { return ownerUsername; }
     public Long getOwnerId() { return ownerId; }
     public List<ImageResponse> getImages() { return images; }
+    public String getRejectionReason() { return rejectionReason; }
 
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
@@ -48,8 +55,10 @@ public class ItemResponse {
     public void setPrice(double price) { this.price = price; }
     public void setStatus(String status) { this.status = status; }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public void setParentCategoryName(String parentCategoryName) { this.parentCategoryName = parentCategoryName; }
     public void setCityName(String cityName) { this.cityName = cityName; }
     public void setOwnerUsername(String ownerUsername) { this.ownerUsername = ownerUsername; }
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
     public void setImages(List<ImageResponse> images) { this.images = images; }
+    public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
 }

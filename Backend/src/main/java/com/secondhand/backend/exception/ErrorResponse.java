@@ -3,9 +3,9 @@ package com.secondhand.backend.exception;
 import java.time.LocalDateTime;
 
 public class ErrorResponse {
-    private String message;
+    private String message; // خطا به فارسی
     private int statusCode;
-    private String status;
+    private String status; // نام وضعیت به انگلیسی
     private LocalDateTime timestamp;
     private String path;
 

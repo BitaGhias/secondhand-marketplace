@@ -5,3 +5,6 @@ public class ForbiddenException extends RuntimeException {
         super(message);
     }
 }
+// 403
+// Forbidden
+// کاربر اجازه ی انجام این عملیات را ندارد

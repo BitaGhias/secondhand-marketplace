@@ -3,6 +3,7 @@ package com.secondhand.backend.service;
 import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.UserRegisterRequest;
 import com.secondhand.backend.dto.UserResponse;
+import com.secondhand.backend.dto.UserUpdateRequest;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;
@@ -23,6 +24,21 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
+    private boolean isValidEmail(String email) {
+        if (email == null) return false;
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
+        return email.matches(emailRegex);
+    }
+
+    private boolean isValidPhoneNumber(String phone) {
+        if (phone == null) return false;
+        // شماره باید با 09 شروع بشه و 11 رقم باشه
+        String phoneRegex = "^09[0-9]{9}$";
+        return phone.matches(phoneRegex);
+    }
+
+
     public UserResponse convertToResponse(User user) {
         return new UserResponse(
                 user.getId(),
@@ -30,27 +46,63 @@ public class UserService {
                 user.getUsername(),
                 user.getRole(),
                 user.isBlocked(),
-                user.getPhoneNumber()
+                user.getPhoneNumber(),
+                user.getEmail()
         );
     }
 
+
     public UserResponse registerUser(UserRegisterRequest request) {
+
+        if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
+            throw new BadRequestException("نام کامل الزامی است!");
+        }
+
+        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+            throw new BadRequestException("نام کاربری الزامی است!");
+        }
         if (userRepository.existsByUsername(request.getUsername())) {
             throw new BadRequestException("نام کاربری تکراری است!");
+        }
+
+        if (request.getPassword() == null || request.getPassword().trim().isEmpty()) {
+            throw new BadRequestException("رمز عبور الزامی است!");
+        }
+
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new BadRequestException("ایمیل الزامی است!");
+        }
+        if (!isValidEmail(request.getEmail())) {
+            throw new BadRequestException("فرمت ایمیل نامعتبر است!");
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("ایمیل تکراری است!");
+        }
+
+        if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty()) {
+            throw new BadRequestException("شماره تلفن الزامی است!");
+        }
+        if (!isValidPhoneNumber(request.getPhoneNumber())) {
+            throw new BadRequestException("فرمت شماره تلفن نامعتبر است! باید با 09 شروع شود و 11 رقم باشد.");
+        }
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new BadRequestException("شماره تلفن تکراری است!");
         }
 
         User user = new User();
         user.setFullName(request.getFullName());
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setEmail(request.getEmail());
         user.setRole(Role.USER);
         user.setBlocked(false);
         user.setActive(true);
-        user.setPhoneNumber(request.getPhoneNumber());
 
         User savedUser = userRepository.save(user);
         return convertToResponse(savedUser);
     }
+
 
     public UserResponse loginUser(String username, String password) {
         User user = userRepository.findByUsername(username)
@@ -67,6 +119,28 @@ public class UserService {
         return convertToResponse(user);
     }
 
+
+    public UserResponse getUserById(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        return convertToResponse(user);
+    }
+
+
+    public UserResponse getUserByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        return convertToResponse(user);
+    }
+
+
+    public Long getUserIdByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        return user.getId();
+    }
+
+
     public List<UserResponse> getAllUsers(Long requesterId) {
         User requester = userRepository.findById(requesterId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -82,6 +156,7 @@ public class UserService {
         }
         return responses;
     }
+
 
     public UserResponse toggleUserBlockStatus(Long adminId, Long userId, boolean block) {
         User requester = userRepository.findById(adminId)
@@ -104,9 +179,81 @@ public class UserService {
         return convertToResponse(updatedUser);
     }
 
-    public Long getUserIdByUsername(String username) {
-        User user = userRepository.findByUsername(username)
+
+    public UserResponse makeAdmin(Long adminId, Long userId) {
+        User requester = userRepository.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
+
+        if (requester.getRole() != Role.ADMIN) {
+            throw new ForbiddenException("شما دسترسی ادمین به این عملیات را ندارید!");
+        }
+
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر مورد نظر یافت نشد"));
+
+        targetUser.setRole(Role.ADMIN);
+        User updatedUser = userRepository.save(targetUser);
+
+        return convertToResponse(updatedUser);
+    }
+
+
+    public UserResponse updateUserProfile(Long userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        return user.getId();
+
+        if (request.getFullName() != null && !request.getFullName().trim().isEmpty()) {
+            user.setFullName(request.getFullName());
+        }
+
+        if (request.getPhoneNumber() != null && !request.getPhoneNumber().trim().isEmpty()) {
+            if (!isValidPhoneNumber(request.getPhoneNumber())) {
+                throw new BadRequestException("فرمت شماره تلفن نامعتبر است! باید با 09 شروع شود و 11 رقم باشد.");
+            }
+            if (!request.getPhoneNumber().equals(user.getPhoneNumber())) {
+                if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+                    throw new BadRequestException("شماره تلفن تکراری است!");
+                }
+                user.setPhoneNumber(request.getPhoneNumber());
+            }
+        }
+
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            if (!isValidEmail(request.getEmail())) {
+                throw new BadRequestException("فرمت ایمیل نامعتبر است!");
+            }
+            if (!request.getEmail().equals(user.getEmail())) {
+                if (userRepository.existsByEmail(request.getEmail())) {
+                    throw new BadRequestException("ایمیل تکراری است!");
+                }
+                user.setEmail(request.getEmail());
+            }
+        }
+
+        User updatedUser = userRepository.save(user);
+        return convertToResponse(updatedUser);
+    }
+
+
+    public UserResponse changePassword(Long userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BadRequestException("رمز عبور فعلی اشتباه است!");
+        }
+
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new BadRequestException("رمز عبور جدید نمی‌تواند خالی باشد!");
+        }
+
+        if (passwordEncoder.matches(newPassword, user.getPassword())) {
+            throw new BadRequestException("رمز عبور جدید نمی‌تواند با رمز قبلی یکسان باشد!");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        User updatedUser = userRepository.save(user);
+
+        return convertToResponse(updatedUser);
     }
 }

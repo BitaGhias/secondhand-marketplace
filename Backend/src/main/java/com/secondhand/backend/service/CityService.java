@@ -20,6 +20,7 @@ public class CityService {
         return new CityResponse(city.getId(), city.getName());
     }
 
+    // فقط ادمین
     public CityResponse addCity(CityRequest request) {
         cityRepository.findByName(request.getName()).ifPresent(c -> {
             throw new BadRequestException("این شهر از قبل در سیستم ثبت شده است!");

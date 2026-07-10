@@ -5,3 +5,6 @@ public class ResourceNotFoundException extends RuntimeException {
         super(message);
     }
 }
+// 404
+// Not Found
+// داده مورد نظر پیدا نشده است

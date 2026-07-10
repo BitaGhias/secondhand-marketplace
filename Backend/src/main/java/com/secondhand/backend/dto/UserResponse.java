@@ -9,16 +9,19 @@ public class UserResponse {
     private Role role;
     private boolean blocked;
     private String phoneNumber;
+    private String email;
 
     public UserResponse() {}
 
-    public UserResponse(Long id, String fullName, String username, Role role, boolean blocked, String phoneNumber) {
+    public UserResponse(Long id, String fullName, String username, Role role,
+                        boolean blocked, String phoneNumber, String email) {
         this.id = id;
         this.fullName = fullName;
         this.username = username;
         this.role = role;
         this.blocked = blocked;
         this.phoneNumber = phoneNumber;
+        this.email = email;
     }
 
     public Long getId() { return id; }
@@ -27,6 +30,7 @@ public class UserResponse {
     public Role getRole() { return role; }
     public boolean isBlocked() { return blocked; }
     public String getPhoneNumber() { return phoneNumber; }
+    public String getEmail() { return email; }
 
     public void setId(Long id) { this.id = id; }
     public void setFullName(String fullName) { this.fullName = fullName; }
@@ -34,4 +38,5 @@ public class UserResponse {
     public void setRole(Role role) { this.role = role; }
     public void setBlocked(boolean blocked) { this.blocked = blocked; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+    public void setEmail(String email) { this.email = email; }
 }

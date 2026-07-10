@@ -9,7 +9,7 @@ import org.springframework.security.crypto.password.PasswordEncoder; //برای 
 @Configuration //کلاس تنظیمات
 public class PasswordEncoderConfig {
 
-    @Bean //ساخت ابزاری برای استفاده از بقیه
+    @Bean //این شیء رو تو بساز و هر وقت کسی بهش نیاز داشت، بهش بده
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }

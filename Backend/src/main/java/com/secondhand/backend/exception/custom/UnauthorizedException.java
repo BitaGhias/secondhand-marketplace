@@ -5,3 +5,6 @@ public class UnauthorizedException extends RuntimeException {
         super(message);
     }
 }
+// 401
+// Unauthorized
+// کاربر وارد سیستم نشده است
