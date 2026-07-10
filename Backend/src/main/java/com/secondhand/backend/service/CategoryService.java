@@ -3,6 +3,7 @@ package com.secondhand.backend.service;
 import com.secondhand.backend.dto.CategoryRequest;
 import com.secondhand.backend.dto.CategoryResponse;
 import com.secondhand.backend.entity.Category;
+import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class CategoryService {
     public CategoryResponse createCategory(CategoryRequest request) {
         Category existing = categoryRepository.findByName(request.getName());
         if (existing != null) {
-            throw new RuntimeException("این دسته‌بندی از قبل وجود دارد");
+            throw new BadRequestException("این دسته‌بندی از قبل وجود دارد");
         }
 
         Category category = new Category();
