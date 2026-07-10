@@ -1,5 +1,6 @@
 package com.secondhand.backend.service;
 
+import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.ItemCreateRequest;
 import com.secondhand.backend.dto.ItemResponse;
@@ -23,10 +24,10 @@ public class ItemService {
     private UserRepository userRepository;
 
     @Autowired
-    public CityRepository cityRepository;
+    private CityRepository cityRepository;
 
     @Autowired
-    public CategoryRepository categoryRepository;
+    private CategoryRepository categoryRepository;
 
     private ItemResponse convertToResponse(Item item) {
         return new ItemResponse(
@@ -34,9 +35,9 @@ public class ItemService {
                 item.getTitle(),
                 item.getDescription(),
                 item.getPrice(),
-                item.getStatus(),
-                item.category != null ? item.category.getName() : "بدون دسته‌بندی",
-                item.city != null ? item.city.getName() : "بدون شهر",
+                item.getStatus().name(),  // enum -> String
+                item.getCategory() != null ? item.getCategory().getName() : "بدون دسته‌بندی",
+                item.getCity() != null ? item.getCity().getName() : "بدون شهر",
                 item.getUser() != null ? item.getUser().getUsername() : "کاربر ناشناس",
                 item.getUser() != null ? item.getUser().getId() : null
         );
@@ -62,17 +63,17 @@ public class ItemService {
         item.setTitle(request.getTitle());
         item.setDescription(request.getDescription());
         item.setPrice(request.getPrice());
-        item.setStatus("PENDING");
+        item.setStatus(ItemStatus.PENDING);  // استفاده از enum
         item.setUser(user);
-        item.category = category;
-        item.city = city;
+        item.setCategory(category);
+        item.setCity(city);
 
         Item savedItem = itemRepository.save(item);
         return convertToResponse(savedItem);
     }
 
     public List<ItemResponse> getApprovedItems() {
-        List<Item> items = itemRepository.findByStatus("APPROVED");
+        List<Item> items = itemRepository.findByStatus(ItemStatus.APPROVED.name());
         return convertToResponseList(items);
     }
 
@@ -87,12 +88,14 @@ public class ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new RuntimeException("آگهی مورد نظر یافت نشد"));
 
-        String statusUpper = newStatus.toUpperCase();
-        if (!statusUpper.equals("APPROVED") && !statusUpper.equals("REJECTED") && !statusUpper.equals("PENDING")) {
-            throw new RuntimeException("وضعیت ارسال شده معتبر نیست. باید APPROVED، REJECTED یا PENDING باشد.");
+        ItemStatus status;
+        try {
+            status = ItemStatus.valueOf(newStatus.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("وضعیت ارسال شده معتبر نیست. باید PENDING، APPROVED، REJECTED یا SOLD باشد.");
         }
 
-        item.setStatus(statusUpper);
+        item.setStatus(status);
         Item updatedItem = itemRepository.save(item);
         return convertToResponse(updatedItem);
     }
@@ -105,12 +108,12 @@ public class ItemService {
             throw new RuntimeException("شما دسترسی ادمین به این عملیات را ندارید!");
         }
 
-        List<Item> items = itemRepository.findByStatus("PENDING");
+        List<Item> items = itemRepository.findByStatus(ItemStatus.PENDING.name());
         return convertToResponseList(items);
     }
 
     public List<ItemResponse> getApprovedItemsByCategory(Long categoryId) {
-        List<Item> items = itemRepository.findByCategoryIdAndStatus(categoryId, "APPROVED");
+        List<Item> items = itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED.name());
         return convertToResponseList(items);
     }
 
@@ -138,13 +141,13 @@ public class ItemService {
 
     public List<ItemResponse> searchItems(String keyword) {
         List<Item> items = itemRepository.findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
-                "APPROVED", keyword, "APPROVED", keyword
+                ItemStatus.APPROVED.name(), keyword, ItemStatus.APPROVED.name(), keyword
         );
         return convertToResponseList(items);
     }
 
     public List<ItemResponse> getItemsByCity(Long cityId) {
-        List<Item> items = itemRepository.findByStatusAndCityId("APPROVED", cityId);
+        List<Item> items = itemRepository.findByStatusAndCityId(ItemStatus.APPROVED.name(), cityId);
         return convertToResponseList(items);
     }
 
@@ -156,7 +159,7 @@ public class ItemService {
             throw new RuntimeException("شما مالک این آگهی نیستید و اجازه تغییر وضعیت آن را ندارید!");
         }
 
-        item.setStatus("SOLD");
+        item.setStatus(ItemStatus.SOLD);
         Item updatedItem = itemRepository.save(item);
         return convertToResponse(updatedItem);
     }
