@@ -63,6 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/items/pending").hasRole("ADMIN")
                         .requestMatchers("/api/items/*/status").hasRole("ADMIN")
                         .requestMatchers("/api/categories/create").hasRole("ADMIN")
+                        .requestMatchers("/api/categories/{id}").hasRole("ADMIN")
                         .requestMatchers("/api/cities/add").hasRole("ADMIN")
 
                         .anyRequest().authenticated()  // بقیه مسیرها نیاز به احراز هویت دارن
