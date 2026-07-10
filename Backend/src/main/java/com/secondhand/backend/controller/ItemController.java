@@ -2,6 +2,7 @@ package com.secondhand.backend.controller;
 
 import com.secondhand.backend.dto.ItemCreateRequest;
 import com.secondhand.backend.dto.ItemResponse;
+import com.secondhand.backend.dto.ItemUpdateRequest;
 import com.secondhand.backend.service.ItemService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -97,6 +98,21 @@ public class ItemController {
         }
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateItem(
+            @PathVariable Long id,
+            @RequestBody ItemUpdateRequest request) {
+        try {
+            Long userId = getCurrentUserId();
+            ItemResponse updatedItem = itemService.updateItem(id, userId, request);
+
+            return ResponseEntity.ok(updatedItem);
+
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
     @GetMapping("/search")
     public ResponseEntity<List<ItemResponse>> searchItems(@RequestParam String keyword) {
         List<ItemResponse> results = itemService.searchItems(keyword);
@@ -128,4 +144,6 @@ public class ItemController {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
+
+
 }
