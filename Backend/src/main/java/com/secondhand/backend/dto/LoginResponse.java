@@ -9,5 +9,5 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class LoginResponse {
     private UserResponse user;
-    private String token;  // فعلاً خالی
+    private String token;
 }
