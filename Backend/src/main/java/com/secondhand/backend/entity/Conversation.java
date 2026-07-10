@@ -1,13 +1,9 @@
 package com.secondhand.backend.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 
 @Entity
 @Table(name = "conversations")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
 public class Conversation {
 
     @Id
@@ -18,13 +14,30 @@ public class Conversation {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
-    //خریدار
     @ManyToOne
     @JoinColumn(name = "buyer_id", nullable = false)
     private User buyer;
 
-    // فروشنده‌ای که صاحب آگهی است
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
+
+    public Conversation() {}
+
+    public Conversation(Long id, Item item, User buyer, User seller) {
+        this.id = id;
+        this.item = item;
+        this.buyer = buyer;
+        this.seller = seller;
+    }
+
+    public Long getId() { return id; }
+    public Item getItem() { return item; }
+    public User getBuyer() { return buyer; }
+    public User getSeller() { return seller; }
+
+    public void setId(Long id) { this.id = id; }
+    public void setItem(Item item) { this.item = item; }
+    public void setBuyer(User buyer) { this.buyer = buyer; }
+    public void setSeller(User seller) { this.seller = seller; }
 }
