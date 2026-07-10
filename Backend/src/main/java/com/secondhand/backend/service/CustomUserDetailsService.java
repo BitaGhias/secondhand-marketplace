@@ -20,11 +20,14 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        //  پیدا کردن کاربر از دیتابیس
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("کاربر یافت نشد: " + username));
 
-        //  برگردوندن اطلاعات کاربر برای Spring Security
+        // اگه کاربر مسدود شده باشه، نمیذاریم لاگین کنه
+        if (user.isBlocked()) {
+            throw new UsernameNotFoundException("حساب کاربری شما مسدود شده است");
+        }
+
         return new org.springframework.security.core.userdetails.User(
                 user.getUsername(),
                 user.getPassword(),
