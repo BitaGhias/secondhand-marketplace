@@ -21,12 +21,8 @@ public class CityController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<?> addCity(@RequestBody CityRequest request) {
-        try {
-            CityResponse cityResponse = cityService.addCity(request);
-            return ResponseEntity.ok(cityResponse);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+    public ResponseEntity<CityResponse> addCity(@RequestBody CityRequest request) {
+        CityResponse cityResponse = cityService.addCity(request);
+        return ResponseEntity.ok(cityResponse);
     }
 }
