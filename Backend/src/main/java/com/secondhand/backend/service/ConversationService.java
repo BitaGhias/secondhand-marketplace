@@ -14,34 +14,37 @@ import java.util.Optional;
 public class ConversationService {
 
     @Autowired
-    public ConversationRepository conversationRepository;
+    private ConversationRepository conversationRepository;
+
     @Autowired
-    public ChatMessageRepository chatMessageRepository;
+    private ChatMessageRepository chatMessageRepository;
+
     @Autowired
-    public UserRepository userRepository;
+    private UserRepository userRepository;
+
     @Autowired
-    public ItemRepository itemRepository;
+    private ItemRepository itemRepository;
 
     private ConversationResponse convertToConversationResponse(Conversation conv) {
         return new ConversationResponse(
-                conv.id,
-                conv.item != null ? conv.item.getId() : null,
-                conv.item != null ? conv.item.getTitle() : "آگهی حذف شده",
-                conv.buyer != null ? conv.buyer.getId() : null,
-                conv.buyer != null ? conv.buyer.getUsername() : "ناشناس",
-                conv.seller != null ? conv.seller.getId() : null,
-                conv.seller != null ? conv.seller.getUsername() : "ناشناس"
+                conv.getId(),
+                conv.getItem() != null ? conv.getItem().getId() : null,
+                conv.getItem() != null ? conv.getItem().getTitle() : "آگهی حذف شده",
+                conv.getBuyer() != null ? conv.getBuyer().getId() : null,
+                conv.getBuyer() != null ? conv.getBuyer().getUsername() : "ناشناس",
+                conv.getSeller() != null ? conv.getSeller().getId() : null,
+                conv.getSeller() != null ? conv.getSeller().getUsername() : "ناشناس"
         );
     }
 
     private ChatMessageResponse convertToMessageResponse(ChatMessage msg) {
         return new ChatMessageResponse(
-                msg.id,
-                msg.conversation != null ? msg.conversation.id : null,
-                msg.sender != null ? msg.sender.getId() : null,
-                msg.sender != null ? msg.sender.getUsername() : "ناشناس",
-                msg.text,
-                msg.timestamp
+                msg.getId(),
+                msg.getConversation() != null ? msg.getConversation().getId() : null,
+                msg.getSender() != null ? msg.getSender().getId() : null,
+                msg.getSender() != null ? msg.getSender().getUsername() : "ناشناس",
+                msg.getText(),
+                msg.getTimestamp()
         );
     }
 
@@ -62,29 +65,29 @@ public class ConversationService {
         }
 
         Conversation conversation = new Conversation();
-        conversation.item = item;
-        conversation.buyer = buyer;
-        conversation.seller = seller;
+        conversation.setItem(item);
+        conversation.setBuyer(buyer);
+        conversation.setSeller(seller);
 
         Conversation saved = conversationRepository.save(conversation);
         return convertToConversationResponse(saved);
     }
 
-    public ChatMessageResponse sendMessage(ChatMessageRequest request) {
+    public ChatMessageResponse sendMessage(ChatMessageRequest request, Long senderId) {
         Conversation conversation = conversationRepository.findById(request.getConversationId())
                 .orElseThrow(() -> new RuntimeException("مکالمه یافت نشد"));
-        User sender = userRepository.findById(request.getSenderId())
+        User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new RuntimeException("فرستنده یافت نشد"));
 
-        if (!conversation.buyer.getId().equals(request.getSenderId()) && !conversation.seller.getId().equals(request.getSenderId())) {
+        if (!conversation.getBuyer().getId().equals(senderId) && !conversation.getSeller().getId().equals(senderId)) {
             throw new RuntimeException("شما عضو این مکالمه نیستید!");
         }
 
         ChatMessage message = new ChatMessage();
-        message.conversation = conversation;
-        message.sender = sender;
-        message.text = request.getText();
-        message.timestamp = LocalDateTime.now();
+        message.setConversation(conversation);
+        message.setSender(sender);
+        message.setText(request.getText());
+        message.setTimestamp(LocalDateTime.now());
 
         ChatMessage saved = chatMessageRepository.save(message);
         return convertToMessageResponse(saved);
