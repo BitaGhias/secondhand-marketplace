@@ -4,6 +4,9 @@ import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.UserRegisterRequest;
 import com.secondhand.backend.dto.UserResponse;
 import com.secondhand.backend.entity.User;
+import com.secondhand.backend.exception.custom.BadRequestException;
+import com.secondhand.backend.exception.custom.ForbiddenException;
+import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,7 +36,7 @@ public class UserService {
 
     public UserResponse registerUser(UserRegisterRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("نام کاربری تکراری است!");
+            throw new BadRequestException("نام کاربری تکراری است!");
         }
 
         User user = new User();
@@ -51,14 +54,14 @@ public class UserService {
 
     public UserResponse loginUser(String username, String password) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("نام کاربری یا رمز عبور اشتباه است"));
+                .orElseThrow(() -> new BadRequestException("نام کاربری یا رمز عبور اشتباه است"));
 
         if (user.isBlocked()) {
-            throw new RuntimeException("حساب کاربری شما توسط ادمین مسدود شده است!");
+            throw new ForbiddenException("حساب کاربری شما توسط ادمین مسدود شده است!");
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new RuntimeException("نام کاربری یا رمز عبور اشتباه است");
+            throw new BadRequestException("نام کاربری یا رمز عبور اشتباه است");
         }
 
         return convertToResponse(user);
@@ -66,10 +69,10 @@ public class UserService {
 
     public List<UserResponse> getAllUsers(Long requesterId) {
         User requester = userRepository.findById(requesterId)
-                .orElseThrow(() -> new RuntimeException("کاربر درخواست‌کننده یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
 
         if (requester.getRole() != Role.ADMIN) {
-            throw new RuntimeException("شما دسترسی ادمین به این عملیات را ندارید!");
+            throw new ForbiddenException("شما دسترسی ادمین به این عملیات را ندارید!");
         }
 
         List<User> users = userRepository.findAll();
@@ -82,17 +85,17 @@ public class UserService {
 
     public UserResponse toggleUserBlockStatus(Long adminId, Long userId, boolean block) {
         User requester = userRepository.findById(adminId)
-                .orElseThrow(() -> new RuntimeException("کاربر درخواست‌کننده یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
 
         if (requester.getRole() != Role.ADMIN) {
-            throw new RuntimeException("شما دسترسی ادمین به این عملیات را ندارید!");
+            throw new ForbiddenException("شما دسترسی ادمین به این عملیات را ندارید!");
         }
 
         User targetUser = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("کاربر مورد نظر یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر مورد نظر یافت نشد"));
 
         if (targetUser.getRole() == Role.ADMIN) {
-            throw new RuntimeException("شما نمی‌توانید حساب‌های سطح ادمین را مسدود کنید!");
+            throw new ForbiddenException("شما نمی‌توانید حساب‌های سطح ادمین را مسدود کنید!");
         }
 
         targetUser.setBlocked(block);
@@ -103,7 +106,7 @@ public class UserService {
 
     public Long getUserIdByUsername(String username) {
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("کاربر یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
         return user.getId();
     }
 }
