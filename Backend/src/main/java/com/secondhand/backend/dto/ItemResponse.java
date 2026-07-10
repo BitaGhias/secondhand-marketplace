@@ -9,6 +9,7 @@ public class ItemResponse {
     private double price;
     private String status;
     private String categoryName;
+    private String parentCategoryName;
     private String cityName;
     private String ownerUsername;
     private Long ownerId;
@@ -25,6 +26,7 @@ public class ItemResponse {
         this.price = price;
         this.status = status;
         this.categoryName = categoryName;
+        this.parentCategoryName = "";
         this.cityName = cityName;
         this.ownerUsername = ownerUsername;
         this.ownerId = ownerId;
@@ -37,6 +39,7 @@ public class ItemResponse {
     public double getPrice() { return price; }
     public String getStatus() { return status; }
     public String getCategoryName() { return categoryName; }
+    public String getParentCategoryName() { return parentCategoryName; }
     public String getCityName() { return cityName; }
     public String getOwnerUsername() { return ownerUsername; }
     public Long getOwnerId() { return ownerId; }
@@ -48,6 +51,7 @@ public class ItemResponse {
     public void setPrice(double price) { this.price = price; }
     public void setStatus(String status) { this.status = status; }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
+    public void setParentCategoryName(String parentCategoryName) { this.parentCategoryName = parentCategoryName; }
     public void setCityName(String cityName) { this.cityName = cityName; }
     public void setOwnerUsername(String ownerUsername) { this.ownerUsername = ownerUsername; }
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
