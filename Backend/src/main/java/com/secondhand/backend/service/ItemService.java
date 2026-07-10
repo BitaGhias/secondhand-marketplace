@@ -175,7 +175,8 @@ public class ItemService {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("کاربر یافت نشد");
         }
-        List<Item> items = itemRepository.findByUserId(userId);
+        // آگهی‌های کاربر رو بگیر به جز DELETED
+        List<Item> items = itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED.name());
         return convertToResponseList(items);
     }
 
