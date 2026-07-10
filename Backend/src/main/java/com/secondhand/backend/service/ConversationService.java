@@ -2,6 +2,9 @@ package com.secondhand.backend.service;
 
 import com.secondhand.backend.dto.*;
 import com.secondhand.backend.entity.*;
+import com.secondhand.backend.exception.custom.BadRequestException;
+import com.secondhand.backend.exception.custom.ForbiddenException;
+import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -50,13 +53,13 @@ public class ConversationService {
 
     public ConversationResponse startConversation(Long itemId, Long buyerId) {
         Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("آگهی یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
         User buyer = userRepository.findById(buyerId)
-                .orElseThrow(() -> new RuntimeException("خریدار یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("خریدار یافت نشد"));
         User seller = item.getUser();
 
         if (seller.getId().equals(buyerId)) {
-            throw new RuntimeException("شما نمی‌توانید با خودتان روی آگهی خودتان چت کنید!");
+            throw new BadRequestException("شما نمی‌توانید با خودتان روی آگهی خودتان چت کنید!");
         }
 
         Optional<Conversation> existing = conversationRepository.findByBuyerIdAndSellerIdAndItemId(buyerId, seller.getId(), itemId);
@@ -75,12 +78,12 @@ public class ConversationService {
 
     public ChatMessageResponse sendMessage(ChatMessageRequest request, Long senderId) {
         Conversation conversation = conversationRepository.findById(request.getConversationId())
-                .orElseThrow(() -> new RuntimeException("مکالمه یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("مکالمه یافت نشد"));
         User sender = userRepository.findById(senderId)
-                .orElseThrow(() -> new RuntimeException("فرستنده یافت نشد"));
+                .orElseThrow(() -> new ResourceNotFoundException("فرستنده یافت نشد"));
 
         if (!conversation.getBuyer().getId().equals(senderId) && !conversation.getSeller().getId().equals(senderId)) {
-            throw new RuntimeException("شما عضو این مکالمه نیستید!");
+            throw new ForbiddenException("شما عضو این مکالمه نیستید!");
         }
 
         ChatMessage message = new ChatMessage();
