@@ -1,5 +1,6 @@
 package com.secondhand.backend.entity;
 
+import com.secondhand.backend.constant.ItemStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 public class Item {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     @Column(nullable = false)
     private String title;
@@ -23,20 +24,21 @@ public class Item {
     @Column(nullable = false)
     private Double price;
 
-    private String status = "PENDING"; //  PENDING ، APPROVED ، REJECTED
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ItemStatus status = ItemStatus.PENDING;
 
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    // ارتباط آگهی با کاربر (هر آگهی متعلق به یک کاربر است)
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = false)
-    public Category category;
+    private Category category;
 
     @ManyToOne
     @JoinColumn(name = "city_id", nullable = false)
-    public City city;
+    private City city;
 }
