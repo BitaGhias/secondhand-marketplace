@@ -2,6 +2,7 @@ package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.constant.Role;
+import com.secondhand.backend.dto.ImageResponse;
 import com.secondhand.backend.dto.ItemCreateRequest;
 import com.secondhand.backend.dto.ItemResponse;
 import com.secondhand.backend.dto.ItemUpdateRequest;
@@ -12,6 +13,11 @@ import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.secondhand.backend.entity.Image;
+import com.secondhand.backend.repository.ImageRepository;
+import org.springframework.web.multipart.MultipartFile;
+import java.nio.file.*;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,17 +36,28 @@ public class ItemService {
     @Autowired
     private CategoryRepository categoryRepository;
 
+    @Autowired
+    private ImageRepository imageRepository;
+
     private ItemResponse convertToResponse(Item item) {
+        List<Image> images = imageRepository.findByItemId(item.getId());
+
+        List<ImageResponse> imageResponses = new ArrayList<>();
+        for (Image img : images) {
+            imageResponses.add(new ImageResponse(img.getId(), img.getImagePath()));
+        }
+
         return new ItemResponse(
                 item.getId(),
                 item.getTitle(),
                 item.getDescription(),
                 item.getPrice(),
-                item.getStatus().name(),  // enum -> String
+                item.getStatus().name(),
                 item.getCategory() != null ? item.getCategory().getName() : "بدون دسته‌بندی",
                 item.getCity() != null ? item.getCity().getName() : "بدون شهر",
                 item.getUser() != null ? item.getUser().getUsername() : "کاربر ناشناس",
-                item.getUser() != null ? item.getUser().getId() : null
+                item.getUser() != null ? item.getUser().getId() : null,
+                imageResponses
         );
     }
 
@@ -64,15 +81,48 @@ public class ItemService {
         item.setTitle(request.getTitle());
         item.setDescription(request.getDescription());
         item.setPrice(request.getPrice());
-        item.setStatus(ItemStatus.PENDING);  // استفاده از enum
+        item.setStatus(ItemStatus.PENDING);
         item.setUser(user);
         item.setCategory(category);
         item.setCity(city);
 
+        //  ذخیره آگهی در دیتابیس (اول آگهی ذخیره میشه تا ID داشته باشه)
         Item savedItem = itemRepository.save(item);
+
+        List<MultipartFile> images = request.getImages();
+        if (images != null && !images.isEmpty()) {
+            // ایجاد پوشه uploads اگه وجود نداره
+            String uploadDir = "uploads/";
+            Path uploadPath = Paths.get(uploadDir);
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            for (MultipartFile file : images) {
+                if (!file.isEmpty()) {
+                    try {
+                        // اسم فایل: زمان فعلی + اسم اصلی فایل
+                        String fileName = System.currentTimeMillis() + "_" + file.getOriginalFilename();
+                        Path filePath = uploadPath.resolve(fileName);
+
+                        // ذخیره فایل روی دیسک
+                        Files.write(filePath, file.getBytes());
+
+                        // ذخیره مسیر در دیتابیس و اتصال به آگهی
+                        Image image = new Image();
+                        image.setImagePath(filePath.toString());
+                        image.setItem(savedItem);
+                        imageRepository.save(image);
+
+                    } catch (IOException e) {
+                        throw new RuntimeException("خطا در ذخیره تصویر: " + e.getMessage());
+                    }
+                }
+            }
+        }
+
         return convertToResponse(savedItem);
     }
-
     public List<ItemResponse> getApprovedItems() {
         List<Item> items = itemRepository.findByStatus(ItemStatus.APPROVED.name());
         return convertToResponseList(items);
