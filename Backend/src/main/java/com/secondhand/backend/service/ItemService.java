@@ -4,6 +4,7 @@ import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.ItemCreateRequest;
 import com.secondhand.backend.dto.ItemResponse;
+import com.secondhand.backend.dto.ItemUpdateRequest;
 import com.secondhand.backend.entity.*;
 import com.secondhand.backend.repository.CategoryRepository;
 import com.secondhand.backend.repository.CityRepository;
@@ -172,5 +173,38 @@ public class ItemService {
             throw new RuntimeException("این آگهی قابل نمایش نیست");
         }
         return convertToResponse(item);
+    }
+
+    public ItemResponse updateItem(Long itemId, Long userId,
+                                   ItemUpdateRequest request) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new RuntimeException("آگهی مورد نظر یافت نشد"));
+
+        if (!item.getUser().getId().equals(userId)) {
+            throw new RuntimeException("شما اجازه ویرایش این آگهی را ندارید!");
+        }
+
+        if (item.getStatus() == ItemStatus.SOLD) {
+            throw new RuntimeException("آگهی فروخته شده قابل ویرایش نیست!");
+        }
+        if (item.getStatus() == ItemStatus.REJECTED) {
+            throw new RuntimeException("آگهی رد شده قابل ویرایش نیست!");
+        }
+
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("دسته‌بندی یافت نشد"));
+
+        City city = cityRepository.findById(request.getCityId())
+                .orElseThrow(() -> new RuntimeException("شهر یافت نشد"));
+
+        item.setTitle(request.getTitle());
+        item.setDescription(request.getDescription());
+        item.setPrice(request.getPrice());
+        item.setCategory(category);
+        item.setCity(city);
+
+        Item updatedItem = itemRepository.save(item);
+
+        return convertToResponse(updatedItem);
     }
 }
