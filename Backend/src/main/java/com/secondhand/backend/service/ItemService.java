@@ -2,10 +2,7 @@ package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.constant.Role;
-import com.secondhand.backend.dto.ImageResponse;
-import com.secondhand.backend.dto.ItemCreateRequest;
-import com.secondhand.backend.dto.ItemResponse;
-import com.secondhand.backend.dto.ItemUpdateRequest;
+import com.secondhand.backend.dto.*;
 import com.secondhand.backend.entity.*;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;
@@ -444,5 +441,43 @@ public class ItemService {
 
         Item updatedItem = itemRepository.save(item);
         return convertToResponse(updatedItem);
+    }
+
+    // ===== جستجوی پیشرفته با فیلترهای ترکیبی
+    public List<ItemResponse> searchItemsAdvanced(ItemSearchRequest request) {
+        //  مقداردهی پیش‌فرض برای مرتب‌سازی
+        String sortBy = request.getSortBy();
+        if (sortBy == null || sortBy.trim().isEmpty()) {
+            sortBy = "newest";  // پیش‌فرض: جدیدترین
+        }
+
+        List<Item> items = itemRepository.searchAdvanced(
+                request.getKeyword(),
+                request.getCategoryId(),
+                request.getCityId(),
+                request.getMinPrice(),
+                request.getMaxPrice()
+        );
+
+        switch (sortBy.toLowerCase()) {
+            case "newest":
+                items.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+                break;
+            case "oldest":
+                items.sort((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()));
+                break;
+            case "price_asc":
+                items.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
+                break;
+            case "price_desc":
+                items.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
+                break;
+            default:
+                // پیش‌فرض: جدیدترین
+                items.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+                break;
+        }
+
+        return convertToResponseList(items);
     }
 }
