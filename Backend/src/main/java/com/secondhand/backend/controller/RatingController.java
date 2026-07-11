@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/ratings")
@@ -38,5 +39,17 @@ public class RatingController {
     public ResponseEntity<Double> getSellerAverage(@PathVariable Long sellerId) {
         double average = ratingService.getSellerAverageRating(sellerId);
         return ResponseEntity.ok(average);
+    }
+
+    @GetMapping("/seller/{sellerId}/count")
+    public ResponseEntity<Long> getSellerRatingCount(@PathVariable Long sellerId) {
+        long count = ratingService.getSellerRatingCount(sellerId);
+        return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/seller/{sellerId}")
+    public ResponseEntity<List<RatingResponse>> getSellerRatings(@PathVariable Long sellerId) {
+        List<RatingResponse> ratings = ratingService.getSellerRatings(sellerId);
+        return ResponseEntity.ok(ratings);
     }
 }
