@@ -47,4 +47,11 @@ public class FavoriteController {
         Long userId = getCurrentUserId();
         return ResponseEntity.ok(favoriteService.getUserFavorites(userId));
     }
+
+    @GetMapping("/check")
+    public ResponseEntity<Boolean> checkFavorite(@RequestParam Long itemId) {
+        Long userId = getCurrentUserId();
+        boolean isFavorite = favoriteService.isFavorite(userId, itemId);
+        return ResponseEntity.ok(isFavorite);
+    }
 }

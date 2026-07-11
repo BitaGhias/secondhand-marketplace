@@ -1,10 +1,7 @@
 package com.secondhand.backend.controller;
 
 import com.secondhand.backend.constant.ItemStatus;
-import com.secondhand.backend.dto.ImageResponse;
-import com.secondhand.backend.dto.ItemCreateRequest;
-import com.secondhand.backend.dto.ItemResponse;
-import com.secondhand.backend.dto.ItemUpdateRequest;
+import com.secondhand.backend.dto.*;
 import com.secondhand.backend.entity.Image;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.exception.custom.BadRequestException;
@@ -163,5 +160,11 @@ public class ItemController {
         }
 
         return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping("/search/advanced")
+    public ResponseEntity<List<ItemResponse>> searchAdvanced(@RequestBody ItemSearchRequest request) {
+        List<ItemResponse> results = itemService.searchItemsAdvanced(request);
+        return ResponseEntity.ok(results);
     }
 }

@@ -38,6 +38,7 @@ public class SecurityConfig { // بررسی درخواست ها قبل از رس
                                 "/api/auth/login",
                                 "/api/items/approved",
                                 "/api/items/{id}",
+                                "/api/items/search/advanced",
                                 "/api/categories/all",
                                 "/api/cities",
                                 "/api/items/search",

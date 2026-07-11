@@ -1,12 +1,16 @@
 package com.secondhand.backend.service;
 
+import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.dto.RatingCreateRequest;
 import com.secondhand.backend.dto.RatingResponse;
+import com.secondhand.backend.entity.Conversation;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.Rating;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
+import com.secondhand.backend.exception.custom.ForbiddenException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
+import com.secondhand.backend.repository.ConversationRepository;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.RatingRepository;
 import com.secondhand.backend.repository.UserRepository;
@@ -27,6 +31,18 @@ public class RatingService {
     @Autowired
     private ItemRepository itemRepository;
 
+    @Autowired
+    private ConversationRepository conversationRepository;
+
+    private void validateUser(User user) {
+        if (!user.isActive()) {
+            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
+        }
+        if (user.isBlocked()) {
+            throw new ForbiddenException("حساب کاربری شما مسدود شده است!");
+        }
+    }
+
     private RatingResponse convertToResponse(Rating rating) {
         return new RatingResponse(
                 rating.getId(),
@@ -42,21 +58,43 @@ public class RatingService {
     }
 
     public RatingResponse addRating(RatingCreateRequest request, Long raterId) {
+
         if (request.getScore() < 1 || request.getScore() > 5) {
             throw new BadRequestException("امتیاز وارد شده باید عددی بین ۱ تا ۵ باشد!");
         }
 
+        User rater = userRepository.findById(raterId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر ثبت‌کننده امتیاز یافت نشد"));
+        validateUser(rater);
+
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
-        User rater = userRepository.findById(raterId)
-                .orElseThrow(() -> new ResourceNotFoundException("کاربر ثبت‌کننده امتیاز یافت نشد"));
+        //  بررسی اینکه آگهی تایید شده باشه (فقط APPROVED یا SOLD قابل امتیازدهی هستن)
+        if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD) {
+            throw new BadRequestException("این آگهی قابل امتیازدهی نیست!");
+        }
 
         User seller = item.getUser();
-
         if (seller.getId().equals(raterId)) {
             throw new BadRequestException("شما نمی‌توانید به خودتان امتیاز بدهید!");
         }
+
+        //  بررسی وجود مکالمه بین خریدار و فروشنده برای این آگهی
+        Optional<Conversation> existingConversation = conversationRepository
+                .findByBuyerIdAndSellerIdAndItemId(raterId, seller.getId(), item.getId());
+
+        boolean hasConversation = existingConversation.isPresent();
+
+        //  بررسی اینکه آگهی فروخته شده باشه
+        boolean isSold = item.getStatus() == ItemStatus.SOLD;
+
+        if (!hasConversation && !isSold) {
+            throw new BadRequestException(
+                    "شما برای امتیازدهی باید با فروشنده ارتباط داشته باشید یا معامله انجام شده باشد!"
+            );
+        }
+
 
         Optional<Rating> existingRating = ratingRepository.findByRaterIdAndItemId(raterId, request.getItemId());
         if (existingRating.isPresent()) {
@@ -75,6 +113,11 @@ public class RatingService {
     }
 
     public double getSellerAverageRating(Long sellerId) {
+
+        if (!userRepository.existsById(sellerId)) {
+            throw new ResourceNotFoundException("فروشنده یافت نشد");
+        }
+
         List<Rating> ratings = ratingRepository.findBySellerId(sellerId);
         if (ratings.isEmpty()) {
             return 0.0;
@@ -85,5 +128,23 @@ public class RatingService {
             sum += r.getScore();
         }
         return sum / ratings.size();
+    }
+
+    public long getSellerRatingCount(Long sellerId) {
+        if (!userRepository.existsById(sellerId)) {
+            throw new ResourceNotFoundException("فروشنده یافت نشد");
+        }
+        return ratingRepository.findBySellerId(sellerId).size();
+    }
+
+    public List<RatingResponse> getSellerRatings(Long sellerId) {
+        if (!userRepository.existsById(sellerId)) {
+            throw new ResourceNotFoundException("فروشنده یافت نشد");
+        }
+
+        List<Rating> ratings = ratingRepository.findBySellerId(sellerId);
+        return ratings.stream()
+                .map(this::convertToResponse)
+                .toList();
     }
 }
