@@ -39,4 +39,20 @@ public class CommentController {
     public ResponseEntity<List<CommentResponse>> getCommentsByItem(@PathVariable Long itemId) {
         return ResponseEntity.ok(commentService.getCommentsByItem(itemId));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<CommentResponse> updateComment(
+            @PathVariable Long id,
+            @RequestParam String text) {
+        Long userId = getCurrentUserId();
+        CommentResponse response = commentService.updateComment(id, userId, text);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<String> deleteComment(@PathVariable Long id) {
+        Long adminId = getCurrentUserId();
+        commentService.deleteComment(id, adminId);
+        return ResponseEntity.ok("کامنت با موفقیت حذف شد.");
+    }
 }
