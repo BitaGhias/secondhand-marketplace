@@ -1,11 +1,13 @@
 package com.secondhand.backend.service;
 
+import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.dto.FavoriteRequest;
 import com.secondhand.backend.dto.FavoriteResponse;
 import com.secondhand.backend.entity.Favorite;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
+import com.secondhand.backend.exception.custom.ForbiddenException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.FavoriteRepository;
 import com.secondhand.backend.repository.ItemRepository;
@@ -28,6 +30,15 @@ public class FavoriteService {
     @Autowired
     private ItemRepository itemRepository;
 
+    private void validateUser(User user) {
+        if (!user.isActive()) {
+            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
+        }
+        if (user.isBlocked()) {
+            throw new ForbiddenException("حساب کاربری شما مسدود شده است!");
+        }
+    }
+
     private FavoriteResponse convertToResponse(Favorite favorite) {
         return new FavoriteResponse(
                 favorite.getId(),
@@ -40,15 +51,26 @@ public class FavoriteService {
     }
 
     public FavoriteResponse addFavorite(FavoriteRequest request, Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        validateUser(user);
+
+        Item item = itemRepository.findById(request.getItemId())
+                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
+
+        if (item.getUser().getId().equals(userId)) {
+            throw new BadRequestException("شما نمی‌توانید آگهی خودتان را به علاقه‌مندی‌ها اضافه کنید!");
+        }
+
+        if (item.getStatus() != ItemStatus.APPROVED) {
+            throw new BadRequestException("این آگهی قابل افزودن به علاقه‌مندی‌ها نیست!");
+        }
+
         Optional<Favorite> alreadyFavorited = favoriteRepository.findByUserIdAndItemId(userId, request.getItemId());
         if (alreadyFavorited.isPresent()) {
             throw new BadRequestException("این آگهی از قبل در لیست علاقه‌مندی‌های شما وجود دارد");
         }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        Item item = itemRepository.findById(request.getItemId())
-                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
         Favorite favorite = new Favorite();
         favorite.setUser(user);
@@ -59,6 +81,11 @@ public class FavoriteService {
     }
 
     public void removeFavorite(FavoriteRequest request, Long userId) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        validateUser(user);
+
         Favorite favorite = favoriteRepository.findByUserIdAndItemId(userId, request.getItemId())
                 .orElseThrow(() -> new BadRequestException("این آگهی در لیست علاقه‌مندی‌های شما نیست"));
 
@@ -66,11 +93,20 @@ public class FavoriteService {
     }
 
     public List<FavoriteResponse> getUserFavorites(Long userId) {
+
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("کاربر یافت نشد");
+        }
+
         List<Favorite> favorites = favoriteRepository.findByUserId(userId);
         List<FavoriteResponse> responses = new ArrayList<>();
         for (Favorite f : favorites) {
             responses.add(convertToResponse(f));
         }
         return responses;
+    }
+
+    public boolean isFavorite(Long userId, Long itemId) {
+        return favoriteRepository.findByUserIdAndItemId(userId, itemId).isPresent();
     }
 }
