@@ -46,7 +46,8 @@ public class CommentService {
                 comment.getItem() != null ? comment.getItem().getId() : null,
                 comment.getItem() != null ? comment.getItem().getTitle() : "آگهی حذف شده",
                 comment.getUser() != null ? comment.getUser().getId() : null,
-                comment.getUser() != null ? comment.getUser().getUsername() : "کاربر ناشناس"
+                comment.getUser() != null ? comment.getUser().getUsername() : "کاربر ناشناس",
+                comment.getCreatedAt()
         );
     }
 
