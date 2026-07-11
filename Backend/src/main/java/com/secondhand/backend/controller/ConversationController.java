@@ -43,12 +43,31 @@ public class ConversationController {
 
     @GetMapping("/messages/{conversationId}")
     public ResponseEntity<List<ChatMessageResponse>> getMessages(@PathVariable Long conversationId) {
-        return ResponseEntity.ok(conversationService.getMessages(conversationId));
+        Long userId = getCurrentUserId();
+        List<ChatMessageResponse> messages = conversationService.getMessages(conversationId, userId);
+        return ResponseEntity.ok(messages);
     }
 
     @GetMapping("/user")
     public ResponseEntity<List<ConversationResponse>> getUserConversations() {
         Long userId = getCurrentUserId();
-        return ResponseEntity.ok(conversationService.getUserConversations(userId));
+        List<ConversationResponse> conversations = conversationService.getUserConversations(userId);
+        return ResponseEntity.ok(conversations);
+    }
+
+    @PutMapping("/message/{id}")
+    public ResponseEntity<ChatMessageResponse> editMessage(
+            @PathVariable Long id,
+            @RequestParam String text) {
+        Long userId = getCurrentUserId();
+        ChatMessageResponse response = conversationService.editMessage(id, userId, text);
+        return ResponseEntity.ok(response);
+    }
+
+    @DeleteMapping("/message/{id}")
+    public ResponseEntity<ChatMessageResponse> deleteMessage(@PathVariable Long id) {
+        Long userId = getCurrentUserId();
+        ChatMessageResponse response = conversationService.deleteMessage(id, userId);
+        return ResponseEntity.ok(response);
     }
 }
