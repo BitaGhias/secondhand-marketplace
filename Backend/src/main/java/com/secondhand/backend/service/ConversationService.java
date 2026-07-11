@@ -1,5 +1,6 @@
 package com.secondhand.backend.service;
 
+import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.dto.*;
 import com.secondhand.backend.entity.*;
 import com.secondhand.backend.exception.custom.BadRequestException;
@@ -28,6 +29,15 @@ public class ConversationService {
     @Autowired
     private ItemRepository itemRepository;
 
+    private void validateUser(User user) {
+        if (!user.isActive()) {
+            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
+        }
+        if (user.isBlocked()) {
+            throw new ForbiddenException("حساب کاربری شما مسدود شده است!");
+        }
+    }
+
     private ConversationResponse convertToConversationResponse(Conversation conv) {
         return new ConversationResponse(
                 conv.getId(),
@@ -52,17 +62,28 @@ public class ConversationService {
     }
 
     public ConversationResponse startConversation(Long itemId, Long buyerId) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
+
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("خریدار یافت نشد"));
+        validateUser(buyer);
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
+
+        if (item.getStatus() != ItemStatus.APPROVED) {
+            throw new BadRequestException("این آگهی قابل چت کردن نیست!");
+        }
+
         User seller = item.getUser();
 
         if (seller.getId().equals(buyerId)) {
             throw new BadRequestException("شما نمی‌توانید با خودتان روی آگهی خودتان چت کنید!");
         }
 
-        Optional<Conversation> existing = conversationRepository.findByBuyerIdAndSellerIdAndItemId(buyerId, seller.getId(), itemId);
+        validateUser(seller);
+
+        Optional<Conversation> existing = conversationRepository
+                .findByBuyerIdAndSellerIdAndItemId(buyerId, seller.getId(), itemId);
         if (existing.isPresent()) {
             return convertToConversationResponse(existing.get());
         }
@@ -77,13 +98,28 @@ public class ConversationService {
     }
 
     public ChatMessageResponse sendMessage(ChatMessageRequest request, Long senderId) {
-        Conversation conversation = conversationRepository.findById(request.getConversationId())
-                .orElseThrow(() -> new ResourceNotFoundException("مکالمه یافت نشد"));
+
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new ResourceNotFoundException("فرستنده یافت نشد"));
+        validateUser(sender);
 
-        if (!conversation.getBuyer().getId().equals(senderId) && !conversation.getSeller().getId().equals(senderId)) {
+        Conversation conversation = conversationRepository.findById(request.getConversationId())
+                .orElseThrow(() -> new ResourceNotFoundException("مکالمه یافت نشد"));
+
+        if (!conversation.getBuyer().getId().equals(senderId) &&
+                !conversation.getSeller().getId().equals(senderId)) {
             throw new ForbiddenException("شما عضو این مکالمه نیستید!");
+        }
+
+        User otherUser = conversation.getBuyer().getId().equals(senderId)
+                ? conversation.getSeller()
+                : conversation.getBuyer();
+        if (otherUser.isBlocked()) {
+            throw new ForbiddenException("کاربر مقابل شما مسدود شده است!");
+        }
+
+        if (request.getText() == null || request.getText().trim().isEmpty()) {
+            throw new BadRequestException("متن پیام نمی‌تواند خالی باشد!");
         }
 
         ChatMessage message = new ChatMessage();
@@ -97,7 +133,13 @@ public class ConversationService {
     }
 
     public List<ChatMessageResponse> getMessages(Long conversationId) {
-        List<ChatMessage> messages = chatMessageRepository.findByConversationIdOrderByTimestampAsc(conversationId);
+
+        if (!conversationRepository.existsById(conversationId)) {
+            throw new ResourceNotFoundException("مکالمه یافت نشد");
+        }
+
+        List<ChatMessage> messages = chatMessageRepository
+                .findByConversationIdOrderByTimestampAsc(conversationId);
         List<ChatMessageResponse> responses = new ArrayList<>();
         for (ChatMessage msg : messages) {
             responses.add(convertToMessageResponse(msg));
@@ -106,11 +148,26 @@ public class ConversationService {
     }
 
     public List<ConversationResponse> getUserConversations(Long userId) {
-        List<Conversation> conversations = conversationRepository.findByBuyerIdOrSellerId(userId, userId);
+
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("کاربر یافت نشد");
+        }
+
+        List<Conversation> conversations = conversationRepository
+                .findByBuyerIdOrSellerId(userId, userId);
         List<ConversationResponse> responses = new ArrayList<>();
         for (Conversation conv : conversations) {
             responses.add(convertToConversationResponse(conv));
         }
         return responses;
+    }
+
+    public ChatMessageResponse getLastMessage(Long conversationId) {
+        List<ChatMessage> messages = chatMessageRepository
+                .findByConversationIdOrderByTimestampAsc(conversationId);
+        if (messages.isEmpty()) {
+            return null;
+        }
+        return convertToMessageResponse(messages.get(messages.size() - 1));
     }
 }
