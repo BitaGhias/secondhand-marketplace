@@ -3,12 +3,14 @@ package com.secondhand.backend.service;
 import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.dto.RatingCreateRequest;
 import com.secondhand.backend.dto.RatingResponse;
+import com.secondhand.backend.entity.Conversation;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.Rating;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
+import com.secondhand.backend.repository.ConversationRepository;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.RatingRepository;
 import com.secondhand.backend.repository.UserRepository;
@@ -28,6 +30,9 @@ public class RatingService {
 
     @Autowired
     private ItemRepository itemRepository;
+
+    @Autowired
+    private ConversationRepository conversationRepository;
 
     private void validateUser(User user) {
         if (!user.isActive()) {
@@ -65,7 +70,8 @@ public class RatingService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
-        if (item.getStatus() != ItemStatus.APPROVED) {
+        //  بررسی اینکه آگهی تایید شده باشه (فقط APPROVED یا SOLD قابل امتیازدهی هستن)
+        if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD) {
             throw new BadRequestException("این آگهی قابل امتیازدهی نیست!");
         }
 
@@ -73,6 +79,22 @@ public class RatingService {
         if (seller.getId().equals(raterId)) {
             throw new BadRequestException("شما نمی‌توانید به خودتان امتیاز بدهید!");
         }
+
+        //  بررسی وجود مکالمه بین خریدار و فروشنده برای این آگهی
+        Optional<Conversation> existingConversation = conversationRepository
+                .findByBuyerIdAndSellerIdAndItemId(raterId, seller.getId(), item.getId());
+
+        boolean hasConversation = existingConversation.isPresent();
+
+        //  بررسی اینکه آگهی فروخته شده باشه
+        boolean isSold = item.getStatus() == ItemStatus.SOLD;
+
+        if (!hasConversation && !isSold) {
+            throw new BadRequestException(
+                    "شما برای امتیازدهی باید با فروشنده ارتباط داشته باشید یا معامله انجام شده باشد!"
+            );
+        }
+
 
         Optional<Rating> existingRating = ratingRepository.findByRaterIdAndItemId(raterId, request.getItemId());
         if (existingRating.isPresent()) {
