@@ -1,88 +1,126 @@
 package com.secondhand.frontend.controller;
 
-import com.secondhand.frontend.service.AuthService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.secondhand.frontend.MainApplication;
+import com.secondhand.frontend.model.User;
+import com.secondhand.frontend.service.ApiClient;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Scene;
-import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
-import javafx.scene.control.TextField;
-import javafx.stage.Stage;
+import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
+
+import java.net.URI;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.util.Map;
 
 public class LoginController {
 
-    @FXML
-    private TextField usernameField;
+    @FXML private TextField usernameField;
+    @FXML private PasswordField passwordField;
+    @FXML private Button loginButton;
+    @FXML private Hyperlink registerLink; //همون لینک ثبت نام کنید
+    @FXML private Label errorLabel;
+    @FXML private ProgressIndicator loadingIndicator;
 
     @FXML
-    private PasswordField passwordField;
-
-    @FXML
-    private Label errorLabel;
-
-    private final AuthService authService = new AuthService();
+    public void initialize() {
+        // Enter key listener
+        usernameField.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) passwordField.requestFocus();
+        });
+        passwordField.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) handleLogin();
+        });
+    }
 
     @FXML
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
 
-        // اول چک کن فیلدها خالی نباشند (این کار سریع است و روی ترد اصلی می‌ماند)
         if (username.isEmpty() || password.isEmpty()) {
-            errorLabel.setText("لطفاً همه فیلدها را پر کنید");
+            showError("لطفاً نام کاربری و رمز عبور را وارد کنید");
             return;
         }
 
-        // ساخت یک Task (ترد جداگانه) مخصوص عملیات لاگین
-        javafx.concurrent.Task<Boolean> loginTask = new javafx.concurrent.Task<>() {
-            @Override
-            protected Boolean call() throws Exception {
-                // این خط داخل یک ترد پس‌زمینه اجرا می‌شود و UI فریز نمی‌شود
-                return authService.login(username, password);
-            }
-        };
+        loadingIndicator.setVisible(true);//چرخ دنده رو نشون بده
+        loginButton.setDisable(true);//دکمه ورود رو غیرفعال میکنه تا کاربر دوباره کلیک نکنه
+        errorLabel.setVisible(false);//خطای قبلی رو پنهان کن
 
-        // وقتی کارِ ترد با موفقیت تمام شد (خروجی متد بالا آماده شد):
-        loginTask.setOnSucceeded(event -> {
-            boolean success = loginTask.getValue(); // نتیجه رو از ترد می‌گیریم
+        try {
+            String json = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", username, password);
 
-            // این بخش به صورت خودکار روی ترد اصلی (UI Thread) اجرا می‌شود، پس تغییر ظاهر امن است
-            if (success) {
-                System.out.println("ورود موفقیت‌آمیز!");
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(ApiClient.getBaseUrl() + "/auth/login"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenApply(HttpResponse::body)//وقتی جواب اومد بدنه پاسخ رو بگیر
+                    .thenAccept(this::handleLoginResponse)//نتیجه رو به متد قید شده بده
+                    .exceptionally(e -> {
+                        showError("خطا در ارتباط با سرور: " + e.getMessage());
+                        return null;
+                    });//اگر خطایی رخ داد پیام خطارو نشون بده
+
+        } catch (Exception e) {
+            showError("خطا: " + e.getMessage());
+        } finally {
+            loadingIndicator.setVisible(false);
+            loginButton.setDisable(false);
+        }
+    }
+
+    private void handleLoginResponse(String responseBody) {
+        try {
+            ObjectMapper mapper = ApiClient.getMapper();
+            Map<String, Object> response = mapper.readValue(responseBody, Map.class);
+
+            // استخراج توکن و اطلاعات کاربر
+            String token = (String) response.get("token");
+            ApiClient.setToken(token);
+
+            // تبدیل user Map به User object
+            Map<String, Object> userMap = (Map<String, Object>) response.get("user");
+            User user = new User(
+                    ((Number) userMap.get("id")).longValue(),
+                    (String) userMap.get("fullName"),
+                    (String) userMap.get("username"),
+                    (String) userMap.get("role"),
+                    (boolean) userMap.get("blocked"),
+                    (String) userMap.get("phoneNumber"),
+                    (String) userMap.get("email")
+            );
+
+            javafx.application.Platform.runLater(() -> {
                 try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/adlist.fxml"));
-                    Stage stage = (Stage) usernameField.getScene().getWindow();
-                    stage.setScene(new Scene(loader.load(), 600, 500));
+                    MainApplication.changeScene("/com/secondhand/frontend/main.fxml", "صفحه اصلی");
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    errorLabel.setText("خطای سیستمی در بارگذاری صفحه");
+                    showError("خطا در بارگذاری صفحه اصلی");
                 }
-            } else {
-                errorLabel.setText("نام کاربری یا رمز عبور اشتباه است!");
-            }
-        });
+            });
 
-        // اگر در طول اجرای ترد پس‌زمینه (مثلاً به خاطر قطعی سرور) خطایی رخ داد
-        loginTask.setOnFailed(event -> {
-            Throwable e = loginTask.getException();
-            e.printStackTrace();
-            errorLabel.setText("خطا در اتصال به سرور!");
-        });
+        } catch (Exception e) {
+            showError("نام کاربری یا رمز عبور اشتباه است");
+        }
+    }
 
-        // در نهایت، به سیستم می‌گوییم این ترد را استارت بزند و در پس‌زمینه اجرا کند
-        new Thread(loginTask).start();
+    private void showError(String message) {
+        javafx.application.Platform.runLater(() -> {
+            errorLabel.setText(message);
+            errorLabel.setVisible(true);
+            loadingIndicator.setVisible(false);
+            loginButton.setDisable(false);
+        });
     }
 
     @FXML
     private void goToRegister() {
         try {
-            FXMLLoader loader = new FXMLLoader(
-                    getClass().getResource("/com/secondhand/frontend/register.fxml")
-            );
-            Stage stage = (Stage) usernameField.getScene().getWindow();
-            stage.setScene(new Scene(loader.load(), 500, 500));
+            MainApplication.changeScene("/com/secondhand/frontend/register.fxml", "ثبت‌نام");
         } catch (Exception e) {
-            e.printStackTrace();
+            showError("خطا در بارگذاری صفحه ثبت‌نام");
         }
     }
 }
