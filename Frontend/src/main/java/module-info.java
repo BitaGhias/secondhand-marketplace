@@ -11,6 +11,7 @@ module com.secondhand.frontend {
     requires eu.hansolo.tilesfx;
     requires com.almasb.fxgl.all;
     requires java.net.http;
+    requires com.fasterxml.jackson.databind;
 
     opens com.secondhand.frontend to javafx.fxml;
     exports com.secondhand.frontend;
