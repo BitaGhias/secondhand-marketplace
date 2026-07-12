@@ -1,0 +1,18 @@
+.root {
+    -fx-font-family: 'Segoe UI', 'System', sans-serif;
+}
+
+.text-field, .password-field {
+    -fx-background-color: rgba(255,255,255,0.08);
+    -fx-background-radius: 15;
+    -fx-text-fill: white;
+    -fx-prompt-text-fill: rgba(255,255,255,0.3);
+    -fx-border-color: rgba(255,255,255,0.1);
+    -fx-border-radius: 15;
+    -fx-padding: 12 15;
+    -fx-font-size: 14px;
+    -fx-transition: all 0.3s ease;
+}
+
+.text-field:hover, .password-field:hover {
+    -fx-border-color: rgba(102, 126, 234, 0.5)}
