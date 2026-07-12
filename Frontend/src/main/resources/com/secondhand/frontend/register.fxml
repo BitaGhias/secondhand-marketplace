@@ -1,59 +1,97 @@
-<?xml version="1.0" encoding="UTF-8"?>
-
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
-
-<VBox xmlns="http://javafx.com/javafx"
-      xmlns:fx="http://javafx.com/fxml"
-      fx:controller="com.secondhand.frontend.controller.RegisterController"
-      alignment="CENTER"
-      spacing="18"
-      style="-fx-background-color: #f5f6fa;">
-
-    <padding>
-        <Insets top="40" right="40" bottom="40" left="40"/>
-    </padding>
-
-    <Label text="ثبت‌نام در سامانه"
-           style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #2c3e50;"/>
-
-    <TextField fx:id="fullNameField"
-               promptText="نام و نام خانوادگی"
-               maxWidth="300"
-               prefHeight="40"
-               style="-fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #bdc3c7; -fx-background-color: #ffffff; -fx-font-size: 14px;"/>
-
-    <TextField fx:id="usernameField"
-               promptText="نام کاربری"
-               maxWidth="300"
-               prefHeight="40"
-               style="-fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #bdc3c7; -fx-background-color: #ffffff; -fx-font-size: 14px;"/>
-
-    <PasswordField fx:id="passwordField"
-                   promptText="رمز عبور"
-                   maxWidth="300"
-                   prefHeight="40"
-                   style="-fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #bdc3c7; -fx-background-color: #ffffff; -fx-font-size: 14px;"/>
-
-    <PasswordField fx:id="confirmPasswordField"
-                   promptText="تکرار رمز عبور"
-                   maxWidth="300"
-                   prefHeight="40"
-                   style="-fx-background-radius: 8px; -fx-border-radius: 8px; -fx-border-color: #bdc3c7; -fx-background-color: #ffffff; -fx-font-size: 14px;"/>
-
-    <Label fx:id="errorLabel"
-           style="-fx-text-fill: #e74c3c; -fx-font-size: 12px; -fx-font-weight: bold;"/>
-
-    <Button fx:id="registerButton"
-            text="ثبت‌نام"
-            maxWidth="300"
-            prefHeight="42"
-            onAction="#handleRegister"
-            style="-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold; -fx-background-radius: 8px;"/>
-
-    <Button text="حساب دارید؟ وارد شوید"
-            onAction="#goToLogin"
-            style="-fx-background-color: transparent; -fx-text-fill: #7f8c8d; -fx-font-size: 13px; -fx-underline: true;"/>
-
-</VBox>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.shape.Rectangle?>
+<?import javafx.scene.effect.DropShadow?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.ScrollPane?>
+<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.secondhand.frontend.controller.RegisterController" style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);">
+    <!--  لودینگ (مخفی در ابتدا)  -->
+    <ProgressIndicator fx:id="loadingIndicator" style="-fx-progress-color: #667eea;" visible="false" maxWidth="50" maxHeight="50"/>
+    <!--  کارت اصلی با قابلیت اسکرول  -->
+    <ScrollPane fitToWidth="true" style="-fx-background: transparent; -fx-background-color: transparent; -fx-padding: 20;">
+        <content>
+            <VBox alignment="CENTER" spacing="20" maxWidth="440" style="-fx-background-color: rgba(255,255,255,0.05); -fx-background-radius: 30; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 30; -fx-border-width: 1;">
+                <padding>
+                    <Insets top="35" right="35" bottom="35" left="35"/>
+                </padding>
+                <children>
+                    <!--  لوگو  -->
+                    <StackPane>
+                        <Rectangle arcWidth="30" arcHeight="30" width="70" height="70" fill="linear-gradient(to bottom right, #f093fb, #f5576c)" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
+                        <Label text="🚀" style="-fx-font-size: 35px; -fx-text-fill: white;"/>
+                        <effect>
+                            <DropShadow color="rgba(245,87,108,0.4)" radius="20" spread="0.2"/>
+                        </effect>
+                    </StackPane>
+                    <!--  عنوان  -->
+                    <VBox alignment="CENTER" spacing="5">
+                        <Label text="ایجاد حساب کاربری" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 22px;"/>
+                        <Label text="همین الان ثبت‌نام کنید و فروش خود را شروع کنید" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
+                    </VBox>
+                    <!--  فرم ثبت‌نام  -->
+                    <VBox spacing="12" style="-fx-background-color: rgba(255,255,255,0.03); -fx-background-radius: 20; -fx-padding: 20;">
+                        <!--  نام کامل  -->
+                        <VBox spacing="4">
+                            <Label text="👤 نام کامل" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            <TextField fx:id="fullNameField" promptText="نام و نام خانوادگی" style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 12; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-border-color: rgba(255,255,255,0.08); -fx-border-radius: 12; -fx-padding: 10 15; -fx-font-size: 13px;"/>
+                        </VBox>
+                        <!--  نام کاربری  -->
+                        <VBox spacing="4">
+                            <Label text="👤 نام کاربری" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            <TextField fx:id="usernameField" promptText="یک نام کاربری انتخاب کنید" style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 12; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-border-color: rgba(255,255,255,0.08); -fx-border-radius: 12; -fx-padding: 10 15; -fx-font-size: 13px;"/>
+                        </VBox>
+                        <!--  ایمیل  -->
+                        <VBox spacing="4">
+                            <Label text="📧 ایمیل" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            <TextField fx:id="emailField" promptText="example@email.com" style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 12; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-border-color: rgba(255,255,255,0.08); -fx-border-radius: 12; -fx-padding: 10 15; -fx-font-size: 13px;"/>
+                        </VBox>
+                        <!--  شماره تلفن  -->
+                        <VBox spacing="4">
+                            <Label text="📱 شماره تلفن" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            <TextField fx:id="phoneField" promptText="09XXXXXXXXX" style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 12; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-border-color: rgba(255,255,255,0.08); -fx-border-radius: 12; -fx-padding: 10 15; -fx-font-size: 13px;"/>
+                        </VBox>
+                        <!--  رمز عبور  -->
+                        <VBox spacing="4">
+                            <Label text="🔒 رمز عبور" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            <PasswordField fx:id="passwordField" promptText="حداقل ۶ کاراکتر" style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 12; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-border-color: rgba(255,255,255,0.08); -fx-border-radius: 12; -fx-padding: 10 15; -fx-font-size: 13px;"/>
+                        </VBox>
+                        <!--  تکرار رمز عبور  -->
+                        <VBox spacing="4">
+                            <Label text="✅ تکرار رمز عبور" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                            <PasswordField fx:id="confirmPasswordField" promptText="رمز عبور را دوباره وارد کنید" style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 12; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-border-color: rgba(255,255,255,0.08); -fx-border-radius: 12; -fx-padding: 10 15; -fx-font-size: 13px;"/>
+                        </VBox>
+                        <!--  دکمه ثبت‌نام  -->
+                        <Button fx:id="registerButton" text="✨ ثبت‌نام" style="-fx-background-color: linear-gradient(to right, #f093fb, #f5576c); -fx-background-radius: 25; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 15px; -fx-cursor: hand; -fx-padding: 13 0; -fx-effect: dropshadow(gaussian, rgba(245,87,108,0.4), 15, 0, 0, 5);" onAction="#handleRegister" maxWidth="Infinity"/>
+                        <!--  خط جداکننده  -->
+                        <HBox alignment="CENTER" spacing="10">
+                            <children>
+                                <Label style="-fx-background-color: rgba(255,255,255,0.1); -fx-pref-height: 1; -fx-pref-width: 70;"/>
+                                <Label text="یا" style="-fx-text-fill: rgba(255,255,255,0.3); -fx-font-size: 11px;"/>
+                                <Label style="-fx-background-color: rgba(255,255,255,0.1); -fx-pref-height: 1; -fx-pref-width: 70;"/>
+                            </children>
+                        </HBox>
+                        <!--  لینک ورود  -->
+                        <HBox alignment="CENTER" spacing="5">
+                            <children>
+                                <Label text="قبلاً ثبت‌نام کرده‌اید؟" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 12px;"/>
+                                <Hyperlink fx:id="loginLink" text="وارد شوید" style="-fx-text-fill: #f093fb; -fx-font-size: 12px; -fx-font-weight: bold; -fx-underline: false; -fx-border-color: transparent;" onAction="#goToLogin"/>
+                            </children>
+                        </HBox>
+                        <!--  پیام خطا  -->
+                        <Label fx:id="errorLabel" text="" style="-fx-text-fill: #ff6b6b; -fx-font-size: 12px; -fx-wrap-text: true;" visible="false"/>
+                    </VBox>
+                </children>
+                <effect>
+                    <DropShadow color="rgba(0,0,0,0.5)" radius="30" spread="0.1"/>
+                </effect>
+            </VBox>
+        </content>
+    </ScrollPane>
+</StackPane>
