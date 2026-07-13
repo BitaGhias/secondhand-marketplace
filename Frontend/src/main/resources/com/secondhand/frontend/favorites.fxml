@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox prefHeight="600.0" prefWidth="800.0" spacing="20" style="-fx-background-color: #14142b;"
+      alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="30" right="30" bottom="30" left="30"/>
+    </padding>
+
+    <Label text="❤️ علاقه‌مندی‌ها" style="-fx-text-fill: #ff4757; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+    <Separator style="-fx-opacity: 0.1;" />
+
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
+        <!-- کارت‌های نشان شده به صورت پویای شبکه‌ای قرار می‌گیرند -->
+        <FlowPane fx:id="favoritesFlowPane" hgap="15" vgap="15" style="-fx-background-color: transparent;">
+            <!-- 🟢 به جای تگ placeholder، لیبل را مستقیم می‌نویسیم -->
+            <Label fx:id="noFavoritesLabel" text="لیست علاقه‌مندی‌های شما خالی است." style="-fx-text-fill: rgba(255,255,255,0.4); -fx-font-size: 14px;"/>
+        </FlowPane>
+    </ScrollPane>
+</VBox>
