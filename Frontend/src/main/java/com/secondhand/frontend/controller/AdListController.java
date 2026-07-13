@@ -1,6 +1,8 @@
 package com.secondhand.frontend.controller;
 
 import com.secondhand.frontend.MainApplication;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
