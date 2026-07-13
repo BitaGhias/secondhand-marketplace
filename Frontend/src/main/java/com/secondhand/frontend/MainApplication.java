@@ -11,7 +11,7 @@ import javafx.stage.StageStyle;
 public class MainApplication extends Application {
 
     private static Stage primaryStage;
-    private static final int DEFAULT_WIDTH = 500;
+    private static final int DEFAULT_WIDTH = 1000;
     private static final int DEFAULT_HEIGHT = 1000;
 
     @Override
