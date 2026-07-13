@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox prefHeight="500.0" prefWidth="750.0" spacing="20" style="-fx-background-color: #14142b;"
+      alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+    <padding>
+        <Insets top="30" right="30" bottom="30" left="30"/>
+    </padding>
+
+    <Label text="🛒 تاریخچه خریدها" style="-fx-text-fill: #00d2d3; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+    <Separator style="-fx-opacity: 0.1;" />
+
+    <TableView fx:id="purchasesTable" style="-fx-background-color: transparent; -fx-control-inner-background: #1c1c3a;" VBox.vgrow="ALWAYS">
+        <columns>
+            <TableColumn text="کد سفارش" prefWidth="100"/>
+            <TableColumn text="عنوان کالا" prefWidth="250"/>
+            <TableColumn text="قیمت" prefWidth="150"/>
+            <TableColumn text="تاریخ خرید" prefWidth="150"/>
+        </columns>
+        <placeholder>
+            <Label text="هیچ تاریخچه خریدی یافت نشد." style="-fx-text-fill: rgba(255,255,255,0.4);"/>
+        </placeholder>
+    </TableView>
+</VBox>

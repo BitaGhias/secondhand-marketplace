@@ -85,7 +85,7 @@
                                style="-fx-background-color: transparent;
                                       -fx-text-fill: white;
                                       -fx-prompt-text-fill: rgba(255, 255, 255, 0.3);
-                                      -fx-alignment: right_to_left;
+                                      -fx-alignment: center_right;
                                       -fx-font-size: 14px;"
                                HBox.hgrow="ALWAYS" prefHeight="45.0"/>
                 </children>
@@ -105,14 +105,19 @@
         </children>
     </HBox>
 
-    <!-- لیست اصلی آگهی‌ها با ساختار دارک شیشه‌ای عمیق -->
-    <ListView fx:id="adListView" prefHeight="544.0" prefWidth="1079.0"
-              style="-fx-background-color: rgba(255, 255, 255, 0.02);
-                     -fx-background-radius: 18;
-                     -fx-border-color: rgba(255, 255, 255, 0.05);
-                     -fx-border-radius: 18;
-                     -fx-border-width: 1;
-                     -fx-padding: 10;"
-              VBox.vgrow="ALWAYS" />
+    <!-- 🟢 جایگزین شیک گرید آگهی‌ها به جای ListView قدیمی -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background-color: transparent;
+                       -fx-background: transparent;
+                       -fx-border-color: transparent;
+                       -fx-padding: 5 0 0 0;">
+        <content>
+            <FlowPane fx:id="adsFlowPane" hgap="22" vgap="22"
+                      alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
+                      style="-fx-background-color: transparent;">
+                <!-- کارت‌های آگهی (item_ad.fxml) به صورت داینامیک از کدهای کنترلر اینجا چیده می‌شوند -->
+            </FlowPane>
+        </content>
+    </ScrollPane>
 
 </VBox>
