@@ -12,7 +12,7 @@ public class MainApplication extends Application {
 
     private static Stage primaryStage;
     private static final int DEFAULT_WIDTH = 500;
-    private static final int DEFAULT_HEIGHT = 650;
+    private static final int DEFAULT_HEIGHT = 1000;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -49,6 +49,7 @@ public class MainApplication extends Application {
         // scene.fillProperty().set(Color.TRANSPARENT);
 
         scene.getStylesheets().add(MainApplication.class.getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+        scene.fillProperty().set(Color.TRANSPARENT);
         primaryStage.setTitle(title);
         primaryStage.setScene(scene);
         primaryStage.show();
