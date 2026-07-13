@@ -18,13 +18,13 @@ public class LoginController {
     @FXML private TextField usernameField;
     @FXML private PasswordField passwordField;
     @FXML private Button loginButton;
-    @FXML private Hyperlink registerLink; //همون لینک ثبت نام کنید
+    @FXML private Hyperlink registerLink;
     @FXML private Label errorLabel;
     @FXML private ProgressIndicator loadingIndicator;
 
     @FXML
     public void initialize() {
-        // Enter key listener
+        // فکوس هوشمند با اینتر
         usernameField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) passwordField.requestFocus();
         });
@@ -43,9 +43,10 @@ public class LoginController {
             return;
         }
 
-        loadingIndicator.setVisible(true);//چرخ دنده رو نشون بده
-        loginButton.setDisable(true);//دکمه ورود رو غیرفعال میکنه تا کاربر دوباره کلیک نکنه
-        errorLabel.setVisible(false);//خطای قبلی رو پنهان کن
+        // فعال‌سازی حالت لودینگ درست مثل رجیستر
+        loadingIndicator.setVisible(true);
+        loginButton.setDisable(true);
+        errorLabel.setVisible(false);
 
         try {
             String json = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", username, password);
@@ -56,59 +57,87 @@ public class LoginController {
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
+            // ارسال غیرهمزمان و مدیریت درست هندلرها بدون تداخل بلوک finally
             ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenApply(HttpResponse::body)//وقتی جواب اومد بدنه پاسخ رو بگیر
-                    .thenAccept(this::handleLoginResponse)//نتیجه رو به متد قید شده بده
+                    .thenAccept(response -> {
+                        // پاس دادن کل آبجکت پاسخ برای بررسی وضعیت HTTP Status Code
+                        handleLoginResponse(response);
+                    })
                     .exceptionally(e -> {
+                        e.printStackTrace();
                         showError("خطا در ارتباط با سرور: " + e.getMessage());
                         return null;
-                    });//اگر خطایی رخ داد پیام خطارو نشون بده
+                    });
 
         } catch (Exception e) {
+            e.printStackTrace();
             showError("خطا: " + e.getMessage());
-        } finally {
-            loadingIndicator.setVisible(false);
-            loginButton.setDisable(false);
         }
+        // بلوک finally حذف شد چون مدیریت المان‌ها باید پس از دریافت پاسخ واقعی انجام شود
     }
 
-    private void handleLoginResponse(String responseBody) {
+    private void handleLoginResponse(HttpResponse<String> response) {
+        int statusCode = response.statusCode();
+        String responseBody = response.body();
+
+        System.out.println("Status Code: " + statusCode);
+        System.out.println("Response Body: " + responseBody);
+
+        // ۱. مدیریت وضعیت‌های ناامیدکننده بک‌اَند
+        if (statusCode == 401 || statusCode == 403) {
+            showError("نام کاربری یا رمز عبور اشتباه است");
+            return;
+        }
+        if (statusCode != 200) {
+            showError("خطای سرور: کد وضعیت " + statusCode);
+            return;
+        }
+
         try {
             ObjectMapper mapper = ApiClient.getMapper();
-            Map<String, Object> response = mapper.readValue(responseBody, Map.class);
+            Map<String, Object> responseMap = mapper.readValue(responseBody, Map.class);
 
-            // استخراج توکن و اطلاعات کاربر
-            String token = (String) response.get("token");
+            // استخراج و ذخیره‌سازی توکن
+            String token = (String) responseMap.get("token");
             ApiClient.setToken(token);
 
-            // تبدیل user Map به User object
-            Map<String, Object> userMap = (Map<String, Object>) response.get("user");
-            User user = new User(
-                    ((Number) userMap.get("id")).longValue(),
-                    (String) userMap.get("fullName"),
-                    (String) userMap.get("username"),
-                    (String) userMap.get("role"),
-                    (boolean) userMap.get("blocked"),
-                    (String) userMap.get("phoneNumber"),
-                    (String) userMap.get("email")
-            );
+            // استخراج آبجکت کاربر به صورت امن
+            Map<String, Object> userMap = (Map<String, Object>) responseMap.get("user");
+            if (userMap != null) {
+                User user = new User(
+                        ((Number) userMap.get("id")).longValue(),
+                        (String) userMap.get("fullName"),
+                        (String) userMap.get("username"),
+                        (String) userMap.get("role"),
+                        (boolean) userMap.get("blocked"),
+                        (String) userMap.get("phoneNumber"),
+                        (String) userMap.get("email")
+                );
+                // ذخیره کاربر در سشن یا استفاده از fullName آن در کنترلر بعدی در صورت نیاز
+            }
 
+            // ۲. تغییر به پنجره لیست آگهی‌ها (adlist) به صورت ریسک‌فری و با پرینت استک ترس خطاها
             javafx.application.Platform.runLater(() -> {
                 try {
-                    MainApplication.changeScene("/com/secondhand/frontend/main.fxml", "صفحه اصلی");
+                    // تغییر مسیر قطعی به فایل خوش‌استایل adlist.fxml که ساختیم
+                    MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
                 } catch (Exception e) {
-                    showError("خطا در بارگذاری صفحه اصلی");
+                    System.err.println("❌ خطا در متد تغییر سین به adlist.fxml اتفاق افتاد:");
+                    e.printStackTrace(); // اینجا اگر کدهای FXML یا CSS مورد داشته باشند لو می‌روند
+                    showError("خطا در رندر و بارگذاری صفحه اصلی");
                 }
             });
 
         } catch (Exception e) {
-            showError("نام کاربری یا رمز عبور اشتباه است");
+            e.printStackTrace();
+            showError("خطا در پردازش اطلاعات دریافتی از سرور");
         }
     }
 
     private void showError(String message) {
         javafx.application.Platform.runLater(() -> {
             errorLabel.setText(message);
+            errorLabel.setStyle("-fx-text-fill: #ff576c;"); // تنظیم رنگ قرمز جهت خوانایی در پوسته دارک
             errorLabel.setVisible(true);
             loadingIndicator.setVisible(false);
             loginButton.setDisable(false);
@@ -120,6 +149,7 @@ public class LoginController {
         try {
             MainApplication.changeScene("/com/secondhand/frontend/register.fxml", "ثبت‌نام");
         } catch (Exception e) {
+            e.printStackTrace();
             showError("خطا در بارگذاری صفحه ثبت‌نام");
         }
     }
