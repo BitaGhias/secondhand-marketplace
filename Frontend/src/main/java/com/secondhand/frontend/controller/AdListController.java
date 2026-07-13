@@ -1,12 +1,8 @@
 package com.secondhand.frontend.controller;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import com.secondhand.frontend.MainApplication;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;//برای رفتن به صفحه ی بعدی
-import javafx.scene.Scene;
 import javafx.scene.control.ListView;
-import javafx.stage.Stage;
 
 public class AdListController {
 
@@ -14,16 +10,22 @@ public class AdListController {
     private ListView<String> adListView;
 
     @FXML
-    public void initialize() {
-
+    private void initialize() {
     }
 
     @FXML
-    private void goToNewAd() {
+    private void goToLogin() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/newad.fxml"));
-            Stage stage = (Stage) adListView.getScene().getWindow();
-            stage.setScene(new Scene(loader.load(), 500, 450));
+            MainApplication.changeScene("/com/secondhand/frontend/login.fxml", "ورود");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void goToRegister() {
+        try {
+            MainApplication.changeScene("/com/secondhand/frontend/register.fxml", "ثبت‌نام");
         } catch (Exception e) {
             e.printStackTrace();
         }

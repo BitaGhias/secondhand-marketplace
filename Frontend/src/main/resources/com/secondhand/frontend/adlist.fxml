@@ -4,50 +4,115 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
+<?import javafx.scene.effect.DropShadow?>
 
-<VBox prefHeight="790.0" prefWidth="1119.0" spacing="10" style="-fx-background-color: #f5f6fa;" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.secondhand.frontend.controller.AdListController">
+<VBox prefHeight="790.0" prefWidth="1119.0" spacing="15"
+      style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
+      stylesheets="@css/styles.css"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.AdListController">
 
     <padding>
-        <Insets bottom="20" left="20" right="20" top="20" />
+        <Insets bottom="25" left="25" right="25" top="25" />
     </padding>
 
-    <HBox alignment="CENTER_LEFT" style="-fx-padding: 0 0 5 0;">
+    <!-- هدر اصلی با استایل شیشه‌ای -->
+    <HBox alignment="CENTER_LEFT" nodeOrientation="RIGHT_TO_LEFT"
+          style="-fx-background-color: rgba(255, 255, 255, 0.03);
+                 -fx-background-radius: 15;
+                 -fx-border-color: rgba(255, 255, 255, 0.1);
+                 -fx-border-radius: 15;
+                 -fx-border-width: 1;
+                 -fx-padding: 12 20;">
         <children>
-            <MenuButton fx:id="userMenuButton" prefHeight="53.0" prefWidth="138.0" style="-fx-background-color: #ffffff;-fx-border-color: #cccccc; -fx-border-radius: 5; -fx-background-radius: 5;" text="نام کاربر" textAlignment="CENTER">
-                <items>
-                    <MenuItem text="آگهی های من" />
-                    <MenuItem text="علاقه مندی های" />
-                    <MenuItem text="گفت و گو ها" />
-                    <MenuItem text="خریدها" />
-                </items>
-            </MenuButton>
-
-            <HBox HBox.hgrow="ALWAYS" />
-
-            <Label style="-fx-font-size: 36px; -fx-font-weight: bold; -fx-text-fill: #e74c3c;" text="بازار سفید">
+            <!-- عنوان برنامه با رنگ نئونی درخشان -->
+            <Label style="-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: linear-gradient(to right, #f093fb, #f5576c);" text="بازار سفید">
                 <font>
                     <Font name="System Bold" size="24.0" />
                 </font>
+                <effect>
+                    <DropShadow color="rgba(245,87,108,0.3)" radius="10" spread="0.1"/>
+                </effect>
             </Label>
+
+            <HBox HBox.hgrow="ALWAYS" />
+
+            <!-- دکمه منوی کاربر شیشه‌ای -->
+            <MenuButton fx:id="userMenuButton" prefHeight="40.0" prefWidth="150.0"
+                        style="-fx-background-color: rgba(255, 255, 255, 0.08);
+                               -fx-border-color: rgba(255, 255, 255, 0.15);
+                               -fx-border-radius: 10;
+                               -fx-background-radius: 10;
+                               -fx-text-fill: white;
+                               -fx-font-size: 13px;
+                               -fx-font-weight: bold;
+                               -fx-cursor: hand;"
+                        text="👤 نام کاربر" textAlignment="CENTER">
+                <items>
+                    <MenuItem text="📝 آگهی‌های من" />
+                    <MenuItem text="❤️ علاقه‌مندی‌ها" />
+                    <MenuItem text="💬 گفت‌وگوها" />
+                    <MenuItem text="🛒 خریدها" />
+                    <MenuItem text="خروج"/>
+                </items>
+            </MenuButton>
         </children>
     </HBox>
 
-    <Separator prefWidth="600.0" style="-fx-opacity: 0.7;" />
+    <!-- خط جداکننده شیشه‌ای ملایم -->
+    <Separator prefWidth="600.0" style="-fx-opacity: 0.1;" />
 
-    <HBox spacing="10" alignment="CENTER_RIGHT" style="-fx-padding: 5 0 5 0;">
+    <!-- بخش جستجو و فیلترها -->
+    <HBox spacing="12" alignment="CENTER_RIGHT" nodeOrientation="RIGHT_TO_LEFT">
         <children>
-            <Button text="⚙️ فیلترها" style="-fx-background-color: #ffffff; -fx-border-color: #cccccc; -fx-border-radius: 5; -fx-background-radius: 5; -fx-cursor: hand;" prefHeight="35.0"/>
-
-            <HBox alignment="CENTER_RIGHT" style="-fx-background-color: white; -fx-border-color: #cccccc; -fx-border-radius: 5; -fx-background-radius: 5;" HBox.hgrow="ALWAYS" prefHeight="35.0">
+            <!-- نوار جستجوی مدرن و شیشه‌ای -->
+            <HBox alignment="CENTER_LEFT"
+                  style="-fx-background-color: rgba(255, 255, 255, 0.05);
+                         -fx-border-color: rgba(255, 255, 255, 0.1);
+                         -fx-border-radius: 12;
+                         -fx-background-radius: 12;"
+                  HBox.hgrow="ALWAYS" prefHeight="45.0">
                 <children>
-                    <TextField fx:id="searchField" promptText="جستجو در آگهی‌ها..." style="-fx-background-color: transparent; -fx-alignment: center_right;" HBox.hgrow="ALWAYS" prefHeight="35.0"/>
+                    <!-- آیکون سرچ در سمت راست فیلد (چون راست‌چین است) -->
+                    <Button text="🔍"
+                            style="-fx-background-color: transparent;
+                                   -fx-text-fill: rgba(255, 255, 255, 0.6);
+                                   -fx-cursor: hand;
+                                   -fx-font-size: 15px;"
+                            prefHeight="45.0" prefWidth="45.0"/>
 
-                    <Button text="🔍" style="-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-background-radius: 0 4 4 0; -fx-border-radius: 0 4 4 0; -fx-cursor: hand; -fx-font-weight: bold;" prefHeight="35.0" prefWidth="40.0"/>
+                    <TextField fx:id="searchField" promptText="جستجو در آگهی‌ها..."
+                               style="-fx-background-color: transparent;
+                                      -fx-text-fill: white;
+                                      -fx-prompt-text-fill: rgba(255, 255, 255, 0.3);
+                                      -fx-alignment: right_to_left;
+                                      -fx-font-size: 14px;"
+                               HBox.hgrow="ALWAYS" prefHeight="45.0"/>
                 </children>
             </HBox>
+
+            <!-- دکمه فیلتر رنگارنگ شیک -->
+            <Button text="⚙️ فیلترها"
+                    style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2);
+                           -fx-text-fill: white;
+                           -fx-background-radius: 12;
+                           -fx-cursor: hand;
+                           -fx-font-weight: bold;
+                           -fx-font-size: 13px;
+                           -fx-padding: 0 20;
+                           -fx-effect: dropshadow(gaussian, rgba(118,75,162,0.2), 10, 0, 0, 3);"
+                    prefHeight="45.0"/>
         </children>
     </HBox>
 
-    <ListView fx:id="adListView" prefHeight="544.0" prefWidth="1079.0" style="-fx-background-color: white; -fx-background-radius: 8px;" VBox.vgrow="ALWAYS" />
+    <!-- لیست اصلی آگهی‌ها با ساختار دارک شیشه‌ای عمیق -->
+    <ListView fx:id="adListView" prefHeight="544.0" prefWidth="1079.0"
+              style="-fx-background-color: rgba(255, 255, 255, 0.02);
+                     -fx-background-radius: 18;
+                     -fx-border-color: rgba(255, 255, 255, 0.05);
+                     -fx-border-radius: 18;
+                     -fx-border-width: 1;
+                     -fx-padding: 10;"
+              VBox.vgrow="ALWAYS" />
 
 </VBox>
