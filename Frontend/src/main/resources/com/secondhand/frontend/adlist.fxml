@@ -8,7 +8,8 @@
 
 <VBox prefHeight="790.0" prefWidth="1119.0" spacing="15"
       style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
-      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://fxml/1"
+      stylesheets="@css/styles.css"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.AdListController">
 
     <padding>
@@ -52,6 +53,7 @@
                     <MenuItem text="❤️ علاقه‌مندی‌ها" />
                     <MenuItem text="💬 گفت‌وگوها" />
                     <MenuItem text="🛒 خریدها" />
+                    <MenuItem text="خروج"/>
                 </items>
             </MenuButton>
         </children>
