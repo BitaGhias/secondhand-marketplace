@@ -113,8 +113,8 @@
                             <!--  لینک ورود  -->
                             <HBox alignment="CENTER" spacing="5">
                                 <children>
-                                    <Hyperlink fx:id="loginLink" text="وارد شوید" onAction="#goToLogin" style="-fx-text-fill: #f093fb; -fx-font-size: 13px; -fx-font-weight: bold; -fx-underline: false; -fx-border-color: transparent;"/>
                                     <Label text="قبلاً ثبت‌نام کرده‌اید؟" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
+                                    <Hyperlink fx:id="loginLink" text="وارد شوید" onAction="#goToLogin" style="-fx-text-fill: #f093fb; -fx-font-size: 13px; -fx-font-weight: bold; -fx-underline: false; -fx-border-color: transparent;"/>
                                 </children>
                             </HBox>
 
