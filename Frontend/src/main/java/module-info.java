@@ -18,4 +18,8 @@ module com.secondhand.frontend {
 
     exports com.secondhand.frontend.controller;
     opens com.secondhand.frontend.controller to javafx.fxml;
+
+    // 🟢 اضافه شده: اجازه دادن به جکسون برای خواندن و ساختن اشیاء مدل Ad و User
+    exports com.secondhand.frontend.model;
+    opens com.secondhand.frontend.model to com.fasterxml.jackson.databind;
 }
