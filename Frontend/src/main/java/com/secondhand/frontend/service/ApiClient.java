@@ -11,7 +11,7 @@ import java.time.Duration;
 
 public class ApiClient {
 
-    private static final String BASE_URL = "http://localhost:8080/api";
+    private static final String BASE_URL = "http://127.0.0.1:8080/api";
     private static final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))//اگه 10 ثانیه جواب نیومد قطع کن
             .build();
