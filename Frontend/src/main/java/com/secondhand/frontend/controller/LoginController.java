@@ -7,6 +7,7 @@ import com.secondhand.frontend.service.ApiClient;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
+import javafx.stage.Stage;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -31,6 +32,24 @@ public class LoginController {
         passwordField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) handleLogin();
         });
+    }
+
+    @FXML
+    private void minimizeWindow() {
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        stage.setIconified(true);
+    }
+
+    @FXML
+    private void maximizeWindow() {
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        stage.setMaximized(!stage.isMaximized());
+    }
+
+    @FXML
+    private void closeWindow() {
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        stage.close();
     }
 
     @FXML

@@ -13,25 +13,38 @@
 <?import javafx.scene.effect.DropShadow?>
 <?import javafx.scene.control.ProgressIndicator?>
 
-<!-- قرار دادن پس‌زمینه اصلی روی شفاف (transparent) -->
 <StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="com.secondhand.frontend.controller.LoginController"
-           style="-fx-background-color: transparent; -fx-padding: 30;">
+           style="-fx-background-color: transparent; -fx-padding: 0;">
 
-    <!-- پنجره اصلی شما که حالا به زیبایی روی دسکتاپ شناور می‌شود -->
-    <VBox alignment="CENTER" spacing="25" maxWidth="420" maxHeight="-Infinity"
+    <VBox alignment="TOP_CENTER" spacing="0" maxWidth="420" maxHeight="-Infinity"
           style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #302b63, #24243e);
                  -fx-background-radius: 30;
                  -fx-border-color: rgba(255,255,255,0.2);
                  -fx-border-radius: 30;
                  -fx-border-width: 1.5;">
 
-        <padding>
-            <Insets top="40" right="40" bottom="40" left="40"/>
-        </padding>
+        <!-- ===== Title Bar ===== -->
+        <HBox alignment="CENTER_LEFT" spacing="10"
+              style="-fx-background-color: rgba(0,0,0,0.25);
+                     -fx-background-radius: 30 30 0 0;
+                     -fx-padding: 10 15;
+                     -fx-border-color: rgba(255,255,255,0.05);
+                     -fx-border-width: 0 0 1 0;">
+            <children>
+                <Label text="🛒" style="-fx-text-fill: #667eea; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                <Label text="بازار سفید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-opacity: 0.9;"/>
+                <HBox HBox.hgrow="ALWAYS" />
+                <Button text="─" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#minimizeWindow"/>
+                <Button text="☐" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#maximizeWindow"/>
+                <Button text="✕" style="-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#closeWindow"/>
+            </children>
+        </HBox>
 
-        <children>
-            <!-- لوگو یا آیکون -->
+        <!-- ===== محتوای اصلی ===== -->
+        <VBox alignment="CENTER" spacing="25" style="-fx-padding: 20 40 40 40;">
+
+            <!-- لوگو -->
             <StackPane>
                 <Rectangle arcWidth="30" arcHeight="30" width="80" height="80"
                            fill="linear-gradient(to bottom right, #667eea, #764ba2)"
@@ -42,45 +55,75 @@
                 </effect>
             </StackPane>
 
-            <!-- عنوان -->
             <VBox alignment="CENTER" spacing="5">
                 <Label text="به فروشگاه دست دوم خوش آمدید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 22px;"/>
                 <Label text="برای ادامه، وارد حساب خود شوید" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 14px;"/>
             </VBox>
 
             <!-- فرم ورود -->
-            <VBox spacing="15" fillWidth="true" style="-fx-background-color: rgba(255,255,255,0.02); -fx-background-radius: 20; -fx-padding: 20; -fx-border-color: rgba(255,255,255,0.08); -fx-border-radius: 20; -fx-border-width: 1;">
+            <VBox spacing="15" fillWidth="true"
+                  style="-fx-background-color: rgba(255,255,255,0.02);
+                         -fx-background-radius: 20;
+                         -fx-padding: 20;
+                         -fx-border-color: rgba(255,255,255,0.08);
+                         -fx-border-radius: 20;
+                         -fx-border-width: 1;">
 
-                <!-- فیلد نام کاربری -->
                 <VBox spacing="5" nodeOrientation="RIGHT_TO_LEFT">
                     <Label text="👤 نام کاربری" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 12px; -fx-font-weight: bold;"/>
-                    <TextField fx:id="usernameField" promptText="نام کاربری خود را وارد کنید" style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 15; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 15; -fx-padding: 12 15; -fx-font-size: 14px;"/>
+                    <TextField fx:id="usernameField" promptText="نام کاربری خود را وارد کنید"
+                               style="-fx-background-color: rgba(255,255,255,0.08);
+                                      -fx-background-radius: 15;
+                                      -fx-text-fill: white;
+                                      -fx-prompt-text-fill: rgba(255,255,255,0.3);
+                                      -fx-border-color: rgba(255,255,255,0.1);
+                                      -fx-border-radius: 15;
+                                      -fx-padding: 12 15;
+                                      -fx-font-size: 14px;"/>
                 </VBox>
 
-                <!-- فیلد رمز عبور -->
                 <VBox spacing="5" nodeOrientation="RIGHT_TO_LEFT">
                     <Label text="🔒 رمز عبور" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 12px; -fx-font-weight: bold;"/>
-                    <PasswordField fx:id="passwordField" promptText="رمز عبور خود را وارد کنید" style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 15; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 15; -fx-padding: 12 15; -fx-font-size: 14px;"/>
+                    <PasswordField fx:id="passwordField" promptText="رمز عبور خود را وارد کنید"
+                                   style="-fx-background-color: rgba(255,255,255,0.08);
+                                          -fx-background-radius: 15;
+                                          -fx-text-fill: white;
+                                          -fx-prompt-text-fill: rgba(255,255,255,0.3);
+                                          -fx-border-color: rgba(255,255,255,0.1);
+                                          -fx-border-radius: 15;
+                                          -fx-padding: 12 15;
+                                          -fx-font-size: 14px;"/>
                 </VBox>
 
-                <Label fx:id="errorLabel" visible="false" style="-fx-text-fill: #ff576c; -fx-font-size: 13px; -fx-font-weight: bold;" text="" />
+                <Label fx:id="errorLabel" visible="false"
+                       style="-fx-text-fill: #ff576c; -fx-font-size: 13px; -fx-font-weight: bold;" text="" />
 
-                <!-- دکمه ورود -->
-                <Button fx:id="loginButton" text="✨ ورود به حساب" maxWidth="Infinity" onAction="#handleLogin" style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-background-radius: 25; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 16px; -fx-cursor: hand; -fx-padding: 14 0; -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 10, 0, 0, 4);"/>
+                <Button fx:id="loginButton" text="✨ ورود به حساب" maxWidth="Infinity" onAction="#handleLogin"
+                        style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2);
+                               -fx-background-radius: 25;
+                               -fx-text-fill: white;
+                               -fx-font-weight: bold;
+                               -fx-font-size: 16px;
+                               -fx-cursor: hand;
+                               -fx-padding: 14 0;
+                               -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 10, 0, 0, 4);"/>
 
                 <ProgressIndicator fx:id="loadingIndicator" visible="false" prefWidth="30" prefHeight="30"/>
 
-                <!-- لینک ثبت‌نام -->
                 <HBox alignment="CENTER" spacing="5">
                     <children>
-                        <Hyperlink fx:id="registerLink" text="ثبت‌نام کنید" onAction="#goToRegister" style="-fx-text-fill: #667eea; -fx-font-size: 13px; -fx-font-weight: bold; -fx-underline: false; -fx-border-color: transparent;"/>
+                        <Hyperlink fx:id="registerLink" text="ثبت‌نام کنید" onAction="#goToRegister"
+                                   style="-fx-text-fill: #667eea;
+                                          -fx-font-size: 13px;
+                                          -fx-font-weight: bold;
+                                          -fx-underline: false;
+                                          -fx-border-color: transparent;"/>
                         <Label text="حساب کاربری ندارید؟" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
                     </children>
                 </HBox>
             </VBox>
-        </children>
+        </VBox>
 
-        <!-- سایه ملایم دور کارت شیک شما -->
         <effect>
             <DropShadow color="rgba(0,0,0,0.4)" radius="25" spread="0.05"/>
         </effect>

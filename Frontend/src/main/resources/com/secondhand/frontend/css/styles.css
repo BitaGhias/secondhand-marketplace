@@ -75,3 +75,17 @@
 #customMenuButton:hover .arrow-button .arrow {
     -fx-background-color: #ff758c !important;
 }
+/* استایل دکمه‌های Title Bar */
+.button {
+    -fx-cursor: hand;
+}
+
+.button:hover {
+    -fx-opacity: 0.8;
+}
+
+/* دکمه بستن */
+.button:last-child:hover {
+    -fx-background-color: rgba(255, 0, 0, 0.2) !important;
+    -fx-background-radius: 5;
+}

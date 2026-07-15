@@ -5,6 +5,8 @@ import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.service.ApiClient;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.stage.Stage;
+
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -87,6 +89,24 @@ public class RegisterController {
             loadingIndicator.setVisible(false);
             registerButton.setDisable(false);
         }
+    }
+
+    @FXML
+    private void minimizeWindow() {
+        Stage stage = (Stage) fullNameField.getScene().getWindow();
+        stage.setIconified(true);
+    }
+
+    @FXML
+    private void maximizeWindow() {
+        Stage stage = (Stage) fullNameField.getScene().getWindow();
+        stage.setMaximized(!stage.isMaximized());
+    }
+
+    @FXML
+    private void closeWindow() {
+        Stage stage = (Stage) fullNameField.getScene().getWindow();
+        stage.close();
     }
 
     private void handleRegisterResponse(String responseBody) {
