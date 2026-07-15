@@ -91,6 +91,24 @@ public class RegisterController {
         }
     }
 
+    @FXML
+    private void minimizeWindow() {
+        Stage stage = (Stage) fullNameField.getScene().getWindow();
+        stage.setIconified(true);
+    }
+
+    @FXML
+    private void maximizeWindow() {
+        Stage stage = (Stage) fullNameField.getScene().getWindow();
+        stage.setMaximized(!stage.isMaximized());
+    }
+
+    @FXML
+    private void closeWindow() {
+        Stage stage = (Stage) fullNameField.getScene().getWindow();
+        stage.close();
+    }
+
     private void handleRegisterResponse(String responseBody) {
         try {
             // ثبت‌نام موفق
@@ -140,23 +158,5 @@ public class RegisterController {
         } catch (Exception e) {
             showError("خطا در بارگذاری صفحه ورود");
         }
-    }
-
-    @FXML
-    private void minimizeWindow() {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        stage.setIconified(true);
-    }
-
-    @FXML
-    private void maximizeWindow() {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        stage.setMaximized(!stage.isMaximized());
-    }
-
-    @FXML
-    private void closeWindow() {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        stage.close();
     }
 }

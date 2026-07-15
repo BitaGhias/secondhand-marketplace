@@ -35,6 +35,24 @@ public class LoginController {
     }
 
     @FXML
+    private void minimizeWindow() {
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        stage.setIconified(true);
+    }
+
+    @FXML
+    private void maximizeWindow() {
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        stage.setMaximized(!stage.isMaximized());
+    }
+
+    @FXML
+    private void closeWindow() {
+        Stage stage = (Stage) usernameField.getScene().getWindow();
+        stage.close();
+    }
+
+    @FXML
     private void handleLogin() {
         String username = usernameField.getText().trim();
         String password = passwordField.getText().trim();
@@ -153,23 +171,5 @@ public class LoginController {
             e.printStackTrace();
             showError("خطا در بارگذاری صفحه ثبت‌نام");
         }
-    }
-
-    @FXML
-    private void minimizeWindow() {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        stage.setIconified(true);
-    }
-
-    @FXML
-    private void maximizeWindow() {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        stage.setMaximized(!stage.isMaximized());
-    }
-
-    @FXML
-    private void closeWindow() {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        stage.close();
     }
 }
