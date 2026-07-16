@@ -15,14 +15,17 @@
              -fx-border-radius: 18px;
              -fx-border-color: rgba(255, 255, 255, 0.08);
              -fx-border-width: 1px;
-             -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 15, 0, 0, 5);"
-      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+             -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.4), 15, 0, 0, 5);
+             -fx-cursor: hand;"
+      onMouseClicked="#handleCardClick"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.ItemAdController">
 
     <padding>
         <Insets top="12" right="12" bottom="12" left="12" />
     </padding>
 
-    <!-- بخش تصویر با پس‌زمینه تیره ملایم برای جلوه بیشتر عکس -->
+    <!-- بخش تصویر -->
     <VBox alignment="CENTER"
           style="-fx-background-color: #100f24;
                  -fx-background-radius: 14px;
@@ -34,49 +37,39 @@
         </children>
     </VBox>
 
-    <!-- عنوان آگهی با رنگ سفید درخشان و کاملاً خوانا -->
+    <!-- عنوان آگهی -->
     <HBox alignment="CENTER_RIGHT" prefWidth="206.0">
-        <padding>
-            <Insets right="4" left="4" />
-        </padding>
+        <padding><Insets right="4" left="4" /></padding>
         <children>
             <Label fx:id="adTitleLabel" text="عنوان آگهی"
-                   style="-fx-font-size: 14px;
-                          -fx-font-weight: bold;
-                          -fx-text-fill: #ffffff;" />
+                   style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #ffffff;" />
         </children>
     </HBox>
 
     <Pane VBox.vgrow="ALWAYS" />
 
-    <!-- فیلد قیمت با رنگ صورتی نئونی ملایم -->
+    <!-- قیمت -->
     <HBox alignment="CENTER_RIGHT" prefWidth="206.0">
-        <padding>
-            <Insets right="4" left="4" />
-        </padding>
+        <padding><Insets right="4" left="4" /></padding>
         <children>
             <Label fx:id="adPriceLabel" text="۴۵,۰۰۰,۰۰۰ تومان"
-                   style="-fx-font-size: 13px;
-                          -fx-font-weight: bold;
-                          -fx-text-fill: #ff758c;" />
+                   style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #ff758c;" />
         </children>
     </HBox>
 
-    <!-- خط جداکننده ظریف برای تفکیک بخش کاربر -->
     <Pane prefHeight="1.0" style="-fx-background-color: rgba(255, 255, 255, 0.08);" />
 
-    <!-- اطلاعات فروشنده در پایین کارت -->
+    <!-- اطلاعات فروشنده -->
     <HBox alignment="CENTER_LEFT" spacing="8" prefWidth="206.0">
-        <padding>
-            <Insets right="4" left="4" />
-        </padding>
+        <padding><Insets right="4" left="4" /></padding>
         <children>
-            <!-- آواتار با رنگ بنفش روشن برای تضاد و زیبایی -->
             <Circle radius="11.0" fill="#4d44b5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.0" />
             <Label fx:id="usernameLabel" text="نام کاربر"
-                   style="-fx-font-size: 11px;
-                          -fx-text-fill: #b9b8cd;" />
+                   style="-fx-font-size: 11px; -fx-text-fill: #b9b8cd;" />
         </children>
     </HBox>
+
+    <!-- 🆕 وضعیت آگهی (مخفی) -->
+    <Label fx:id="statusLabel" visible="false" />
 
 </VBox>

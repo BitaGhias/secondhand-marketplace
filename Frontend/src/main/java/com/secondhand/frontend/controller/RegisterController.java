@@ -3,6 +3,7 @@ package com.secondhand.frontend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.service.ApiClient;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
@@ -76,19 +77,96 @@ public class RegisterController {
                     .build();
 
             ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenApply(HttpResponse::body)
-                    .thenAccept(this::handleRegisterResponse)
+                    .thenAccept(response -> {
+                        int statusCode = response.statusCode();
+                        String responseBody = response.body();
+
+                        System.out.println("Status Code: " + statusCode);
+                        System.out.println("Response Body: " + responseBody);
+
+                        if (statusCode == 201 || statusCode == 200) {
+                            handleRegisterSuccess();
+                        } else {
+                            handleRegisterError(responseBody);
+                        }
+                    })
                     .exceptionally(e -> {
-                        showError("خطا در ارتباط با سرور: " + e.getMessage());
+                        Platform.runLater(() -> {
+                            showError("خطا در ارتباط با سرور: " + e.getMessage());
+                            loadingIndicator.setVisible(false);
+                            registerButton.setDisable(false);
+                        });
                         return null;
                     });
 
         } catch (Exception e) {
-            showError("خطا: " + e.getMessage());
-        } finally {
+            Platform.runLater(() -> {
+                showError("خطا: " + e.getMessage());
+                loadingIndicator.setVisible(false);
+                registerButton.setDisable(false);
+            });
+        }
+    }
+
+    private void handleRegisterSuccess() {
+        Platform.runLater(() -> {
+            showSuccess("✅ ثبت‌نام با موفقیت انجام شد! به صفحه ورود بروید.");
             loadingIndicator.setVisible(false);
             registerButton.setDisable(false);
-        }
+
+            // رفتن به صفحه ورود بعد از 2 ثانیه
+            new Thread(() -> {
+                try {
+                    Thread.sleep(2000);
+                    Platform.runLater(() -> {
+                        try {
+                            MainApplication.changeScene("/com/secondhand/frontend/login.fxml", "ورود");
+                        } catch (Exception e) {
+                            showError("خطا در بارگذاری صفحه ورود");
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+        });
+    }
+
+    private void handleRegisterError(String responseBody) {
+        Platform.runLater(() -> {
+            loadingIndicator.setVisible(false);
+            registerButton.setDisable(false);
+
+            if (responseBody.contains("نام کاربری تکراری") || responseBody.contains("duplicate")) {
+                showError("این نام کاربری قبلاً ثبت شده است");
+            } else if (responseBody.contains("ایمیل تکراری") || responseBody.contains("Email already")) {
+                showError("این ایمیل قبلاً ثبت شده است");
+            } else if (responseBody.contains("شماره تلفن تکراری") || responseBody.contains("Phone already")) {
+                showError("این شماره تلفن قبلاً ثبت شده است");
+            } else if (responseBody.contains("validation")) {
+                showError("اطلاعات وارد شده معتبر نیست");
+            } else {
+                showError("خطا در ثبت‌نام: " + responseBody);
+            }
+        });
+    }
+
+    private void showError(String message) {
+        Platform.runLater(() -> {
+            errorLabel.setText("❌ " + message);
+            errorLabel.setStyle("-fx-text-fill: #ff4757;");
+            errorLabel.setVisible(true);
+            loadingIndicator.setVisible(false);
+            registerButton.setDisable(false);
+        });
+    }
+
+    private void showSuccess(String message) {
+        Platform.runLater(() -> {
+            errorLabel.setText("✅ " + message);
+            errorLabel.setStyle("-fx-text-fill: #38ef7d;");
+            errorLabel.setVisible(true);
+        });
     }
 
     @FXML
@@ -107,48 +185,6 @@ public class RegisterController {
     private void closeWindow() {
         Stage stage = (Stage) fullNameField.getScene().getWindow();
         stage.close();
-    }
-
-    private void handleRegisterResponse(String responseBody) {
-        try {
-            // ثبت‌نام موفق
-            javafx.application.Platform.runLater(() -> {
-                try {
-                    showSuccess("✅ ثبت‌نام با موفقیت انجام شد! به صفحه ورود بروید.");
-                    MainApplication.changeScene("/com/secondhand/frontend/login.fxml", "ورود");
-                } catch (Exception e) {
-                    showError("خطا در بارگذاری صفحه ورود");
-                }
-            });
-        } catch (Exception e) {
-            // بررسی خطای سرور (مثل تکراری بودن)
-            if (responseBody.contains("نام کاربری تکراری")) {
-                showError("این نام کاربری قبلاً ثبت شده است");
-            } else if (responseBody.contains("ایمیل تکراری")) {
-                showError("این ایمیل قبلاً ثبت شده است");
-            } else if (responseBody.contains("شماره تلفن تکراری")) {
-                showError("این شماره تلفن قبلاً ثبت شده است");
-            } else {
-                showError("خطا در ثبت‌نام: " + responseBody);
-            }
-        }
-    }
-
-    private void showError(String message) {
-        javafx.application.Platform.runLater(() -> {
-            errorLabel.setText(message);
-            errorLabel.setVisible(true);
-            loadingIndicator.setVisible(false);
-            registerButton.setDisable(false);
-        });
-    }
-
-    private void showSuccess(String message) {
-        javafx.application.Platform.runLater(() -> {
-            errorLabel.setText(message);
-            errorLabel.setStyle("-fx-text-fill: #51cf66;");
-            errorLabel.setVisible(true);
-        });
     }
 
     @FXML

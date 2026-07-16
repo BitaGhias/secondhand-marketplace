@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.ApiClient;
+import com.secondhand.frontend.util.SessionManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -25,7 +27,17 @@ public class LoginController {
 
     @FXML
     public void initialize() {
-        // فکوس هوشمند با اینتر
+        // اگر قبلاً وارد شده بود، مستقیم به صفحه اصلی بره
+        if (SessionManager.isLoggedIn()) {
+            try {
+                MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            return;
+        }
+
+        // فوکوس هوشمند با اینتر
         usernameField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) passwordField.requestFocus();
         });
@@ -62,7 +74,6 @@ public class LoginController {
             return;
         }
 
-        // فعال‌سازی حالت لودینگ درست مثل رجیستر
         loadingIndicator.setVisible(true);
         loginButton.setDisable(true);
         errorLabel.setVisible(false);
@@ -76,12 +87,8 @@ public class LoginController {
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
 
-            // ارسال غیرهمزمان و مدیریت درست هندلرها بدون تداخل بلوک finally
             ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenAccept(response -> {
-                        // پاس دادن کل آبجکت پاسخ برای بررسی وضعیت HTTP Status Code
-                        handleLoginResponse(response);
-                    })
+                    .thenAccept(this::handleLoginResponse)
                     .exceptionally(e -> {
                         e.printStackTrace();
                         showError("خطا در ارتباط با سرور: " + e.getMessage());
@@ -92,7 +99,6 @@ public class LoginController {
             e.printStackTrace();
             showError("خطا: " + e.getMessage());
         }
-        // بلوک finally حذف شد چون مدیریت المان‌ها باید پس از دریافت پاسخ واقعی انجام شود
     }
 
     private void handleLoginResponse(HttpResponse<String> response) {
@@ -102,7 +108,6 @@ public class LoginController {
         System.out.println("Status Code: " + statusCode);
         System.out.println("Response Body: " + responseBody);
 
-        // ۱. مدیریت وضعیت‌های ناامیدکننده بک‌اَند
         if (statusCode == 401 || statusCode == 403) {
             showError("نام کاربری یا رمز عبور اشتباه است");
             return;
@@ -120,7 +125,7 @@ public class LoginController {
             String token = (String) responseMap.get("token");
             ApiClient.setToken(token);
 
-            // استخراج آبجکت کاربر به صورت امن
+            // استخراج آبجکت کاربر
             Map<String, Object> userMap = (Map<String, Object>) responseMap.get("user");
             if (userMap != null) {
                 User user = new User(
@@ -132,17 +137,17 @@ public class LoginController {
                         (String) userMap.get("phoneNumber"),
                         (String) userMap.get("email")
                 );
-                // ذخیره کاربر در سشن یا استفاده از fullName آن در کنترلر بعدی در صورت نیاز
+                SessionManager.setCurrentUser(user);
+                System.out.println("✅ کاربر وارد شد: " + user.getFullName());
             }
 
-            // ۲. تغییر به پنجره لیست آگهی‌ها (adlist) به صورت ریسک‌فری و با پرینت استک ترس خطاها
-            javafx.application.Platform.runLater(() -> {
+            // تغییر به صفحه لیست آگهی‌ها
+            Platform.runLater(() -> {
                 try {
-                    // تغییر مسیر قطعی به فایل خوش‌استایل adlist.fxml که ساختیم
                     MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
                 } catch (Exception e) {
-                    System.err.println("❌ خطا در متد تغییر سین به adlist.fxml اتفاق افتاد:");
-                    e.printStackTrace(); // اینجا اگر کدهای FXML یا CSS مورد داشته باشند لو می‌روند
+                    System.err.println("❌ خطا در تغییر صفحه به adlist.fxml:");
+                    e.printStackTrace();
                     showError("خطا در رندر و بارگذاری صفحه اصلی");
                 }
             });
@@ -154,9 +159,9 @@ public class LoginController {
     }
 
     private void showError(String message) {
-        javafx.application.Platform.runLater(() -> {
+        Platform.runLater(() -> {
             errorLabel.setText(message);
-            errorLabel.setStyle("-fx-text-fill: #ff576c;"); // تنظیم رنگ قرمز جهت خوانایی در پوسته دارک
+            errorLabel.setStyle("-fx-text-fill: #ff576c;");
             errorLabel.setVisible(true);
             loadingIndicator.setVisible(false);
             loginButton.setDisable(false);

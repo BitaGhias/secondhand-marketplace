@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<VBox prefHeight="800.0" prefWidth="1000.0" spacing="15"
+      style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.ItemDetailController">
+
+    <padding><Insets top="25" right="30" bottom="25" left="30"/></padding>
+
+    <!-- دکمه بازگشت -->
+    <HBox alignment="CENTER_LEFT">
+        <Button text="← بازگشت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Label fx:id="errorLabel" style="-fx-font-size: 13px;" visible="false"/>
+    </HBox>
+
+    <Separator style="-fx-opacity: 0.1;"/>
+
+    <HBox spacing="30" VBox.vgrow="ALWAYS">
+
+        <!-- ===== ستون تصاویر ===== -->
+        <VBox spacing="15" prefWidth="400" alignment="TOP_CENTER">
+            <!-- تصویر اصلی -->
+            <ImageView fx:id="mainImageView" fitHeight="350" fitWidth="400" preserveRatio="true"
+                       style="-fx-background-color: rgba(0,0,0,0.3);
+                              -fx-background-radius: 15;
+                              -fx-border-color: rgba(255,255,255,0.05);
+                              -fx-border-radius: 15;"/>
+
+            <!-- تصاویر کوچک -->
+            <HBox fx:id="thumbnailContainer" spacing="10" alignment="CENTER"/>
+        </VBox>
+
+        <!-- ===== ستون اطلاعات ===== -->
+        <VBox spacing="15" HBox.hgrow="ALWAYS">
+
+            <!-- عنوان -->
+            <Label fx:id="titleLabel" style="-fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold;"/>
+
+            <!-- قیمت -->
+            <Label fx:id="priceLabel" style="-fx-text-fill: #ff758c; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+
+            <!-- وضعیت -->
+            <Label fx:id="statusLabel" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+            <!-- توضیحات -->
+            <Label fx:id="descriptionLabel" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 14px; -fx-wrap-text: true;"/>
+
+            <Separator style="-fx-opacity: 0.05;"/>
+
+            <!-- اطلاعات اضافی -->
+            <HBox spacing="20">
+                <Label fx:id="cityLabel" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
+                <Label fx:id="categoryLabel" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
+            </HBox>
+
+            <!-- فروشنده و امتیاز -->
+            <HBox spacing="20" alignment="CENTER_LEFT">
+                <Label fx:id="ownerLabel" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                <Label fx:id="ratingLabel" style="-fx-text-fill: #f9a825; -fx-font-size: 14px;"/>
+            </HBox>
+
+            <Separator style="-fx-opacity: 0.05;"/>
+
+            <!-- ===== دکمه‌های اقدام (برای خریدار) ===== -->
+            <HBox fx:id="buyerActions" spacing="15" alignment="CENTER_LEFT">
+                <Button fx:id="chatButton" text="💬 پیام به فروشنده" onAction="#startChat"
+                        style="-fx-background-color: linear-gradient(to right, #11998e, #38ef7d);
+                               -fx-text-fill: white;
+                               -fx-background-radius: 12;
+                               -fx-padding: 12 25;
+                               -fx-font-weight: bold;
+                               -fx-cursor: hand;"/>
+
+                <Button fx:id="favoriteButton" text="🤍" onAction="#toggleFavorite"
+                        style="-fx-background-color: transparent;
+                               -fx-text-fill: rgba(255,255,255,0.5);
+                               -fx-font-size: 28px;
+                               -fx-cursor: hand;"/>
+
+                <Button fx:id="ratingButton" text="⭐ امتیاز" onAction="#showRatingDialog"
+                        style="-fx-background-color: rgba(255,255,255,0.05);
+                               -fx-text-fill: white;
+                               -fx-background-radius: 12;
+                               -fx-border-color: rgba(255,255,255,0.1);
+                               -fx-border-radius: 12;
+                               -fx-padding: 12 25;
+                               -fx-cursor: hand;"/>
+            </HBox>
+
+            <!-- ===== دکمه‌های مدیریت (برای مالک) ===== -->
+            <HBox fx:id="ownerActions" spacing="15" alignment="CENTER_LEFT" visible="false">
+                <Button fx:id="editButton" text="✏️ ویرایش" onAction="#editItem"
+                        style="-fx-background-color: #667eea;
+                               -fx-text-fill: white;
+                               -fx-background-radius: 12;
+                               -fx-padding: 12 25;
+                               -fx-font-weight: bold;
+                               -fx-cursor: hand;"/>
+
+                <Button fx:id="deleteButton" text="🗑️ حذف" onAction="#deleteItem"
+                        style="-fx-background-color: #ff4757;
+                               -fx-text-fill: white;
+                               -fx-background-radius: 12;
+                               -fx-padding: 12 25;
+                               -fx-font-weight: bold;
+                               -fx-cursor: hand;"/>
+
+                <Button fx:id="soldButton" text="✅ فروخته شد" onAction="#markAsSold"
+                        style="-fx-background-color: #2ed573;
+                               -fx-text-fill: white;
+                               -fx-background-radius: 12;
+                               -fx-padding: 12 25;
+                               -fx-font-weight: bold;
+                               -fx-cursor: hand;"/>
+            </HBox>
+
+            <Region VBox.vgrow="ALWAYS"/>
+
+        </VBox>
+    </HBox>
+</VBox>

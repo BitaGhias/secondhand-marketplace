@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox prefHeight="800.0" prefWidth="700.0" spacing="15"
+      style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.CreateAdController">
+
+    <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+
+    <HBox alignment="CENTER_LEFT">
+        <Button text="← بازگشت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Label text="📝 ثبت آگهی جدید" style="-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <Separator style="-fx-opacity: 0.1;"/>
+
+    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+        <VBox spacing="15" style="-fx-background-color: rgba(255,255,255,0.02); -fx-background-radius: 20; -fx-padding: 25;">
+
+            <!-- عنوان -->
+            <VBox spacing="5">
+                <Label text="عنوان آگهی" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px;"/>
+                <TextField fx:id="titleField" promptText="مثال: لپ‌تاپ لنوو" style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 12;"/>
+            </VBox>
+
+            <!-- توضیحات -->
+            <VBox spacing="5">
+                <Label text="توضیحات" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px;"/>
+                <TextArea fx:id="descriptionArea" promptText="توضیحات کامل آگهی..." prefHeight="100" style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 12;"/>
+            </VBox>
+
+            <HBox spacing="15">
+                <!-- قیمت -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="قیمت (تومان)" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px;"/>
+                    <TextField fx:id="priceField" promptText="مثال: ۱۸۰۰۰۰۰۰" style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 12;"/>
+                </VBox>
+
+                <!-- دسته‌بندی -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="دسته‌بندی" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px;"/>
+                    <ComboBox fx:id="categoryComboBox" promptText="انتخاب کنید" style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 12;"/>
+                </VBox>
+
+                <!-- شهر -->
+                <VBox spacing="5" HBox.hgrow="ALWAYS">
+                    <Label text="شهر" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px;"/>
+                    <ComboBox fx:id="cityComboBox" promptText="انتخاب کنید" style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 12;"/>
+                </VBox>
+            </HBox>
+
+            <!-- تصاویر -->
+            <VBox spacing="5">
+                <Label text="تصاویر" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px;"/>
+                <HBox spacing="10">
+                    <Button text="➕ افزودن تصویر" style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 10 20; -fx-cursor: hand;"/>
+                    <FlowPane fx:id="imagePreviewContainer" hgap="10" vgap="10"/>
+                </HBox>
+            </VBox>
+
+            <Button text="🚀 ثبت آگهی" maxWidth="Infinity" style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-background-radius: 25; -fx-font-weight: bold; -fx-font-size: 16px; -fx-padding: 14 0; -fx-cursor: hand;"/>
+            <Label fx:id="errorLabel" style="-fx-text-fill: #ff4757; -fx-font-size: 13px;" visible="false"/>
+
+        </VBox>
+    </ScrollPane>
+</VBox>
