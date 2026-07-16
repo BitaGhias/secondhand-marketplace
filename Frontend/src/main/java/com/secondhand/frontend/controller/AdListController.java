@@ -1,134 +1,90 @@
 package com.secondhand.frontend.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.MainApplication;
-import com.secondhand.frontend.model.Ad;
+import com.secondhand.frontend.model.Item;
+import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.ApiClient;
+import com.secondhand.frontend.service.ItemService;
+import com.secondhand.frontend.util.SessionManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
+import javafx.stage.Stage;
 
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.util.List;
 
 public class AdListController {
 
-    @FXML
-    private MenuButton userMenuButton;
-
-    @FXML
-    private TextField searchField;
-
-    // 🟢 متصل به کامپوننت جدید در FXML برای چیدن کارت‌های شیشه‌ای آگهی
-    @FXML
-    private FlowPane adsFlowPane;
+    @FXML private MenuButton userMenuButton;
+    @FXML private TextField searchField;
+    @FXML private FlowPane adsFlowPane;
+    @FXML private VBox loadingContainer;
 
     @FXML
     public void initialize() {
-        // ۱. ست کردن اکشن روی آیتم‌های منوی کاربر
-        setupMenuActions();
+        // تنظیم نام کاربر از SessionManager
+        User currentUser = SessionManager.getCurrentUser();
+        if (currentUser != null && userMenuButton != null) {
+            userMenuButton.setText("👤 " + currentUser.getFullName());
+        }
 
-        // ۲. گوش دادن به تغییرات فیلد جستجو به صورت لحظه‌ای
+        setupMenuActions();
+        fetchAdsFromBackend();
+
+        // جستجوی لحظه‌ای
         if (searchField != null) {
             searchField.textProperty().addListener((observable, oldValue, newValue) -> {
                 handleSearch(newValue);
             });
         }
-
-        // ۳. گرفتن آگهی‌های واقعی از دیتابیس بک‌اَند و رندر کردن کارت‌ها
-        fetchAdsFromBackend();
     }
 
-    /**
-     * متد کمکی برای ست کردن نام کاربر به صورت داینامیک از طریق دیتای دریافتی لاگین
-     */
-    public void setUserProfile(String fullName) {
-        if (userMenuButton != null && fullName != null && !fullName.isEmpty()) {
-            Platform.runLater(() -> userMenuButton.setText("👤 " + fullName));
-        }
-    }
-
-    /**
-     * ارتباط مستقیم با API بک‌اَند برای دریافت آیتم‌ها
-     */
     private void fetchAdsFromBackend() {
         try {
-            String targetUrl = ApiClient.getBaseUrl() + "/items/approved";
-            System.out.println("🔗 Sending request to: " + targetUrl);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(targetUrl))
-                    .header("Authorization", "Bearer " + ApiClient.getToken()) // ارسال توکن JWT دریافت شده در لاگین
-                    .GET()
-                    .build();
-
-            ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenApply(HttpResponse::body)
-                    .thenAccept(this::handleAdsResponse)
-                    .exceptionally(e -> {
-                        System.err.println("❌ خطا در دریافت اطلاعات از بک‌اَند:");
-                        e.printStackTrace();
-                        return null;
-                    });
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * پردازش پاسخ بک‌اَند و رندر کردن پویای هر کارت آگهی
-     */
-    private void handleAdsResponse(String jsonResponse) {
-        // 🔴 چاپ خروجی خام بک‌اَند در کنسول برای عیب‌یابی دقیق‌تر ساختار دیتای شما
-        System.out.println("🟢 DEBUG - JSON Response from Backend: " + jsonResponse);
-
-        try {
-            ObjectMapper mapper = ApiClient.getMapper();
-            List<Ad> ads;
-
-            // خوندن خروجی به صورت نودهای درختی جکسون
-            JsonNode rootNode = mapper.readTree(jsonResponse);
-
-            if (rootNode.isArray()) {
-                // سناریو اول: بک‌اَند مستقیماً یک آرایه JSON فرستاده است [{}, {}]
-                ads = mapper.readerFor(new TypeReference<List<Ad>>() {}).readValue(rootNode);
-            } else if (rootNode.isObject() && rootNode.has("content")) {
-                // سناریو دوم: خروجی بک‌اَند صفحه‌بندی شده (Pageable) است و آرایه آگهی‌ها داخل فیلد content قرار دارد
-                ads = mapper.readerFor(new TypeReference<List<Ad>>() {}).readValue(rootNode.get("content"));
-            } else {
-                // سناریو سوم: تلاش مستقیم در صورتی که دیتای بالا وجود نداشت
-                ads = mapper.readValue(jsonResponse, new TypeReference<List<Ad>>() {});
-            }
+            List<Item> items = ItemService.getActiveItems();
 
             Platform.runLater(() -> {
-                if (adsFlowPane != null) {
-                    adsFlowPane.getChildren().clear(); // پاک کردن لودینگ‌ها یا دیتای قبلی
+                if (loadingContainer != null) {
+                    loadingContainer.setVisible(false);
+                }
 
-                    for (Ad ad : ads) {
+                if (adsFlowPane != null) {
+                    adsFlowPane.getChildren().clear();
+
+                    if (items == null || items.isEmpty()) {
+                        Label emptyLabel = new Label("هیچ آگهی فعالی وجود ندارد");
+                        emptyLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #888;");
+                        adsFlowPane.getChildren().add(emptyLabel);
+                        return;
+                    }
+
+                    for (Item item : items) {
                         try {
-                            // بارگذاری فایل کارت تکی
                             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/item_ad.fxml"));
                             Parent card = loader.load();
 
-                            // پر کردن اطلاعات کارت از طریق کنترلر اختصاصی آن
-                            ItemAdController itemController = loader.getController();
-                            itemController.setData(ad);
+                            ItemAdController controller = loader.getController();
+                            controller.setItem(item);
 
-                            // اضافه کردن کارت نئونی به صفحه گرید اصلی
+                            // کلیک روی کارت -> رفتن به صفحه جزئیات
+                            card.setOnMouseClicked(event -> {
+                                goToItemDetail(item);
+                            });
+
                             adsFlowPane.getChildren().add(card);
 
                         } catch (Exception e) {
-                            System.err.println("❌ خطا در رندر کارت آگهی انفرادی:");
+                            System.err.println("❌ خطا در رندر کارت آگهی:");
                             e.printStackTrace();
                         }
                     }
@@ -136,7 +92,36 @@ public class AdListController {
             });
 
         } catch (Exception e) {
-            System.err.println("❌ خطا در پارس کردن دیتای آگهی‌ها:");
+            System.err.println("❌ خطا در دریافت آگهی‌ها:");
+            e.printStackTrace();
+            Platform.runLater(() -> {
+                if (loadingContainer != null) {
+                    loadingContainer.setVisible(false);
+                }
+                Label errorLabel = new Label("خطا در بارگذاری آگهی‌ها: " + e.getMessage());
+                errorLabel.setStyle("-fx-text-fill: #ff576c; -fx-font-size: 14px;");
+                if (adsFlowPane != null) {
+                    adsFlowPane.getChildren().add(errorLabel);
+                }
+            });
+        }
+    }
+
+    private void goToItemDetail(Item item) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/item_detail.fxml"));
+            Parent root = loader.load();
+
+            ItemDetailController controller = loader.getController();
+            controller.setItem(item);
+
+            // تغییر صحنه
+            Stage stage = (Stage) adsFlowPane.getScene().getWindow();
+            stage.setScene(new Scene(root, 1200, 800));
+            stage.setTitle("جزئیات آگهی");
+
+        } catch (Exception e) {
+            System.err.println("❌ خطا در رفتن به صفحه جزئیات:");
             e.printStackTrace();
         }
     }
@@ -150,16 +135,19 @@ public class AdListController {
 
                     switch (itemText.trim()) {
                         case "📝 آگهی‌های من":
-                            System.out.println("تغییر مسیر به آگهی‌های من...");
+                            goToMyAds();
                             break;
                         case "❤️ علاقه‌مندی‌ها":
-                            System.out.println("باز کردن علاقه‌مندی‌ها...");
+                            goToFavorites();
                             break;
                         case "💬 گفت‌وگوها":
-                            System.out.println("باز کردن چت‌ها...");
+                            goToChats();
                             break;
                         case "🛒 خریدها":
-                            System.out.println("باز کردن تاریخچه خرید...");
+                            goToPurchases();
+                            break;
+                        case "ثبت آگهی جدید":
+                            goToCreateAd();
                             break;
                         case "خروج":
                         case "🚪 خروج":
@@ -172,14 +160,60 @@ public class AdListController {
     }
 
     private void handleSearch(String query) {
-        System.out.println("در حال جستجو برای: " + query);
-        // اینجا در آینده منطق فیلتر کردن داینامیک گرید بر اساس متن وارد شده قرار می‌گیرد.
+        // TODO: پیاده‌سازی جستجو
+        System.out.println("🔍 جستجو: " + query);
     }
 
-    private void handleLogout() {
+    @FXML
+    private void goToMyAds() {
         try {
-            System.out.println("در حال خروج از حساب کاربری...");
-            MainApplication.changeScene("/com/secondhand/frontend/login.fxml", "فروشگاه دست دوم - ورود");
+            MainApplication.changeScene("/com/secondhand/frontend/my_ads.fxml", "آگهی‌های من");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void goToFavorites() {
+        try {
+            MainApplication.changeScene("/com/secondhand/frontend/favorites.fxml", "علاقه‌مندی‌ها");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void goToChats() {
+        try {
+            MainApplication.changeScene("/com/secondhand/frontend/chats.fxml", "پیام‌ها");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void goToPurchases() {
+        try {
+            MainApplication.changeScene("/com/secondhand/frontend/purchases.fxml", "خریدها");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void goToCreateAd() {
+        try {
+            MainApplication.changeScene("/com/secondhand/frontend/create_ad.fxml", "ثبت آگهی جدید");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleLogout() {
+        SessionManager.logout();
+        try {
+            MainApplication.changeScene("/com/secondhand/frontend/login.fxml", "ورود");
         } catch (Exception e) {
             e.printStackTrace();
         }

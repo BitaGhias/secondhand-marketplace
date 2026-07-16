@@ -12,6 +12,7 @@ module com.secondhand.frontend {
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
     requires javafx.swing;
+    requires com.fasterxml.jackson.datatype.jsr310;
 
     opens com.secondhand.frontend to javafx.fxml;
     exports com.secondhand.frontend;

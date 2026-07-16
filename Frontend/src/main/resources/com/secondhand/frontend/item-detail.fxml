@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.*?>
+
+<VBox prefHeight="800.0" prefWidth="900.0" spacing="20"
+      style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.ItemDetailController">
+
+    <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+
+    <!-- دکمه بازگشت -->
+    <HBox alignment="CENTER_LEFT">
+        <Button text="← بازگشت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
+    </HBox>
+
+    <Separator style="-fx-opacity: 0.1;"/>
+
+    <HBox spacing="30" VBox.vgrow="ALWAYS">
+        <!-- ستون تصاویر -->
+        <VBox spacing="10" prefWidth="400">
+            <ImageView fx:id="mainImageView" fitHeight="400" fitWidth="400" preserveRatio="true"/>
+            <HBox spacing="10" fx:id="thumbnailContainer"/>
+        </VBox>
+
+        <!-- ستون اطلاعات -->
+        <VBox spacing="15" HBox.hgrow="ALWAYS">
+            <Label fx:id="titleLabel" style="-fx-text-fill: white; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+            <Label fx:id="priceLabel" style="-fx-text-fill: #ff758c; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+            <Label fx:id="statusLabel" style="-fx-font-size: 14px;"/>
+            <Label fx:id="descriptionLabel" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 14px; -fx-wrap-text: true;"/>
+            <Label fx:id="cityLabel" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
+            <Label fx:id="categoryLabel" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
+            <Label fx:id="ratingLabel" style="-fx-text-fill: #f9a825; -fx-font-size: 14px;"/>
+
+            <Separator style="-fx-opacity: 0.1;"/>
+
+            <!-- دکمه‌های اقدام -->
+            <HBox spacing="15">
+                <Button fx:id="chatButton" text="💬 پیام به فروشنده" style="-fx-background-color: linear-gradient(to right, #11998e, #38ef7d); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 10 20; -fx-font-weight: bold; -fx-cursor: hand;"/>
+                <Button fx:id="favoriteButton" text="❤️" style="-fx-background-color: transparent; -fx-text-fill: #ff4757; -fx-font-size: 24px; -fx-cursor: hand;"/>
+                <Button fx:id="ratingButton" text="⭐ امتیاز" style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 10 20; -fx-cursor: hand;"/>
+            </HBox>
+
+            <!-- دکمه‌های مدیریت (فقط برای مالک) -->
+            <HBox fx:id="ownerActions" spacing="15" visible="false">
+                <Button text="✏️ ویرایش" style="-fx-background-color: #667eea; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 8 20; -fx-cursor: hand;"/>
+                <Button text="🗑️ حذف" style="-fx-background-color: #ff4757; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 8 20; -fx-cursor: hand;"/>
+                <Button text="✅ فروخته شد" style="-fx-background-color: #2ed573; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 8 20; -fx-cursor: hand;"/>
+            </HBox>
+        </VBox>
+    </HBox>
+</VBox>
