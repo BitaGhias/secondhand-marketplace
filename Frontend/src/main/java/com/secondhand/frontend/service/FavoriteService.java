@@ -2,7 +2,6 @@ package com.secondhand.frontend.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.secondhand.frontend.model.Favorite;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.ApiClient;
 
@@ -15,7 +14,8 @@ public class FavoriteService {
 
     // دریافت لیست علاقه‌مندی‌ها
     public static List<Item> getFavorites() throws Exception {
-        HttpResponse<String> response = ApiClient.get("/favorites");
+        // ✅ مسیر درست: /api/favorites/user
+        HttpResponse<String> response = ApiClient.get("/favorites/user");
 
         if (response.statusCode() == 200) {
             return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
@@ -27,7 +27,8 @@ public class FavoriteService {
     // افزودن به علاقه‌مندی‌ها
     public static void addFavorite(Long itemId) throws Exception {
         FavoriteRequest request = new FavoriteRequest(itemId);
-        HttpResponse<String> response = ApiClient.post("/favorites", request);
+        // ✅ مسیر درست: /api/favorites/add
+        HttpResponse<String> response = ApiClient.post("/favorites/add", request);
 
         if (response.statusCode() != 200 && response.statusCode() != 201) {
             throw new Exception("خطا در افزودن به علاقه‌مندی‌ها: " + response.body());
@@ -35,8 +36,10 @@ public class FavoriteService {
     }
 
     // حذف از علاقه‌مندی‌ها
-    public static void removeFavorite(Long favoriteId) throws Exception {
-        HttpResponse<String> response = ApiClient.delete("/favorites/" + favoriteId);
+    public static void removeFavorite(Long itemId) throws Exception {
+        FavoriteRequest request = new FavoriteRequest(itemId);
+        // ✅ مسیر درست: /api/favorites/remove
+        HttpResponse<String> response = ApiClient.delete("/favorites/remove", request);
 
         if (response.statusCode() != 200 && response.statusCode() != 204) {
             throw new Exception("خطا در حذف از علاقه‌مندی‌ها: " + response.body());
@@ -45,7 +48,8 @@ public class FavoriteService {
 
     // بررسی اینکه آیا آگهی در علاقه‌مندی‌ها هست
     public static boolean isFavorite(Long itemId) throws Exception {
-        HttpResponse<String> response = ApiClient.get("/favorites/check/" + itemId);
+        // ✅ مسیر درست: /api/favorites/check?itemId=...
+        HttpResponse<String> response = ApiClient.get("/favorites/check?itemId=" + itemId);
         return response.statusCode() == 200 && Boolean.parseBoolean(response.body());
     }
 

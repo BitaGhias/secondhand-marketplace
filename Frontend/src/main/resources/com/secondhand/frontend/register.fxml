@@ -103,6 +103,12 @@
                             <PasswordField fx:id="confirmPasswordField" promptText="رمز عبور را دوباره وارد کنید" style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 15; -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 15; -fx-padding: 12 15; -fx-font-size: 14px;"/>
                         </VBox>
 
+                        <!-- ===== لودینگ ===== -->
+                        <ProgressIndicator fx:id="loadingIndicator"
+                                           style="-fx-progress-color: #667eea;"
+                                           visible="false"
+                                           maxWidth="50" maxHeight="50"/>
+
                         <Button fx:id="registerButton" text="✨ ثبت‌نام" maxWidth="Infinity" onAction="#handleRegister"
                                 style="-fx-background-color: linear-gradient(to right, #f093fb, #f5576c);
                                        -fx-background-radius: 25;
