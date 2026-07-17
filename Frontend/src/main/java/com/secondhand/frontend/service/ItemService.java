@@ -14,9 +14,10 @@ public class ItemService {
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-    // دریافت لیست آگهی‌های فعال
+    // دریافت لیست آگهی‌های تایید شده (approved)
     public static List<Item> getActiveItems() throws Exception {
-        HttpResponse<String> response = ApiClient.get("/items");
+        // ✅ مسیر درست: /api/items/approved
+        HttpResponse<String> response = ApiClient.get("/items/approved");
 
         if (response.statusCode() == 200) {
             return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
@@ -38,9 +39,9 @@ public class ItemService {
 
     // ثبت آگهی جدید
     public static Item createItem(ItemCreateRequest request) throws Exception {
-        HttpResponse<String> response = ApiClient.post("/items", request);
+        HttpResponse<String> response = ApiClient.post("/items/create", request);
 
-        if (response.statusCode() == 201) {
+        if (response.statusCode() == 200 || response.statusCode() == 201) {
             return objectMapper.readValue(response.body(), Item.class);
         } else {
             throw new Exception("خطا در ثبت آگهی: " + response.body());
@@ -88,7 +89,8 @@ public class ItemService {
 
     // دریافت آگهی‌های من (برای صفحه My Ads)
     public static List<Item> getMyItems() throws Exception {
-        HttpResponse<String> response = ApiClient.get("/items/my");
+        // ✅ مسیر درست: /api/items/user
+        HttpResponse<String> response = ApiClient.get("/items/user");
 
         if (response.statusCode() == 200) {
             return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
@@ -97,7 +99,7 @@ public class ItemService {
         }
     }
 
-    // کلاس‌های Request
+    // ===== کلاس‌های Request =====
     public static class ItemCreateRequest {
         public String title, description;
         public Long price;

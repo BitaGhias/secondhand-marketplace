@@ -5,7 +5,9 @@
 
 <VBox prefHeight="500.0" prefWidth="750.0" spacing="20" style="-fx-background-color: #14142b;"
       alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
-      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.PurchasesController">
+
     <padding>
         <Insets top="30" right="30" bottom="30" left="30"/>
     </padding>
@@ -24,4 +26,5 @@
             <Label text="هیچ تاریخچه خریدی یافت نشد." style="-fx-text-fill: rgba(255,255,255,0.4);"/>
         </placeholder>
     </TableView>
+
 </VBox>

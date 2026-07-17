@@ -14,6 +14,7 @@ import java.net.http.HttpResponse;
 
 public class RegisterController {
 
+    // ===== FXML Fields =====
     @FXML private TextField fullNameField;
     @FXML private TextField usernameField;
     @FXML private TextField emailField;
@@ -24,6 +25,11 @@ public class RegisterController {
     @FXML private Hyperlink loginLink;
     @FXML private Label errorLabel;
     @FXML private ProgressIndicator loadingIndicator;
+
+    @FXML
+    public void initialize() {
+        System.out.println("✅ RegisterController initialized");
+    }
 
     @FXML
     private void handleRegister() {
@@ -60,15 +66,24 @@ public class RegisterController {
             return;
         }
 
-        loadingIndicator.setVisible(true);
-        registerButton.setDisable(true);
-        errorLabel.setVisible(false);
+        // ===== نمایش لودینگ =====
+        if (loadingIndicator != null) {
+            loadingIndicator.setVisible(true);
+        }
+        if (registerButton != null) {
+            registerButton.setDisable(true);
+        }
+        if (errorLabel != null) {
+            errorLabel.setVisible(false);
+        }
 
         try {
             String json = String.format(
                     "{\"fullName\":\"%s\",\"username\":\"%s\",\"password\":\"%s\",\"phoneNumber\":\"%s\",\"email\":\"%s\"}",
                     fullName, username, password, phone, email
             );
+
+            System.out.println("📤 Sending registration request: " + json);
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(ApiClient.getBaseUrl() + "/auth/register"))
@@ -81,8 +96,8 @@ public class RegisterController {
                         int statusCode = response.statusCode();
                         String responseBody = response.body();
 
-                        System.out.println("Status Code: " + statusCode);
-                        System.out.println("Response Body: " + responseBody);
+                        System.out.println("📥 Response Status: " + statusCode);
+                        System.out.println("📥 Response Body: " + responseBody);
 
                         if (statusCode == 201 || statusCode == 200) {
                             handleRegisterSuccess();
@@ -93,8 +108,8 @@ public class RegisterController {
                     .exceptionally(e -> {
                         Platform.runLater(() -> {
                             showError("خطا در ارتباط با سرور: " + e.getMessage());
-                            loadingIndicator.setVisible(false);
-                            registerButton.setDisable(false);
+                            if (loadingIndicator != null) loadingIndicator.setVisible(false);
+                            if (registerButton != null) registerButton.setDisable(false);
                         });
                         return null;
                     });
@@ -102,8 +117,8 @@ public class RegisterController {
         } catch (Exception e) {
             Platform.runLater(() -> {
                 showError("خطا: " + e.getMessage());
-                loadingIndicator.setVisible(false);
-                registerButton.setDisable(false);
+                if (loadingIndicator != null) loadingIndicator.setVisible(false);
+                if (registerButton != null) registerButton.setDisable(false);
             });
         }
     }
@@ -111,10 +126,9 @@ public class RegisterController {
     private void handleRegisterSuccess() {
         Platform.runLater(() -> {
             showSuccess("✅ ثبت‌نام با موفقیت انجام شد! به صفحه ورود بروید.");
-            loadingIndicator.setVisible(false);
-            registerButton.setDisable(false);
+            if (loadingIndicator != null) loadingIndicator.setVisible(false);
+            if (registerButton != null) registerButton.setDisable(false);
 
-            // رفتن به صفحه ورود بعد از 2 ثانیه
             new Thread(() -> {
                 try {
                     Thread.sleep(2000);
@@ -134,8 +148,8 @@ public class RegisterController {
 
     private void handleRegisterError(String responseBody) {
         Platform.runLater(() -> {
-            loadingIndicator.setVisible(false);
-            registerButton.setDisable(false);
+            if (loadingIndicator != null) loadingIndicator.setVisible(false);
+            if (registerButton != null) registerButton.setDisable(false);
 
             if (responseBody.contains("نام کاربری تکراری") || responseBody.contains("duplicate")) {
                 showError("این نام کاربری قبلاً ثبت شده است");
@@ -143,7 +157,7 @@ public class RegisterController {
                 showError("این ایمیل قبلاً ثبت شده است");
             } else if (responseBody.contains("شماره تلفن تکراری") || responseBody.contains("Phone already")) {
                 showError("این شماره تلفن قبلاً ثبت شده است");
-            } else if (responseBody.contains("validation")) {
+            } else if (responseBody.contains("validation") || responseBody.contains("نامعتبر")) {
                 showError("اطلاعات وارد شده معتبر نیست");
             } else {
                 showError("خطا در ثبت‌نام: " + responseBody);
@@ -153,22 +167,27 @@ public class RegisterController {
 
     private void showError(String message) {
         Platform.runLater(() -> {
-            errorLabel.setText("❌ " + message);
-            errorLabel.setStyle("-fx-text-fill: #ff4757;");
-            errorLabel.setVisible(true);
-            loadingIndicator.setVisible(false);
-            registerButton.setDisable(false);
+            if (errorLabel != null) {
+                errorLabel.setText("❌ " + message);
+                errorLabel.setStyle("-fx-text-fill: #ff4757;");
+                errorLabel.setVisible(true);
+            }
+            if (loadingIndicator != null) loadingIndicator.setVisible(false);
+            if (registerButton != null) registerButton.setDisable(false);
         });
     }
 
     private void showSuccess(String message) {
         Platform.runLater(() -> {
-            errorLabel.setText("✅ " + message);
-            errorLabel.setStyle("-fx-text-fill: #38ef7d;");
-            errorLabel.setVisible(true);
+            if (errorLabel != null) {
+                errorLabel.setText("✅ " + message);
+                errorLabel.setStyle("-fx-text-fill: #38ef7d;");
+                errorLabel.setVisible(true);
+            }
         });
     }
 
+    // ===== Title Bar Controls =====
     @FXML
     private void minimizeWindow() {
         Stage stage = (Stage) fullNameField.getScene().getWindow();
