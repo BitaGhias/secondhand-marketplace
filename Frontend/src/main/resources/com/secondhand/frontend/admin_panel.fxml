@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="800.0" prefWidth="1100.0" spacing="15"
+      style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.AdminController">
+
+    <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
+
+    <!-- ===== هدر ===== -->
+    <HBox alignment="CENTER_LEFT" spacing="15">
+        <Button text="← بازگشت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Label text="🛡️ پنل مدیریت" style="-fx-text-fill: #f093fb; -fx-font-size: 24px; -fx-font-weight: bold;"/>
+        <Button text="🔄" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 18px; -fx-cursor: hand;" onAction="#refreshAll"/>
+    </HBox>
+
+    <Separator style="-fx-opacity: 0.1;"/>
+
+    <!-- ===== تب‌ها ===== -->
+    <TabPane fx:id="mainTabPane" VBox.vgrow="ALWAYS"
+             style="-fx-background-color: transparent;
+                    -fx-tab-min-height: 45px;
+                    -fx-tab-max-height: 45px;">
+
+        <!-- ===== تب 1: آگهی‌های در انتظار ===== -->
+        <Tab text="📋 آگهی‌های در انتظار" closable="false">
+            <VBox spacing="15" style="-fx-padding: 20;">
+
+                <Label fx:id="pendingCountLabel" text="📋 0 آگهی در انتظار بررسی"
+                       style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 14px;"/>
+
+                <HBox spacing="15" VBox.vgrow="ALWAYS">
+                    <!-- لیست آگهی‌ها -->
+                    <ListView fx:id="pendingItemsListView" prefWidth="400" HBox.hgrow="ALWAYS"
+                              style="-fx-background-color: rgba(255,255,255,0.03);
+                                     -fx-control-inner-background: transparent;
+                                     -fx-text-fill: white;"/>
+
+                    <!-- بخش عملیات -->
+                    <VBox spacing="15" prefWidth="300">
+                        <Label text="عملیات" style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+                        <Button fx:id="approveButton" text="✅ تایید آگهی" onAction="#approveItem"
+                                style="-fx-background-color: linear-gradient(to right, #11998e, #38ef7d);
+                                       -fx-text-fill: white;
+                                       -fx-background-radius: 12;
+                                       -fx-padding: 12 20;
+                                       -fx-font-weight: bold;
+                                       -fx-cursor: hand;"
+                                maxWidth="Infinity"/>
+
+                        <Button fx:id="rejectButton" text="❌ رد آگهی" onAction="#rejectItem"
+                                style="-fx-background-color: linear-gradient(to right, #f093fb, #f5576c);
+                                       -fx-text-fill: white;
+                                       -fx-background-radius: 12;
+                                       -fx-padding: 12 20;
+                                       -fx-font-weight: bold;
+                                       -fx-cursor: hand;"
+                                maxWidth="Infinity"/>
+
+                        <TextArea fx:id="rejectionReasonArea" promptText="دلیل رد آگهی (اختیاری)..."
+                                  prefHeight="80"
+                                  style="-fx-background-color: rgba(255,255,255,0.05);
+                                         -fx-text-fill: white;
+                                         -fx-prompt-text-fill: rgba(255,255,255,0.3);
+                                         -fx-background-radius: 12;
+                                         -fx-border-color: rgba(255,255,255,0.1);
+                                         -fx-border-radius: 12;"/>
+
+                        <Button fx:id="deleteButton" text="🗑️ حذف آگهی" onAction="#deleteItemByAdmin"
+                                style="-fx-background-color: #ff4757;
+                                       -fx-text-fill: white;
+                                       -fx-background-radius: 12;
+                                       -fx-padding: 12 20;
+                                       -fx-font-weight: bold;
+                                       -fx-cursor: hand;"
+                                maxWidth="Infinity"/>
+
+                        <Region VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </Tab>
+
+        <!-- ===== تب 2: مدیریت کاربران ===== -->
+        <Tab text="👤 مدیریت کاربران" closable="false">
+            <VBox spacing="15" style="-fx-padding: 20;">
+
+                <Label fx:id="usersCountLabel" text="👥 0 کاربر"
+                       style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 14px;"/>
+
+                <HBox spacing="15" VBox.vgrow="ALWAYS">
+                    <!-- لیست کاربران -->
+                    <ListView fx:id="usersListView" prefWidth="400" HBox.hgrow="ALWAYS"
+                              style="-fx-background-color: rgba(255,255,255,0.03);
+                                     -fx-control-inner-background: transparent;
+                                     -fx-text-fill: white;"/>
+
+                    <!-- بخش عملیات -->
+                    <VBox spacing="15" prefWidth="300">
+                        <Label text="عملیات" style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+
+                        <Button fx:id="blockButton" text="🔒 مسدود کردن" onAction="#blockUser"
+                                style="-fx-background-color: #ff4757;
+                                       -fx-text-fill: white;
+                                       -fx-background-radius: 12;
+                                       -fx-padding: 12 20;
+                                       -fx-font-weight: bold;
+                                       -fx-cursor: hand;"
+                                maxWidth="Infinity"/>
+
+                        <Button fx:id="unblockButton" text="🔓 فعال‌سازی" onAction="#unblockUser"
+                                style="-fx-background-color: #2ed573;
+                                       -fx-text-fill: white;
+                                       -fx-background-radius: 12;
+                                       -fx-padding: 12 20;
+                                       -fx-font-weight: bold;
+                                       -fx-cursor: hand;"
+                                maxWidth="Infinity"/>
+
+                        <Region VBox.vgrow="ALWAYS"/>
+                    </VBox>
+                </HBox>
+            </VBox>
+        </Tab>
+    </TabPane>
+</VBox>
