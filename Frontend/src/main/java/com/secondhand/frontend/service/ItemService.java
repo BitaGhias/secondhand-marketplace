@@ -6,7 +6,9 @@ import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.ApiClient;
 
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ItemService {
 
@@ -129,6 +131,33 @@ public class ItemService {
             this.categoryId = categoryId;
             this.cityId = cityId;
             this.status = status;
+        }
+    }
+    // دریافت آگهی‌های در انتظار بررسی (برای ادمین)
+    public static List<Item> getPendingItems() throws Exception {
+        HttpResponse<String> response = ApiClient.get("/items/pending");
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
+        } else {
+            throw new Exception("خطا در دریافت آگهی‌های در انتظار: " + response.body());
+        }
+    }
+
+    // تایید آگهی توسط ادمین
+    public static void approveItem(Long itemId) throws Exception {
+        HttpResponse<String> response = ApiClient.put("/items/" + itemId + "/approve", null);
+        if (response.statusCode() != 200) {
+            throw new Exception("خطا در تایید آگهی: " + response.body());
+        }
+    }
+
+    // رد آگهی توسط ادمین
+    public static void rejectItem(Long itemId, String reason) throws Exception {
+        Map<String, String> body = new HashMap<>();
+        body.put("reason", reason);
+        HttpResponse<String> response = ApiClient.put("/items/" + itemId + "/reject", body);
+        if (response.statusCode() != 200) {
+            throw new Exception("خطا در رد آگهی: " + response.body());
         }
     }
 }
