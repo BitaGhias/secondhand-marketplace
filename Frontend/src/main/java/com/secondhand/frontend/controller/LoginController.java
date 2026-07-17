@@ -30,7 +30,12 @@ public class LoginController {
         // اگر قبلاً وارد شده بود، مستقیم به صفحه اصلی بره
         if (SessionManager.isLoggedIn()) {
             try {
-                MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
+                User currentUser = SessionManager.getCurrentUser();
+                if (currentUser != null && "ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+                    MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت");
+                } else {
+                    MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -139,14 +144,20 @@ public class LoginController {
                 );
                 SessionManager.setCurrentUser(user);
                 System.out.println("✅ کاربر وارد شد: " + user.getFullName());
+                System.out.println("👤 نقش کاربر: " + user.getRole());
             }
 
-            // تغییر به صفحه لیست آگهی‌ها
+            // تغییر به صفحه مناسب بر اساس نقش کاربر
             Platform.runLater(() -> {
                 try {
-                    MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
+                    User currentUser = SessionManager.getCurrentUser();
+                    if (currentUser != null && "ADMIN".equalsIgnoreCase(currentUser.getRole())) {
+                        MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت");
+                    } else {
+                        MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
+                    }
                 } catch (Exception e) {
-                    System.err.println("❌ خطا در تغییر صفحه به adlist.fxml:");
+                    System.err.println("❌ خطا در تغییر صفحه:");
                     e.printStackTrace();
                     showError("خطا در رندر و بارگذاری صفحه اصلی");
                 }
