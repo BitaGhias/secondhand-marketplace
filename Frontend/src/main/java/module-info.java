@@ -1,18 +1,11 @@
 module com.secondhand.frontend {
     requires javafx.controls;
     requires javafx.fxml;
-    requires javafx.web;
 
-    requires org.controlsfx.controls;
-    requires com.dlsc.formsfx;
-    requires net.synedra.validatorfx;
-    requires org.kordamp.ikonli.javafx;
-    requires org.kordamp.bootstrapfx.core;
-    requires eu.hansolo.tilesfx;
     requires java.net.http;
     requires com.fasterxml.jackson.databind;
-    requires javafx.swing;
     requires com.fasterxml.jackson.datatype.jsr310;
+    requires com.fasterxml.jackson.annotation;
 
     opens com.secondhand.frontend to javafx.fxml;
     exports com.secondhand.frontend;
@@ -20,7 +13,11 @@ module com.secondhand.frontend {
     exports com.secondhand.frontend.controller;
     opens com.secondhand.frontend.controller to javafx.fxml;
 
-    // 🟢 اضافه شده: اجازه دادن به جکسون برای خواندن و ساختن اشیاء مدل Ad و User
+    // اجازه دادن به جکسون و JavaFX برای دسترسی بازتابی به مدل‌ها
     exports com.secondhand.frontend.model;
-    opens com.secondhand.frontend.model to com.fasterxml.jackson.databind;
+    opens com.secondhand.frontend.model to com.fasterxml.jackson.databind, javafx.base;
+
+    // اجازه دادن به جکسون برای سریالایز کردن کلاس‌های Request داخل سرویس‌ها
+    exports com.secondhand.frontend.service;
+    opens com.secondhand.frontend.service to com.fasterxml.jackson.databind;
 }

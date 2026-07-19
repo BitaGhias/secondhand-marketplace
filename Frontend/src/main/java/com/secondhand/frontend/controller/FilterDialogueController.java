@@ -4,9 +4,11 @@ import com.secondhand.frontend.model.Category;
 import com.secondhand.frontend.model.City;
 import com.secondhand.frontend.service.CategoryService;
 import com.secondhand.frontend.service.CityService;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
@@ -20,6 +22,7 @@ public class FilterDialogueController {
     @FXML private ComboBox<Category> filterCategoryComboBox;
     @FXML private Button applyFilterButton;
     @FXML private Button clearFilterButton;
+    @FXML private Label filterErrorLabel;
 
     private FilterListener listener;
 
@@ -35,23 +38,25 @@ public class FilterDialogueController {
     }
 
     private void loadCities() {
-        try {
-            List<City> cities = CityService.getAllCities();
-            filterCityComboBox.getItems().addAll(cities);
-            filterCityComboBox.getSelectionModel().selectFirst();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        new Thread(() -> {
+            try {
+                List<City> cities = CityService.getAllCities();
+                Platform.runLater(() -> filterCityComboBox.getItems().setAll(cities));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     private void loadCategories() {
-        try {
-            List<Category> categories = CategoryService.getAllCategories();
-            filterCategoryComboBox.getItems().addAll(categories);
-            filterCategoryComboBox.getSelectionModel().selectFirst();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        new Thread(() -> {
+            try {
+                List<Category> categories = CategoryService.getAllCategories();
+                Platform.runLater(() -> filterCategoryComboBox.getItems().setAll(categories));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
 
     public void setListener(FilterListener listener) {
@@ -60,15 +65,28 @@ public class FilterDialogueController {
 
     @FXML
     private void applyFilter() {
+        Integer minPrice;
+        Integer maxPrice;
+        try {
+            minPrice = minPriceField.getText() == null || minPriceField.getText().isBlank()
+                    ? null : Integer.parseInt(minPriceField.getText().trim());
+            maxPrice = maxPriceField.getText() == null || maxPriceField.getText().isBlank()
+                    ? null : Integer.parseInt(maxPriceField.getText().trim());
+        } catch (NumberFormatException e) {
+            showError("قیمت باید عدد صحیح باشد");
+            return;
+        }
+
+        if (minPrice != null && maxPrice != null && minPrice > maxPrice) {
+            showError("حداقل قیمت نمی‌تواند از حداکثر بیشتر باشد");
+            return;
+        }
+
         if (listener != null) {
             Long categoryId = filterCategoryComboBox.getValue() != null
                     ? filterCategoryComboBox.getValue().getId() : null;
             Long cityId = filterCityComboBox.getValue() != null
                     ? filterCityComboBox.getValue().getId() : null;
-            Integer minPrice = minPriceField.getText().isEmpty()
-                    ? null : Integer.parseInt(minPriceField.getText());
-            Integer maxPrice = maxPriceField.getText().isEmpty()
-                    ? null : Integer.parseInt(maxPriceField.getText());
 
             listener.onFilterApplied(categoryId, cityId, minPrice, maxPrice);
         }
@@ -77,10 +95,22 @@ public class FilterDialogueController {
 
     @FXML
     private void clearFilter() {
+        minPriceField.clear();
+        maxPriceField.clear();
+        filterCategoryComboBox.getSelectionModel().clearSelection();
+        filterCityComboBox.getSelectionModel().clearSelection();
+
         if (listener != null) {
             listener.onFilterCleared();
         }
         closeDialog();
+    }
+
+    private void showError(String message) {
+        if (filterErrorLabel != null) {
+            filterErrorLabel.setText(message);
+            filterErrorLabel.setVisible(true);
+        }
     }
 
     private void closeDialog() {

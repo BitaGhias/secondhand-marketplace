@@ -7,35 +7,40 @@ import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.CategoryService;
 import com.secondhand.frontend.service.CityService;
 import com.secondhand.frontend.service.ItemService;
+import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.HBox;
 import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CreateAdController {
-
+public class CreateAdController extends BaseController {
     @FXML private TextField titleField;
     @FXML private TextArea descriptionArea;
     @FXML private TextField priceField;
-    @FXML private ComboBox<Category> categoryComboBox;
+    @FXML private MenuButton categoryMenuButton;
     @FXML private ComboBox<City> cityComboBox;
     @FXML private FlowPane imagePreviewContainer;
     @FXML private Button submitButton;
     @FXML private Label errorLabel;
+    @FXML private HBox titleBar;
 
     private List<String> imagePaths = new ArrayList<>();
+    private List<Category> allCategories = new ArrayList<>();
+    private Category selectedCategory; // دسته‌بندی انتخاب‌شده از منوی سلسله‌مراتبی
     private Item editingItem; // برای ویرایش
     private boolean isEditMode = false;
 
     @FXML
     public void initialize() {
+        WindowUtil.makeDraggable(titleBar);
         loadCategories();
         loadCities();
     }
@@ -44,7 +49,7 @@ public class CreateAdController {
         this.editingItem = item;
         this.isEditMode = true;
         submitButton.setText("💾 ذخیره تغییرات");
-        fillFormWithItemData();
+        javafx.application.Platform.runLater(this::fillFormWithItemData);
     }
 
     private void fillFormWithItemData() {
@@ -54,15 +59,8 @@ public class CreateAdController {
         descriptionArea.setText(editingItem.getDescription());
         priceField.setText(String.valueOf((long) editingItem.getPrice()));
 
-        // انتخاب دسته‌بندی
-        if (editingItem.getCategoryName() != null) {
-            for (Category cat : categoryComboBox.getItems()) {
-                if (cat.getName().equals(editingItem.getCategoryName())) {
-                    categoryComboBox.setValue(cat);
-                    break;
-                }
-            }
-        }
+        // انتخاب دسته‌بندی (اگر دسته‌بندی‌ها لود شده باشند)
+        applyPendingCategorySelection();
 
         // انتخاب شهر
         if (editingItem.getCityName() != null) {
@@ -79,13 +77,74 @@ public class CreateAdController {
         try {
             List<Category> categories = CategoryService.getAllCategories();
             Platform.runLater(() -> {
-                categoryComboBox.getItems().addAll(categories);
-                if (!categories.isEmpty()) {
-                    categoryComboBox.getSelectionModel().selectFirst();
-                }
+                allCategories = categories;
+                buildCategoryMenu();
+                // در حالت ویرایش، دسته‌بندی فعلی آگهی را انتخاب کن
+                applyPendingCategorySelection();
             });
         } catch (Exception e) {
             showError("خطا در بارگذاری دسته‌بندی‌ها: " + e.getMessage());
+        }
+    }
+
+    /**
+     * ساخت منوی سلسله‌مراتبی دسته‌بندی‌ها:
+     * - دسته‌های اصلی دارای زیردسته ← با نگه‌داشتن/هاور روی آن‌ها زیردسته‌ها باز می‌شوند
+     *   و گزینه اول هم امکان انتخاب خود دسته اصلی را می‌دهد
+     * - دسته‌های بدون زیردسته ← مستقیماً قابل انتخاب
+     */
+    private void buildCategoryMenu() {
+        categoryMenuButton.getItems().clear();
+
+        for (Category root : allCategories) {
+            if (root.getParentId() != null) continue; // فقط دسته‌های اصلی
+
+            List<Category> children = new ArrayList<>();
+            for (Category c : allCategories) {
+                if (root.getId() != null && root.getId().equals(c.getParentId())) {
+                    children.add(c);
+                }
+            }
+
+            if (children.isEmpty()) {
+                MenuItem item = new MenuItem(root.getName());
+                item.setOnAction(e -> selectCategory(root));
+                categoryMenuButton.getItems().add(item);
+            } else {
+                Menu menu = new Menu(root.getName());
+
+                MenuItem selfItem = new MenuItem("📂 همه‌ی «" + root.getName() + "»");
+                selfItem.setOnAction(e -> selectCategory(root));
+                menu.getItems().add(selfItem);
+                menu.getItems().add(new SeparatorMenuItem());
+
+                for (Category child : children) {
+                    MenuItem childItem = new MenuItem(child.getName());
+                    childItem.setOnAction(e -> selectCategory(child));
+                    menu.getItems().add(childItem);
+                }
+
+                categoryMenuButton.getItems().add(menu);
+            }
+        }
+    }
+
+    private void selectCategory(Category category) {
+        selectedCategory = category;
+        String label = category.getName();
+        if (category.getParentName() != null && !category.getParentName().isEmpty()) {
+            label = category.getParentName() + " › " + category.getName();
+        }
+        categoryMenuButton.setText("📂 " + label);
+    }
+
+    private void applyPendingCategorySelection() {
+        if (!isEditMode || editingItem == null || editingItem.getCategoryName() == null) return;
+        for (Category cat : allCategories) {
+            if (editingItem.getCategoryName().equals(cat.getName())) {
+                selectCategory(cat);
+                return;
+            }
         }
     }
 
@@ -150,7 +209,6 @@ public class CreateAdController {
         String title = titleField.getText().trim();
         String description = descriptionArea.getText().trim();
         String priceText = priceField.getText().trim();
-        Category category = categoryComboBox.getValue();
         City city = cityComboBox.getValue();
 
         if (title.isEmpty()) {
@@ -176,7 +234,7 @@ public class CreateAdController {
             return;
         }
 
-        if (category == null) {
+        if (selectedCategory == null) {
             showError("لطفاً دسته‌بندی را انتخاب کنید");
             return;
         }
@@ -190,14 +248,14 @@ public class CreateAdController {
             if (isEditMode && editingItem != null) {
                 // ویرایش آگهی
                 ItemService.ItemUpdateRequest request = new ItemService.ItemUpdateRequest(
-                        title, description, price, category.getId(), city.getId(), editingItem.getStatus()
+                        title, description, price, selectedCategory.getId(), city.getId(), editingItem.getStatus()
                 );
                 ItemService.updateItem(editingItem.getId(), request);
                 showSuccess("آگهی با موفقیت ویرایش شد");
             } else {
                 // ثبت آگهی جدید
                 ItemService.ItemCreateRequest request = new ItemService.ItemCreateRequest(
-                        title, description, price, category.getId(), city.getId(), imagePaths
+                        title, description, price, selectedCategory.getId(), city.getId(), imagePaths
                 );
                 ItemService.createItem(request);
                 showSuccess("آگهی با موفقیت ثبت شد و در انتظار بررسی است");

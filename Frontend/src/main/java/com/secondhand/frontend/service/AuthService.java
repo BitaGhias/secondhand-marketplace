@@ -8,7 +8,7 @@ import java.net.http.HttpResponse;
 
 public class AuthService {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
     // ثبت‌نام
     public static User register(String fullName, String username, String password,
@@ -16,7 +16,7 @@ public class AuthService {
         RegisterRequest request = new RegisterRequest(fullName, username, password, phoneNumber, email);
         HttpResponse<String> response = ApiClient.post("/auth/register", request);
 
-        if (response.statusCode() == 201) {
+        if (response.statusCode() == 200 || response.statusCode() == 201) {
             return objectMapper.readValue(response.body(), User.class);
         } else {
             throw new Exception("خطا در ثبت‌نام: " + response.body());

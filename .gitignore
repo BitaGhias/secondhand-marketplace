@@ -1,49 +1,16 @@
-*.class
-*.jar
-*.war
-*.ear
+# Build
 target/
-build/
+*.class
 
-*.log
-logs/
-application.properties.bak
-application.yml.bak
-
-*.db
-*.sqlite
-*.h2.db
-*.db-shm
-*.db-wal
-secondhand.sqlite
-secondhand.db
-
-uploads/
-!uploads/.gitkeep
-
+# IDE
 .idea/
 *.iml
 .vscode/
-.settings/
-.project
-.classpath
-*.iws
-*.ipr
 
+# Runtime
+secondhand.sqlite
+uploads/
+
+# OS
 .DS_Store
 Thumbs.db
-desktop.ini
-
-.mvn/
-mvnw
-mvnw.cmd
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-release.properties
-
-*.tmp
-*.temp
-*.swp
-*.swo
-*~

@@ -137,7 +137,7 @@ public class ItemService {
             parentCategoryName = item.getCategory().getParent().getName();
         }
 
-        return new ItemResponse(
+        ItemResponse response = new ItemResponse(
                 item.getId(),
                 item.getTitle(),
                 item.getDescription(),
@@ -151,6 +151,11 @@ public class ItemService {
                 imageResponses,
                 item.getRejectionReason()
         );
+        if (item.getBuyer() != null) {
+            response.setBuyerId(item.getBuyer().getId());
+            response.setBuyerUsername(item.getBuyer().getUsername());
+        }
+        return response;
     }
 
     private List<ItemResponse> convertToResponseList(List<Item> items) {
@@ -226,7 +231,7 @@ public class ItemService {
     }
 
     public List<ItemResponse> getApprovedItems() {
-        List<Item> items = itemRepository.findByStatus(ItemStatus.APPROVED.name());
+        List<Item> items = itemRepository.findByStatus(ItemStatus.APPROVED);
         return convertToResponseList(items);
     }
 
@@ -245,14 +250,7 @@ public class ItemService {
 
         validateItemNotSoldOrDeleted(item);
 
-        if (item.getStatus() == ItemStatus.APPROVED) {
-            throw new BadRequestException("آگهی قبلاً تایید شده است!");
-        }
-        if (item.getStatus() == ItemStatus.REJECTED) {
-            throw new BadRequestException("آگهی قبلاً رد شده است!");
-        }
-
-        ItemStatus status;
+                ItemStatus status;
         try {
             status = ItemStatus.valueOf(newStatus.toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -289,12 +287,12 @@ public class ItemService {
 
         validateUserIsAdmin(requester);
 
-        List<Item> items = itemRepository.findByStatus(ItemStatus.PENDING.name());
+        List<Item> items = itemRepository.findByStatus(ItemStatus.PENDING);
         return convertToResponseList(items);
     }
 
     public List<ItemResponse> getApprovedItemsByCategory(Long categoryId) {
-        List<Item> items = itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED.name());
+        List<Item> items = itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED);
         return convertToResponseList(items);
     }
 
@@ -302,7 +300,7 @@ public class ItemService {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("کاربر یافت نشد");
         }
-        List<Item> items = itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED.name());
+        List<Item> items = itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED);
         return convertToResponseList(items);
     }
 
@@ -344,7 +342,7 @@ public class ItemService {
         }
 
         List<Item> items = itemRepository.findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
-                ItemStatus.APPROVED.name(), keyword, ItemStatus.APPROVED.name(), keyword
+                ItemStatus.APPROVED, keyword, ItemStatus.APPROVED, keyword
         );
         return convertToResponseList(items);
     }
@@ -353,7 +351,7 @@ public class ItemService {
         if (!cityRepository.existsById(cityId)) {
             throw new ResourceNotFoundException("شهر یافت نشد");
         }
-        List<Item> items = itemRepository.findByStatusAndCityId(ItemStatus.APPROVED.name(), cityId);
+        List<Item> items = itemRepository.findByStatusAndCityId(ItemStatus.APPROVED, cityId);
         return convertToResponseList(items);
     }
 
@@ -387,7 +385,7 @@ public class ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
 
-        if (item.getStatus() != ItemStatus.APPROVED) {
+        if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD) {
             throw new BadRequestException("این آگهی قابل نمایش نیست");
         }
         return convertToResponse(item);
@@ -478,6 +476,53 @@ public class ItemService {
                 break;
         }
 
+        return convertToResponseList(items);
+    }
+
+    // ===== خرید آگهی توسط خریدار =====
+    public ItemResponse purchaseItem(Long itemId, Long buyerId) {
+        User buyer = userRepository.findById(buyerId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        validateUserIsActiveAndNotBlocked(buyer);
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
+
+        if (item.getUser().getId().equals(buyerId)) {
+            throw new BadRequestException("شما نمی‌توانید آگهی خودتان را بخرید!");
+        }
+        if (item.getStatus() == ItemStatus.SOLD) {
+            throw new BadRequestException("این آگهی قبلاً فروخته شده است!");
+        }
+        if (item.getStatus() != ItemStatus.APPROVED) {
+            throw new BadRequestException("این آگهی قابل خرید نیست!");
+        }
+
+        item.setBuyer(buyer);
+        item.setStatus(ItemStatus.SOLD);
+        Item updatedItem = itemRepository.save(item);
+        return convertToResponse(updatedItem);
+    }
+
+    // ===== لیست خریدهای کاربر =====
+    public List<ItemResponse> getPurchasedItems(Long buyerId) {
+        if (!userRepository.existsById(buyerId)) {
+            throw new ResourceNotFoundException("کاربر یافت نشد");
+        }
+        List<Item> items = itemRepository.findByBuyerId(buyerId);
+        return convertToResponseList(items);
+    }
+
+    // ===== همه آگهی‌های یک کاربر برای ادمین (شامل حذف‌شده‌ها) =====
+    public List<ItemResponse> getItemsByUserForAdmin(Long requesterAdminId, Long userId) {
+        User requester = userRepository.findById(requesterAdminId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
+        validateUserIsAdmin(requester);
+
+        if (!userRepository.existsById(userId)) {
+            throw new ResourceNotFoundException("کاربر یافت نشد");
+        }
+        List<Item> items = itemRepository.findByUserId(userId);
         return convertToResponseList(items);
     }
 }

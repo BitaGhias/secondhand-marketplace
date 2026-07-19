@@ -1,5 +1,8 @@
 package com.secondhand.frontend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Conversation {
     private Long id;
     private Long itemId;
@@ -10,6 +13,7 @@ public class Conversation {
     private String sellerUsername;
     private String lastMessage;
     private String lastMessageTime;
+    private Integer unreadCount;
 
     // Getters & Setters
     public Long getId() { return id; }
@@ -39,8 +43,21 @@ public class Conversation {
     public String getLastMessageTime() { return lastMessageTime; }
     public void setLastMessageTime(String lastMessageTime) { this.lastMessageTime = lastMessageTime; }
 
+    public Integer getUnreadCount() { return unreadCount; }
+    public void setUnreadCount(Integer unreadCount) { this.unreadCount = unreadCount; }
+
+    /**
+     * نام طرف مقابل گفت‌وگو را نسبت به کاربر جاری برمی‌گرداند
+     */
+    public String getOtherPartyUsername(Long currentUserId) {
+        if (currentUserId != null && currentUserId.equals(buyerId)) {
+            return sellerUsername;
+        }
+        return buyerUsername;
+    }
+
     @Override
     public String toString() {
-        return itemTitle != null ? itemTitle : "گفت‌وگو";
+        return (itemTitle != null ? itemTitle : "گفت‌وگو");
     }
 }

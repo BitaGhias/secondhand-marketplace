@@ -12,6 +12,11 @@ import com.secondhand.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +45,7 @@ public class UserService {
 
 
     public UserResponse convertToResponse(User user) {
-        return new UserResponse(
+        UserResponse response = new UserResponse(
                 user.getId(),
                 user.getFullName(),
                 user.getUsername(),
@@ -49,6 +54,8 @@ public class UserService {
                 user.getPhoneNumber(),
                 user.getEmail()
         );
+        response.setProfileImagePath(user.getProfileImagePath());
+        return response;
     }
 
 
@@ -254,6 +261,61 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         User updatedUser = userRepository.save(user);
 
+        return convertToResponse(updatedUser);
+    }
+
+    // ===== آپلود عکس پروفایل =====
+    public UserResponse updateProfileImage(Long userId, MultipartFile image) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+
+        if (image == null || image.isEmpty()) {
+            throw new BadRequestException("فایل تصویر ارسال نشده است!");
+        }
+
+        String contentType = image.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new BadRequestException("فایل ارسال شده تصویر نیست!");
+        }
+
+        long maxSize = 5L * 1024 * 1024;
+        if (image.getSize() > maxSize) {
+            throw new BadRequestException("حجم تصویر نباید بیشتر از ۵ مگابایت باشد!");
+        }
+
+        try {
+            Path uploadPath = Paths.get("uploads/");
+            if (!Files.exists(uploadPath)) {
+                Files.createDirectories(uploadPath);
+            }
+
+            String originalFileName = image.getOriginalFilename();
+            String extension = "";
+            if (originalFileName != null && originalFileName.contains(".")) {
+                extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+            }
+
+            String fileName = "profile_" + userId + "_" + System.currentTimeMillis() + extension;
+            Path filePath = uploadPath.resolve(fileName);
+            Files.write(filePath, image.getBytes());
+
+            // حذف عکس قبلی در صورت وجود
+            if (user.getProfileImagePath() != null && !user.getProfileImagePath().isBlank()) {
+                try {
+                    Path oldPath = Paths.get(user.getProfileImagePath());
+                    if (Files.exists(oldPath)) {
+                        Files.delete(oldPath);
+                    }
+                } catch (IOException ignored) {
+                }
+            }
+
+            user.setProfileImagePath(filePath.toString().replace("\\", "/"));
+        } catch (IOException e) {
+            throw new BadRequestException("خطا در ذخیره تصویر پروفایل: " + e.getMessage());
+        }
+
+        User updatedUser = userRepository.save(user);
         return convertToResponse(updatedUser);
     }
 }

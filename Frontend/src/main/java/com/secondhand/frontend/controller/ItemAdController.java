@@ -3,9 +3,12 @@ package com.secondhand.frontend.controller;
 import com.secondhand.frontend.model.Item;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.stage.Stage;
 
 public class ItemAdController {
 
@@ -47,12 +50,12 @@ public class ItemAdController {
             statusLabel.setStyle("-fx-text-fill: " + item.getStatusColor() + ";");
         }
 
-        // لود کردن تصویر پیش‌فرض
+        // لود کردن تصویر آگهی یا تصویر پیش‌فرض
         if (adImageView != null) {
             String imageUrl = item.getFirstImageUrl();
             if (imageUrl != null && !imageUrl.isEmpty()) {
                 try {
-                    adImageView.setImage(new Image(imageUrl));
+                    adImageView.setImage(new Image(imageUrl, true));
                 } catch (Exception e) {
                     loadDefaultImage();
                 }
@@ -80,15 +83,23 @@ public class ItemAdController {
 
     @FXML
     private void handleCardClick() {
-        if (item != null) {
-            try {
-                // رفتن به صفحه جزئیات آگهی
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/item_detail.fxml"));
-                // TODO: پیاده‌سازی صفحه جزئیات
-                System.out.println("📱 کلیک روی آگهی: " + item.getId() + " - " + item.getTitle());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+        if (item == null) return;
+        try {
+            // رفتن به صفحه جزئیات آگهی
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/item_detail.fxml"));
+            Parent root = loader.load();
+
+            ItemDetailController controller = loader.getController();
+            controller.setItem(item);
+
+            Stage stage = (Stage) adTitleLabel.getScene().getWindow();
+            Scene scene = new Scene(root, 1000, 1000);
+            scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+            scene.getStylesheets().add(getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+            stage.setScene(scene);
+            stage.setTitle("جزئیات آگهی");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

@@ -5,10 +5,12 @@ import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.ApiClient;
 import com.secondhand.frontend.util.SessionManager;
+import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import java.net.URI;
@@ -24,9 +26,11 @@ public class LoginController {
     @FXML private Hyperlink registerLink;
     @FXML private Label errorLabel;
     @FXML private ProgressIndicator loadingIndicator;
+    @FXML private HBox titleBar;
 
     @FXML
     public void initialize() {
+        WindowUtil.makeDraggable(titleBar);
         // اگر قبلاً وارد شده بود، مستقیم به صفحه اصلی بره
         if (SessionManager.isLoggedIn()) {
             try {
@@ -55,12 +59,6 @@ public class LoginController {
     private void minimizeWindow() {
         Stage stage = (Stage) usernameField.getScene().getWindow();
         stage.setIconified(true);
-    }
-
-    @FXML
-    private void maximizeWindow() {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        stage.setMaximized(!stage.isMaximized());
     }
 
     @FXML

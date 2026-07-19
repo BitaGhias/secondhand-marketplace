@@ -4,6 +4,10 @@ public class Category {
     private Long id;
     private String name;
     private String parentCategoryName;
+    private Long parentId;
+    private String parentName;
+    private Boolean hasChildren;
+    private Long itemCount;
 
     public Category() {}
 
@@ -26,4 +30,18 @@ public class Category {
     public String toString() {
         return name != null ? name : "";
     }
+
+    public Long getParentId() { return parentId; }
+    public void setParentId(Long parentId) { this.parentId = parentId; }
+
+    public String getParentName() { return parentName; }
+    public void setParentName(String parentName) { this.parentName = parentName; }
+
+    public Boolean getHasChildren() { return hasChildren; }
+    public void setHasChildren(Boolean hasChildren) { this.hasChildren = hasChildren; }
+
+    public Long getItemCount() { return itemCount; }
+    public void setItemCount(Long itemCount) { this.itemCount = itemCount; }
+
+    public boolean isRoot() { return parentId == null; }
 }

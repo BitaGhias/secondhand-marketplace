@@ -8,23 +8,36 @@
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.PurchasesController">
 
-    <padding>
-        <Insets top="30" right="30" bottom="30" left="30"/>
-    </padding>
+    <!-- ===== Title Bar ===== -->
+    <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
+          style="-fx-background-color: rgba(0,0,0,0.25);
+                 -fx-padding: 10 15;
+                 -fx-border-color: rgba(255,255,255,0.05);
+                 -fx-border-width: 0 0 1 0;">
+        <children>
+            <Label text="🛒" style="-fx-text-fill: #667eea; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+            <Label text="بازار سفید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-opacity: 0.9;"/>
+            <HBox HBox.hgrow="ALWAYS" />
+            <Button text="─" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#minimizeWindow"/>
+            <Button text="☐" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#maximizeWindow"/>
+            <Button text="✕" style="-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#closeWindow"/>
+        </children>
+    </HBox>
 
-    <Label text="🛒 تاریخچه خریدها" style="-fx-text-fill: #00d2d3; -fx-font-size: 22px; -fx-font-weight: bold;"/>
-    <Separator style="-fx-opacity: 0.1;" />
+    <VBox spacing="15" VBox.vgrow="ALWAYS">
+        <padding><Insets top="15" right="25" bottom="25" left="25"/></padding>
+        <HBox spacing="15" alignment="CENTER_RIGHT">
+            <Label text="🛒 تاریخچه خریدها" style="-fx-text-fill: #00d2d3; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+            <HBox HBox.hgrow="ALWAYS"/>
+            <Button text="⬅ بازگشت" onAction="#goBack"
+                    style="-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand;"/>
+        </HBox>
+        <Separator style="-fx-opacity: 0.1;" />
 
-    <TableView fx:id="purchasesTable" style="-fx-background-color: transparent; -fx-control-inner-background: #1c1c3a;" VBox.vgrow="ALWAYS">
-        <columns>
-            <TableColumn text="کد سفارش" prefWidth="100"/>
-            <TableColumn text="عنوان کالا" prefWidth="250"/>
-            <TableColumn text="قیمت" prefWidth="150"/>
-            <TableColumn text="تاریخ خرید" prefWidth="150"/>
-        </columns>
-        <placeholder>
-            <Label text="هیچ تاریخچه خریدی یافت نشد." style="-fx-text-fill: rgba(255,255,255,0.4);"/>
-        </placeholder>
-    </TableView>
-
+        <TableView fx:id="purchasesTable" style="-fx-background-color: transparent; -fx-control-inner-background: #1c1c3a;" VBox.vgrow="ALWAYS">
+            <placeholder>
+                <Label text="هیچ تاریخچه خریدی یافت نشد." style="-fx-text-fill: rgba(255,255,255,0.4);"/>
+            </placeholder>
+        </TableView>
+    </VBox>
 </VBox>
