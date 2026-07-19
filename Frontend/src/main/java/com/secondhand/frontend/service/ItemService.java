@@ -3,20 +3,22 @@ package com.secondhand.frontend.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.Item;
-import com.secondhand.frontend.service.ApiClient;
 
+import java.io.File;
+import java.net.URLEncoder;
 import java.net.http.HttpResponse;
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class ItemService {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
     // دریافت لیست آگهی‌های تایید شده (approved)
     public static List<Item> getActiveItems() throws Exception {
-        // ✅ مسیر درست: /api/items/approved
         HttpResponse<String> response = ApiClient.get("/items/approved");
 
         if (response.statusCode() == 200) {
@@ -37,9 +39,25 @@ public class ItemService {
         }
     }
 
-    // ثبت آگهی جدید
+    // ثبت آگهی جدید (بک‌اند multipart/form-data می‌خواهد، نه JSON)
     public static Item createItem(ItemCreateRequest request) throws Exception {
-        HttpResponse<String> response = ApiClient.post("/items/create", request);
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("title", request.title);
+        fields.put("description", request.description);
+        fields.put("price", String.valueOf(request.price));
+        fields.put("categoryId", String.valueOf(request.categoryId));
+        fields.put("cityId", String.valueOf(request.cityId));
+
+        List<File> files = new ArrayList<>();
+        if (request.imageUrls != null) {
+            for (String path : request.imageUrls) {
+                if (path != null && !path.isBlank()) {
+                    files.add(new File(path));
+                }
+            }
+        }
+
+        HttpResponse<String> response = ApiClient.postMultipart("/items/create", fields, "images", files);
 
         if (response.statusCode() == 200 || response.statusCode() == 201) {
             return objectMapper.readValue(response.body(), Item.class);
@@ -68,17 +86,30 @@ public class ItemService {
         }
     }
 
-    // جست‌وجوی آگهی
+    // اعلام فروخته شدن آگهی (مسیر درست بک‌اند: PUT /api/items/{id}/sold)
+    public static Item markAsSold(Long id) throws Exception {
+        HttpResponse<String> response = ApiClient.put("/items/" + id + "/sold", null);
+
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(), Item.class);
+        } else {
+            throw new Exception("خطا در تغییر وضعیت آگهی: " + response.body());
+        }
+    }
+
+    // جست‌وجوی آگهی با فیلترهای ترکیبی
+    // (مسیر درست بک‌اند: POST /api/items/search/advanced با body JSON)
     public static List<Item> searchItems(String keyword, Long categoryId, Long cityId,
                                          Integer minPrice, Integer maxPrice) throws Exception {
-        StringBuilder url = new StringBuilder("/items/search?");
-        if (keyword != null && !keyword.isEmpty()) url.append("keyword=").append(keyword).append("&");
-        if (categoryId != null) url.append("categoryId=").append(categoryId).append("&");
-        if (cityId != null) url.append("cityId=").append(cityId).append("&");
-        if (minPrice != null) url.append("minPrice=").append(minPrice).append("&");
-        if (maxPrice != null) url.append("maxPrice=").append(maxPrice).append("&");
+        SearchRequest request = new SearchRequest();
+        request.keyword = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
+        request.categoryId = categoryId;
+        request.cityId = cityId;
+        request.minPrice = minPrice != null ? minPrice.doubleValue() : null;
+        request.maxPrice = maxPrice != null ? maxPrice.doubleValue() : null;
+        request.sortBy = "newest";
 
-        HttpResponse<String> response = ApiClient.get(url.toString());
+        HttpResponse<String> response = ApiClient.post("/items/search/advanced", request);
 
         if (response.statusCode() == 200) {
             return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
@@ -89,7 +120,6 @@ public class ItemService {
 
     // دریافت آگهی‌های من (برای صفحه My Ads)
     public static List<Item> getMyItems() throws Exception {
-        // ✅ مسیر درست: /api/items/user
         HttpResponse<String> response = ApiClient.get("/items/user");
 
         if (response.statusCode() == 200) {
@@ -99,12 +129,74 @@ public class ItemService {
         }
     }
 
+    // دریافت آگهی‌های در انتظار بررسی (برای ادمین)
+    public static List<Item> getPendingItems() throws Exception {
+        HttpResponse<String> response = ApiClient.get("/items/pending");
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
+        } else {
+            throw new Exception("خطا در دریافت آگهی‌های در انتظار: " + response.body());
+        }
+    }
+
+    // تایید آگهی توسط ادمین (مسیر درست بک‌اند: PUT /api/items/{id}/status?status=APPROVED)
+    public static void approveItem(Long itemId) throws Exception {
+        HttpResponse<String> response = ApiClient.put("/items/" + itemId + "/status?status=APPROVED", null);
+        if (response.statusCode() != 200) {
+            throw new Exception("خطا در تایید آگهی: " + response.body());
+        }
+    }
+
+    // رد آگهی توسط ادمین (مسیر درست بک‌اند: PUT /api/items/{id}/status?status=REJECTED&rejectionReason=...)
+    public static void rejectItem(Long itemId, String reason) throws Exception {
+        String encodedReason = URLEncoder.encode(reason == null ? "" : reason, StandardCharsets.UTF_8);
+        HttpResponse<String> response = ApiClient.put(
+                "/items/" + itemId + "/status?status=REJECTED&rejectionReason=" + encodedReason, null);
+        if (response.statusCode() != 200) {
+            throw new Exception("خطا در رد آگهی: " + response.body());
+        }
+    }
+
+    // خرید آگهی (مسیر بک‌اند: PUT /api/items/{id}/purchase)
+    public static Item purchaseItem(Long id) throws Exception {
+        HttpResponse<String> response = ApiClient.put("/items/" + id + "/purchase", null);
+
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(), Item.class);
+        } else {
+            throw new Exception("خطا در خرید: " + response.body());
+        }
+    }
+
+    // دریافت خریدهای کاربر جاری (GET /api/items/purchased)
+    public static List<Item> getPurchasedItems() throws Exception {
+        HttpResponse<String> response = ApiClient.get("/items/purchased");
+
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
+        } else {
+            throw new Exception("خطا در دریافت خریدها: " + response.body());
+        }
+    }
+
+    // همه آگهی‌های یک کاربر برای ادمین (GET /api/items/admin/user/{userId})
+    public static List<Item> getUserItemsForAdmin(Long userId) throws Exception {
+        HttpResponse<String> response = ApiClient.get("/items/admin/user/" + userId);
+
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
+        } else {
+            throw new Exception("خطا در دریافت آگهی‌های کاربر: " + response.body());
+        }
+    }
+
     // ===== کلاس‌های Request =====
     public static class ItemCreateRequest {
         public String title, description;
         public Long price;
         public Long categoryId;
         public Long cityId;
+        // مسیر فایل‌های تصویر روی سیستم کاربر (برای آپلود multipart)
         public List<String> imageUrls;
 
         public ItemCreateRequest(String title, String description, Long price,
@@ -135,31 +227,13 @@ public class ItemService {
             this.status = status;
         }
     }
-    // دریافت آگهی‌های در انتظار بررسی (برای ادمین)
-    public static List<Item> getPendingItems() throws Exception {
-        HttpResponse<String> response = ApiClient.get("/items/pending");
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
-        } else {
-            throw new Exception("خطا در دریافت آگهی‌های در انتظار: " + response.body());
-        }
-    }
 
-    // تایید آگهی توسط ادمین
-    public static void approveItem(Long itemId) throws Exception {
-        HttpResponse<String> response = ApiClient.put("/items/" + itemId + "/approve", null);
-        if (response.statusCode() != 200) {
-            throw new Exception("خطا در تایید آگهی: " + response.body());
-        }
-    }
-
-    // رد آگهی توسط ادمین
-    public static void rejectItem(Long itemId, String reason) throws Exception {
-        Map<String, String> body = new HashMap<>();
-        body.put("reason", reason);
-        HttpResponse<String> response = ApiClient.put("/items/" + itemId + "/reject", body);
-        if (response.statusCode() != 200) {
-            throw new Exception("خطا در رد آگهی: " + response.body());
-        }
+    public static class SearchRequest {
+        public String keyword;
+        public Long categoryId;
+        public Long cityId;
+        public Double minPrice;
+        public Double maxPrice;
+        public String sortBy;
     }
 }

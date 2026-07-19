@@ -149,7 +149,7 @@ public class ItemController {
         Item item = itemRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
-        if (item.getStatus() != ItemStatus.APPROVED) {
+        if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD) {
             throw new BadRequestException("این آگهی قابل نمایش نیست");
         }
 
@@ -166,5 +166,29 @@ public class ItemController {
     public ResponseEntity<List<ItemResponse>> searchAdvanced(@RequestBody ItemSearchRequest request) {
         List<ItemResponse> results = itemService.searchItemsAdvanced(request);
         return ResponseEntity.ok(results);
+    }
+
+    // خرید آگهی توسط خریدار
+    @PutMapping("/{id}/purchase")
+    public ResponseEntity<ItemResponse> purchaseItem(@PathVariable Long id) {
+        Long buyerId = getCurrentUserId();
+        ItemResponse purchased = itemService.purchaseItem(id, buyerId);
+        return ResponseEntity.ok(purchased);
+    }
+
+    // لیست خریدهای کاربر جاری
+    @GetMapping("/purchased")
+    public ResponseEntity<List<ItemResponse>> getPurchasedItems() {
+        Long userId = getCurrentUserId();
+        List<ItemResponse> items = itemService.getPurchasedItems(userId);
+        return ResponseEntity.ok(items);
+    }
+
+    // همه آگهی‌های یک کاربر (فقط ادمین)
+    @GetMapping("/admin/user/{userId}")
+    public ResponseEntity<List<ItemResponse>> getUserItemsForAdmin(@PathVariable Long userId) {
+        Long adminId = getCurrentUserId();
+        List<ItemResponse> items = itemService.getItemsByUserForAdmin(adminId, userId);
+        return ResponseEntity.ok(items);
     }
 }

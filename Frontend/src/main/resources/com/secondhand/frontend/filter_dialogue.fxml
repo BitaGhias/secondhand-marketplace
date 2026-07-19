@@ -3,48 +3,40 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefWidth="380.0" spacing="15" style="-fx-background-color: #1c1c3e; -fx-background-radius: 15; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 15; -fx-border-width: 1;"
+<VBox prefWidth="400.0" spacing="15" style="-fx-background-color: #14142b;"
       alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
-      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1">
+      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.FilterDialogueController">
     <padding>
-        <Insets top="20" right="25" bottom="20" left="25"/>
+        <Insets top="25" right="25" bottom="25" left="25"/>
     </padding>
 
-    <Label text="🔍 فیلترهای پیشرفته" style="-fx-text-fill: #38ef7d; -fx-font-size: 18px; -fx-font-weight: bold;"/>
-    <Separator style="-fx-opacity: 0.1;" />
+    <Label text="⚙️ فیلترهای جست‌وجو" style="-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;"/>
+    <Separator style="-fx-opacity: 0.1;"/>
 
-    <!-- فیلتر قیمت -->
-    <VBox spacing="8">
-        <Label text="محدوده قیمت (تومان)" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 12px;"/>
-        <HBox spacing="10" alignment="CENTER">
-            <TextField fx:id="minPriceField" promptText="از" HBox.hgrow="ALWAYS"
-                       style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 8;"/>
-            <Label text="تا" style="-fx-text-fill: white;"/>
-            <TextField fx:id="maxPriceField" promptText="تا" HBox.hgrow="ALWAYS"
-                       style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 8;"/>
-        </HBox>
-    </VBox>
+    <Label text="دسته‌بندی:" style="-fx-text-fill: rgba(255,255,255,0.7);"/>
+    <ComboBox fx:id="filterCategoryComboBox" promptText="همه دسته‌بندی‌ها" maxWidth="Infinity"
+              style="-fx-background-color: rgba(255,255,255,0.05);"/>
 
-    <!-- فیلتر شهر -->
-    <VBox spacing="5">
-        <Label text="شهر" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 12px;"/>
-        <ComboBox fx:id="filterCityComboBox" prefWidth="330" promptText="همه شهرها"
-                  style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 8;"/>
-    </VBox>
+    <Label text="شهر:" style="-fx-text-fill: rgba(255,255,255,0.7);"/>
+    <ComboBox fx:id="filterCityComboBox" promptText="همه شهرها" maxWidth="Infinity"
+              style="-fx-background-color: rgba(255,255,255,0.05);"/>
 
-    <!-- فیلتر دسته‌بندی -->
-    <VBox spacing="5">
-        <Label text="دسته‌بندی" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 12px;"/>
-        <ComboBox fx:id="filterCategoryComboBox" prefWidth="330" promptText="همه دسته‌بندی‌ها"
-                  style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 8;"/>
-    </VBox>
+    <Label text="محدوده قیمت (تومان):" style="-fx-text-fill: rgba(255,255,255,0.7);"/>
+    <HBox spacing="10">
+        <TextField fx:id="minPriceField" promptText="از قیمت" HBox.hgrow="ALWAYS"
+                   style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 8;"/>
+        <TextField fx:id="maxPriceField" promptText="تا قیمت" HBox.hgrow="ALWAYS"
+                   style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 8;"/>
+    </HBox>
 
-    <Region prefHeight="10.0" />
+    <Label fx:id="filterErrorLabel" visible="false" style="-fx-text-fill: #ff4757; -fx-font-size: 12px;"/>
 
-    <!-- دکمه‌ها -->
-    <HBox spacing="10" alignment="CENTER_LEFT">
-        <Button text="حذف فیلترها" style="-fx-background-color: transparent; -fx-text-fill: #ff4757; -fx-cursor: hand;"/>
-        <HBox HBox.hgrow="ALWAYS" />
-        <Button text="اعمال فیلتر" style="-fx-background-color: linear-gradient(to right, #11998e, #38ef7d); -fx-text-fill: white; -fx-background-radius: 8; -fx-padding: 8 20; -fx-font-weight: bold; -fx-cursor: hand;"/>
+    <Separator style="-fx-opacity: 0.1;"/>
+    <HBox spacing="10" alignment="CENTER">
+        <Button fx:id="applyFilterButton" text="اعمال فیلتر" onAction="#applyFilter" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 25; -fx-cursor: hand;"/>
+        <Button fx:id="clearFilterButton" text="حذف فیلترها" onAction="#clearFilter" HBox.hgrow="ALWAYS" maxWidth="Infinity"
+                style="-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 10 25; -fx-cursor: hand;"/>
     </HBox>
 </VBox>

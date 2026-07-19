@@ -12,7 +12,7 @@ import java.util.Map;
 
 public class UserService {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
     // ============================================
     // 👤 عملیات کاربر عادی
@@ -53,11 +53,7 @@ public class UserService {
      * تغییر رمز عبور
      */
     public static void changePassword(String oldPassword, String newPassword) throws Exception {
-        Map<String, String> body = new HashMap<>();
-        body.put("oldPassword", oldPassword);
-        body.put("newPassword", newPassword);
-
-        HttpResponse<String> response = ApiClient.put("/auth/change-password", body);
+        HttpResponse<String> response = ApiClient.put("/auth/change-password?oldPassword=" + java.net.URLEncoder.encode(oldPassword, java.nio.charset.StandardCharsets.UTF_8) + "&newPassword=" + java.net.URLEncoder.encode(newPassword, java.nio.charset.StandardCharsets.UTF_8), null);
 
         if (response.statusCode() != 200) {
             throw new Exception("خطا در تغییر رمز عبور: " + response.body());
@@ -165,6 +161,20 @@ public class UserService {
             return objectMapper.readValue(response.body(), new TypeReference<List<User>>() {});
         } else {
             throw new Exception("خطا در دریافت کاربران مسدود: " + response.body());
+        }
+    }
+
+    /**
+     * آپلود عکس پروفایل کاربر جاری (multipart)
+     */
+    public static User uploadProfileImage(java.io.File imageFile) throws Exception {
+        HttpResponse<String> response = ApiClient.postMultipart(
+                "/auth/profile/image", new HashMap<>(), "image", java.util.List.of(imageFile));
+
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(), User.class);
+        } else {
+            throw new Exception("خطا در آپلود عکس پروفایل: " + response.body());
         }
     }
 }

@@ -6,23 +6,26 @@ import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.UserService;
 import com.secondhand.frontend.util.SessionManager;
+import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.NodeOrientation;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import java.util.List;
-import java.util.Optional;
 
-public class AdminController {
-
+public class AdminController extends BaseController {
     @FXML private TabPane mainTabPane;
+    @FXML private HBox titleBar;
 
-    // ===== تب آگهی‌ها =====
+    // تب آگهی‌های در انتظار
     @FXML private ListView<Item> pendingItemsListView;
     @FXML private Label pendingCountLabel;
     @FXML private TextArea rejectionReasonArea;
@@ -30,41 +33,188 @@ public class AdminController {
     @FXML private Button rejectButton;
     @FXML private Button deleteButton;
 
-    // ===== تب کاربران =====
+    // تب مدیریت کاربران
     @FXML private ListView<User> usersListView;
     @FXML private Label usersCountLabel;
-    @FXML private Button blockButton;
-    @FXML private Button unblockButton;
 
     @FXML
     public void initialize() {
-        // بررسی دسترسی ادمین
+        WindowUtil.makeDraggable(titleBar);
+
         if (!SessionManager.isAdmin()) {
             showError("شما دسترسی ادمین ندارید!");
             return;
         }
 
+        setupCellFactories();
+        setupClickHandlers();
         loadPendingItems();
         loadAllUsers();
-        setupListeners();
     }
 
-    // ============================================
-    // 📋 بخش آگهی‌های در انتظار بررسی
-    // ============================================
+    private void setupCellFactories() {
+        // نمایش خوانای آگهی‌های در انتظار
+        pendingItemsListView.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(Item item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    setText("📦 " + item.getTitle()
+                            + "\n💰 " + item.getFormattedPrice()
+                            + "   👤 " + item.getOwnerUsername());
+                    setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 10;");
+                }
+            }
+        });
+
+        // ✅ نمایش نام کاربری کاربر به جای آدرس آبجکت دیتابیس
+        usersListView.setCellFactory(listView -> new ListCell<>() {
+            @Override
+            protected void updateItem(User user, boolean empty) {
+                super.updateItem(user, empty);
+                if (empty || user == null) {
+                    setText(null);
+                    setStyle("-fx-background-color: transparent;");
+                } else {
+                    String role = "ADMIN".equalsIgnoreCase(user.getRole()) ? "🛡️ ادمین" : "👤 کاربر";
+                    String blocked = user.isBlocked() ? "   🔒 مسدود" : "";
+                    setText(user.getUsername() + "  (" + user.getFullName() + ")\n" + role + blocked);
+                    setStyle("-fx-background-color: transparent; -fx-text-fill: "
+                            + (user.isBlocked() ? "#ff6b6b" : "white")
+                            + "; -fx-font-size: 13px; -fx-padding: 10;");
+                }
+            }
+        });
+    }
+
+    private void setupClickHandlers() {
+        // ✅ کلیک روی آگهی در انتظار ← نمایش جزئیات کامل آن
+        pendingItemsListView.setOnMouseClicked(event -> {
+            Item selected = pendingItemsListView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                showItemDetailsDialog(selected);
+            }
+        });
+
+        // ✅ کلیک روی کاربر ← رفتن به صفحه آگهی‌ها و مدیریت همان کاربر
+        usersListView.setOnMouseClicked(event -> {
+            User selected = usersListView.getSelectionModel().getSelectedItem();
+            if (selected != null) {
+                goToUserAdsPage(selected);
+            }
+        });
+    }
+
+    /**
+     * نمایش جزئیات کامل یک آگهی در انتظار تایید (با تصاویر)
+     */
+    private void showItemDetailsDialog(Item item) {
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("جزئیات آگهی");
+        dialog.setHeaderText("📦 " + item.getTitle());
+        dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+        dialog.getDialogPane().setStyle("-fx-background-color: #1a1936;");
+
+        VBox content = new VBox(10);
+        content.setStyle("-fx-padding: 20;");
+        content.setPrefWidth(500);
+        content.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
+
+        String category = item.getCategoryName();
+        content.getChildren().addAll(
+                infoLabel("💰 قیمت: " + item.getFormattedPrice()),
+                infoLabel("📂 دسته‌بندی: " + (category != null ? category : "-")),
+                infoLabel("📍 شهر: " + item.getCityName()),
+                infoLabel("👤 آگهی‌دهنده: " + item.getOwnerUsername()),
+                infoLabel("📌 وضعیت: " + item.getPersianStatus()),
+                new Separator(),
+                infoLabel("📝 توضیحات:")
+        );
+
+        Label descLabel = new Label(item.getDescription());
+        descLabel.setWrapText(true);
+        descLabel.setMaxWidth(460);
+        descLabel.setStyle("-fx-text-fill: rgba(255,255,255,0.75); -fx-font-size: 13px;");
+        content.getChildren().add(descLabel);
+
+        // تصاویر آگهی
+        if (item.getImages() != null && !item.getImages().isEmpty()) {
+            HBox imagesBox = new HBox(10);
+            for (int i = 0; i < Math.min(item.getImages().size(), 4); i++) {
+                try {
+                    ImageView imageView = new ImageView(
+                            new javafx.scene.image.Image(item.getImages().get(i).getFullUrl(), 110, 110, true, true, true));
+                    imageView.setStyle("-fx-border-color: rgba(255,255,255,0.2);");
+                    imagesBox.getChildren().add(imageView);
+                } catch (Exception ignored) {
+                }
+            }
+            content.getChildren().addAll(new Separator(), infoLabel("🖼️ تصاویر:"), imagesBox);
+        }
+
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.CLOSE);
+        dialog.showAndWait();
+    }
+
+    private Label infoLabel(String text) {
+        Label label = new Label(text);
+        label.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
+        return label;
+    }
+
+    /**
+     * رفتن به صفحه آگهی‌های یک کاربر (ثبت‌شده / فروخته‌شده / حذف‌شده)
+     */
+    private void goToUserAdsPage(User user) {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/admin_user_ads.fxml"));
+            Parent root = loader.load();
+            AdminUserAdsController controller = loader.getController();
+            controller.setUser(user);
+
+            Stage stage = (Stage) usersListView.getScene().getWindow();
+            Scene scene = new Scene(root, 1000, 1000);
+            scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
+            scene.getStylesheets().add(getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+            stage.setScene(scene);
+            stage.setTitle("آگهی‌های کاربر " + user.getUsername());
+        } catch (Exception e) {
+            e.printStackTrace();
+            showError("خطا در باز کردن صفحه کاربر: " + e.getMessage());
+        }
+    }
 
     private void loadPendingItems() {
-        try {
-            List<Item> pendingItems = ItemService.getPendingItems();
-            Platform.runLater(() -> {
-                pendingItemsListView.getItems().setAll(pendingItems);
-                if (pendingCountLabel != null) {
+        new Thread(() -> {
+            try {
+                List<Item> pendingItems = ItemService.getPendingItems();
+                Platform.runLater(() -> {
+                    pendingItemsListView.getItems().setAll(pendingItems);
                     pendingCountLabel.setText("📋 " + pendingItems.size() + " آگهی در انتظار بررسی");
-                }
-            });
-        } catch (Exception e) {
-            showError("خطا در دریافت آگهی‌های در انتظار: " + e.getMessage());
-        }
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showError("خطا در دریافت آگهی‌های در انتظار: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    private void loadAllUsers() {
+        new Thread(() -> {
+            try {
+                List<User> users = UserService.getAllUsers();
+                Platform.runLater(() -> {
+                    usersListView.getItems().setAll(users);
+                    usersCountLabel.setText("👥 " + users.size() + " کاربر");
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showError("خطا در دریافت کاربران: " + e.getMessage()));
+            }
+        }).start();
     }
 
     @FXML
@@ -74,14 +224,17 @@ public class AdminController {
             showError("لطفاً یک آگهی را انتخاب کنید");
             return;
         }
-
-        try {
-            ItemService.approveItem(selected.getId());
-            showSuccess("✅ آگهی با موفقیت تایید شد");
-            loadPendingItems(); // Refresh
-        } catch (Exception e) {
-            showError("خطا در تایید آگهی: " + e.getMessage());
-        }
+        new Thread(() -> {
+            try {
+                ItemService.approveItem(selected.getId());
+                Platform.runLater(() -> {
+                    showSuccess("✅ آگهی «" + selected.getTitle() + "» تایید شد");
+                    loadPendingItems();
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showError("خطا در تایید آگهی: " + e.getMessage()));
+            }
+        }).start();
     }
 
     @FXML
@@ -91,19 +244,19 @@ public class AdminController {
             showError("لطفاً یک آگهی را انتخاب کنید");
             return;
         }
-
-        String reason = rejectionReasonArea != null ? rejectionReasonArea.getText().trim() : "";
-
-        try {
-            ItemService.rejectItem(selected.getId(), reason);
-            showSuccess("❌ آگهی با موفقیت رد شد");
-            if (rejectionReasonArea != null) {
-                rejectionReasonArea.clear();
+        String reason = rejectionReasonArea.getText() != null ? rejectionReasonArea.getText().trim() : "";
+        new Thread(() -> {
+            try {
+                ItemService.rejectItem(selected.getId(), reason);
+                Platform.runLater(() -> {
+                    rejectionReasonArea.clear();
+                    showSuccess("❌ آگهی «" + selected.getTitle() + "» رد شد");
+                    loadPendingItems();
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showError("خطا در رد آگهی: " + e.getMessage()));
             }
-            loadPendingItems(); // Refresh
-        } catch (Exception e) {
-            showError("خطا در رد آگهی: " + e.getMessage());
-        }
+        }).start();
     }
 
     @FXML
@@ -113,168 +266,55 @@ public class AdminController {
             showError("لطفاً یک آگهی را انتخاب کنید");
             return;
         }
-
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("حذف آگهی");
-        confirm.setHeaderText("آیا از حذف این آگهی اطمینان دارید؟");
-        confirm.setContentText("این عمل قابل بازگشت نیست!");
-        confirm.getDialogPane().setStyle("-fx-background-color: #14142b;");
-
-        Optional<ButtonType> result = confirm.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
+        new Thread(() -> {
             try {
                 ItemService.deleteItem(selected.getId());
-                showSuccess("🗑️ آگهی با موفقیت حذف شد");
-                loadPendingItems(); // Refresh
+                Platform.runLater(() -> {
+                    showSuccess("🗑️ آگهی «" + selected.getTitle() + "» حذف شد");
+                    loadPendingItems();
+                });
             } catch (Exception e) {
-                showError("خطا در حذف آگهی: " + e.getMessage());
+                Platform.runLater(() -> showError("خطا در حذف آگهی: " + e.getMessage()));
             }
-        }
-    }
-
-    // ============================================
-    // 👤 بخش مدیریت کاربران
-    // ============================================
-
-    private void loadAllUsers() {
-        try {
-            List<User> users = UserService.getAllUsers();
-            Platform.runLater(() -> {
-                usersListView.getItems().setAll(users);
-                if (usersCountLabel != null) {
-                    usersCountLabel.setText("👥 " + users.size() + " کاربر");
-                }
-            });
-        } catch (Exception e) {
-            showError("خطا در دریافت کاربران: " + e.getMessage());
-        }
-    }
-
-    @FXML
-    private void blockUser() {
-        User selected = usersListView.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showError("لطفاً یک کاربر را انتخاب کنید");
-            return;
-        }
-
-        if (selected.isBlocked()) {
-            showError("این کاربر قبلاً مسدود شده است");
-            return;
-        }
-
-        if ("ADMIN".equalsIgnoreCase(selected.getRole())) {
-            showError("❌ نمی‌توانید ادمین را مسدود کنید!");
-            return;
-        }
-
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("مسدود کردن کاربر");
-        confirm.setHeaderText("آیا از مسدود کردن " + selected.getFullName() + " اطمینان دارید؟");
-        confirm.setContentText("این کاربر نمی‌تواند وارد سیستم شود.");
-        confirm.getDialogPane().setStyle("-fx-background-color: #14142b;");
-
-        Optional<ButtonType> result = confirm.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                UserService.toggleBlock(selected.getId(), true);
-                showSuccess("🔒 کاربر " + selected.getFullName() + " مسدود شد");
-                loadAllUsers(); // Refresh
-            } catch (Exception e) {
-                showError("خطا در مسدود کردن کاربر: " + e.getMessage());
-            }
-        }
-    }
-
-    @FXML
-    private void unblockUser() {
-        User selected = usersListView.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showError("لطفاً یک کاربر را انتخاب کنید");
-            return;
-        }
-
-        if (!selected.isBlocked()) {
-            showError("این کاربر مسدود نیست");
-            return;
-        }
-
-        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
-        confirm.setTitle("فعال‌سازی کاربر");
-        confirm.setHeaderText("آیا از فعال‌سازی " + selected.getFullName() + " اطمینان دارید؟");
-        confirm.getDialogPane().setStyle("-fx-background-color: #14142b;");
-
-        Optional<ButtonType> result = confirm.showAndWait();
-        if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                UserService.toggleBlock(selected.getId(), false);
-                showSuccess("🔓 کاربر " + selected.getFullName() + " فعال شد");
-                loadAllUsers(); // Refresh
-            } catch (Exception e) {
-                showError("خطا در فعال‌سازی کاربر: " + e.getMessage());
-            }
-        }
-    }
-
-    // ============================================
-    // 🔧 متدهای کمکی
-    // ============================================
-
-    private void setupListeners() {
-        // نمایش جزئیات آگهی هنگام انتخاب
-        pendingItemsListView.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldVal, newVal) -> {
-                    if (newVal != null) {
-                        System.out.println("📋 انتخاب: " + newVal.getTitle());
-                    }
-                }
-        );
-
-        // نمایش جزئیات کاربر هنگام انتخاب
-        usersListView.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldVal, newVal) -> {
-                    if (newVal != null) {
-                        System.out.println("👤 انتخاب: " + newVal.getFullName());
-                    }
-                }
-        );
+        }).start();
     }
 
     @FXML
     private void refreshAll() {
         loadPendingItems();
         loadAllUsers();
-        showSuccess("🔄 همه لیست‌ها به‌روزرسانی شدند");
     }
 
     @FXML
     private void goBack() {
         try {
-            MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
+            MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "لیست آگهی‌ها");
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     private void showError(String message) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("خطا");
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.getDialogPane().setStyle("-fx-background-color: #14142b;");
-            alert.showAndWait();
-        });
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle("خطا");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        styleAlert(alert);
+        alert.showAndWait();
     }
 
     private void showSuccess(String message) {
-        Platform.runLater(() -> {
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("موفق");
-            alert.setHeaderText(null);
-            alert.setContentText(message);
-            alert.getDialogPane().setStyle("-fx-background-color: #14142b;");
-            alert.showAndWait();
-        });
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("موفق");
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        styleAlert(alert);
+        alert.showAndWait();
+    }
+
+    private void styleAlert(Alert alert) {
+        alert.getDialogPane().getStylesheets().add(
+                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+        alert.getDialogPane().setStyle("-fx-background-color: #1a1936;");
     }
 }

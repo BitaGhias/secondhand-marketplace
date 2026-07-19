@@ -2,20 +2,19 @@ package com.secondhand.frontend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.Rating;
-import com.secondhand.frontend.service.ApiClient;
 
 import java.net.http.HttpResponse;
 
 public class RatingService {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
-    // ثبت امتیاز
+    // ثبت امتیاز (مسیر درست بک‌اند: POST /api/ratings/add)
     public static Rating rateSeller(Long itemId, int score, String comment) throws Exception {
         RatingRequest request = new RatingRequest(itemId, score, comment);
-        HttpResponse<String> response = ApiClient.post("/ratings", request);
+        HttpResponse<String> response = ApiClient.post("/ratings/add", request);
 
-        if (response.statusCode() == 201) {
+        if (response.statusCode() == 200 || response.statusCode() == 201) {
             return objectMapper.readValue(response.body(), Rating.class);
         } else {
             throw new Exception("خطا در ثبت امتیاز: " + response.body());

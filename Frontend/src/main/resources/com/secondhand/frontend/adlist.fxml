@@ -6,118 +6,134 @@
 <?import javafx.scene.text.*?>
 <?import javafx.scene.effect.DropShadow?>
 
-<VBox prefHeight="790.0" prefWidth="1119.0" spacing="15"
+<VBox prefHeight="790.0" prefWidth="1119.0" spacing="0"
       style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
       stylesheets="@css/styles.css"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.AdListController">
 
-    <padding>
-        <Insets bottom="25" left="25" right="25" top="25" />
-    </padding>
-
-    <!-- هدر اصلی با استایل شیشه‌ای -->
-    <HBox alignment="CENTER_LEFT" nodeOrientation="RIGHT_TO_LEFT"
-          style="-fx-background-color: rgba(255, 255, 255, 0.03);
-                 -fx-background-radius: 15;
-                 -fx-border-color: rgba(255, 255, 255, 0.1);
-                 -fx-border-radius: 15;
-                 -fx-border-width: 1;
-                 -fx-padding: 12 20;">
+    <!-- ===== Title Bar ===== -->
+    <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
+          style="-fx-background-color: rgba(0,0,0,0.25);
+                 -fx-padding: 10 15;
+                 -fx-border-color: rgba(255,255,255,0.05);
+                 -fx-border-width: 0 0 1 0;">
         <children>
-            <!-- عنوان برنامه با رنگ نئونی درخشان -->
-            <Label style="-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: linear-gradient(to right, #f093fb, #f5576c);" text="بازار سفید">
-                <font>
-                    <Font name="System Bold" size="24.0" />
-                </font>
-                <effect>
-                    <DropShadow color="rgba(245,87,108,0.3)" radius="10" spread="0.1"/>
-                </effect>
-            </Label>
-
+            <Label text="🛒" style="-fx-text-fill: #667eea; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+            <Label text="بازار سفید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-opacity: 0.9;"/>
             <HBox HBox.hgrow="ALWAYS" />
+            <Button text="─" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#minimizeWindow"/>
+            <Button text="☐" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#maximizeWindow"/>
+            <Button text="✕" style="-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#closeWindow"/>
+        </children>
+    </HBox>
 
-            <!-- دکمه منوی کاربر شیشه‌ای -->
-            <MenuButton fx:id="userMenuButton" prefHeight="40.0" prefWidth="150.0"
-                        style="-fx-background-color: rgba(255, 255, 255, 0.08);
-                               -fx-border-color: rgba(255, 255, 255, 0.15);
-                               -fx-border-radius: 10;
-                               -fx-background-radius: 10;
+    <!-- ===== محتوای اصلی صفحه ===== -->
+    <VBox spacing="15" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets bottom="25" left="25" right="25" top="15" />
+        </padding>
+
+        <!-- هدر اصلی با استایل شیشه‌ای -->
+        <HBox alignment="CENTER_LEFT" nodeOrientation="RIGHT_TO_LEFT"
+              style="-fx-background-color: rgba(255, 255, 255, 0.03);
+                     -fx-background-radius: 15;
+                     -fx-border-color: rgba(255, 255, 255, 0.1);
+                     -fx-border-radius: 15;
+                     -fx-border-width: 1;
+                     -fx-padding: 12 20;">
+            <children>
+                <!-- عنوان برنامه با رنگ نئونی درخشان -->
+                <Label style="-fx-font-size: 30px; -fx-font-weight: bold; -fx-text-fill: linear-gradient(to right, #f093fb, #f5576c);" text="بازار سفید">
+                    <font>
+                        <Font name="System Bold" size="24.0" />
+                    </font>
+                    <effect>
+                        <DropShadow color="rgba(245,87,108,0.3)" radius="10" spread="0.1"/>
+                    </effect>
+                </Label>
+                <HBox HBox.hgrow="ALWAYS" />
+                <!-- دکمه منوی کاربر شیشه‌ای -->
+                <MenuButton fx:id="userMenuButton" prefHeight="40.0" prefWidth="150.0"
+                            style="-fx-background-color: rgba(255, 255, 255, 0.08);
+                                   -fx-border-color: rgba(255, 255, 255, 0.15);
+                                   -fx-border-radius: 10;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: white;
+                                   -fx-font-size: 13px;
+                                   -fx-font-weight: bold;
+                                   -fx-cursor: hand;"
+                            text="👤 نام کاربر" textAlignment="CENTER">
+                    <items>
+                        <MenuItem text="➕ ثبت آگهی جدید" />
+                        <MenuItem text="📝 آگهی‌های من" />
+                        <MenuItem text="❤️ علاقه‌مندی‌ها" />
+                        <MenuItem text="💬 گفت‌وگوها" />
+                        <MenuItem text="🛒 خریدها" />
+                        <MenuItem text="👤 پروفایل" />
+                        <MenuItem text="خروج"/>
+                    </items>
+                </MenuButton>
+            </children>
+        </HBox>
+
+        <!-- خط جداکننده شیشه‌ای ملایم -->
+        <Separator prefWidth="600.0" style="-fx-opacity: 0.1;" />
+
+        <!-- بخش جستجو و فیلترها -->
+        <HBox spacing="12" alignment="CENTER_RIGHT" nodeOrientation="RIGHT_TO_LEFT">
+            <children>
+                <!-- نوار جستجوی مدرن و شیشه‌ای -->
+                <HBox alignment="CENTER_LEFT"
+                      style="-fx-background-color: rgba(255, 255, 255, 0.05);
+                             -fx-border-color: rgba(255, 255, 255, 0.1);
+                             -fx-border-radius: 12;
+                             -fx-background-radius: 12;"
+                      HBox.hgrow="ALWAYS" prefHeight="45.0">
+                    <children>
+                        <!-- آیکون سرچ در سمت راست فیلد (چون راست‌چین است) -->
+                        <Button text="🔍" onAction="#handleSearchClick"
+                                style="-fx-background-color: transparent;
+                                       -fx-text-fill: rgba(255, 255, 255, 0.6);
+                                       -fx-cursor: hand;
+                                       -fx-font-size: 15px;"
+                                prefHeight="45.0" prefWidth="45.0"/>
+                        <TextField fx:id="searchField" promptText="جستجو در آگهی‌ها..."
+                                   style="-fx-background-color: transparent;
+                                          -fx-text-fill: white;
+                                          -fx-prompt-text-fill: rgba(255, 255, 255, 0.3);
+                                          -fx-alignment: center_right;
+                                          -fx-font-size: 14px;"
+                                   HBox.hgrow="ALWAYS" prefHeight="45.0"/>
+                    </children>
+                </HBox>
+                <!-- دکمه فیلتر رنگارنگ شیک -->
+                <Button text="⚙️ فیلترها" onAction="#showFilterDialog"
+                        style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2);
                                -fx-text-fill: white;
-                               -fx-font-size: 13px;
+                               -fx-background-radius: 12;
+                               -fx-cursor: hand;
                                -fx-font-weight: bold;
-                               -fx-cursor: hand;"
-                        text="👤 نام کاربر" textAlignment="CENTER">
-                <items>
-                    <MenuItem text="📝 آگهی‌های من" />
-                    <MenuItem text="❤️ علاقه‌مندی‌ها" />
-                    <MenuItem text="💬 گفت‌وگوها" />
-                    <MenuItem text="🛒 خریدها" />
-                    <MenuItem text="خروج"/>
-                </items>
-            </MenuButton>
-        </children>
-    </HBox>
+                               -fx-font-size: 13px;
+                               -fx-padding: 0 20;
+                               -fx-effect: dropshadow(gaussian, rgba(118,75,162,0.2), 10, 0, 0, 3);"
+                        prefHeight="45.0"/>
+            </children>
+        </HBox>
 
-    <!-- خط جداکننده شیشه‌ای ملایم -->
-    <Separator prefWidth="600.0" style="-fx-opacity: 0.1;" />
-
-    <!-- بخش جستجو و فیلترها -->
-    <HBox spacing="12" alignment="CENTER_RIGHT" nodeOrientation="RIGHT_TO_LEFT">
-        <children>
-            <!-- نوار جستجوی مدرن و شیشه‌ای -->
-            <HBox alignment="CENTER_LEFT"
-                  style="-fx-background-color: rgba(255, 255, 255, 0.05);
-                         -fx-border-color: rgba(255, 255, 255, 0.1);
-                         -fx-border-radius: 12;
-                         -fx-background-radius: 12;"
-                  HBox.hgrow="ALWAYS" prefHeight="45.0">
-                <children>
-                    <!-- آیکون سرچ در سمت راست فیلد (چون راست‌چین است) -->
-                    <Button text="🔍"
-                            style="-fx-background-color: transparent;
-                                   -fx-text-fill: rgba(255, 255, 255, 0.6);
-                                   -fx-cursor: hand;
-                                   -fx-font-size: 15px;"
-                            prefHeight="45.0" prefWidth="45.0"/>
-
-                    <TextField fx:id="searchField" promptText="جستجو در آگهی‌ها..."
-                               style="-fx-background-color: transparent;
-                                      -fx-text-fill: white;
-                                      -fx-prompt-text-fill: rgba(255, 255, 255, 0.3);
-                                      -fx-alignment: center_right;
-                                      -fx-font-size: 14px;"
-                               HBox.hgrow="ALWAYS" prefHeight="45.0"/>
-                </children>
-            </HBox>
-
-            <!-- دکمه فیلتر رنگارنگ شیک -->
-            <Button text="⚙️ فیلترها"
-                    style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2);
-                           -fx-text-fill: white;
-                           -fx-background-radius: 12;
-                           -fx-cursor: hand;
-                           -fx-font-weight: bold;
-                           -fx-font-size: 13px;
-                           -fx-padding: 0 20;
-                           -fx-effect: dropshadow(gaussian, rgba(118,75,162,0.2), 10, 0, 0, 3);"
-                    prefHeight="45.0"/>
-        </children>
-    </HBox>
-
-    <!-- 🟢 جایگزین شیک گرید آگهی‌ها به جای ListView قدیمی -->
-    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
-                style="-fx-background-color: transparent;
-                       -fx-background: transparent;
-                       -fx-border-color: transparent;
-                       -fx-padding: 5 0 0 0;">
-        <content>
-            <FlowPane fx:id="adsFlowPane" hgap="22" vgap="22"
-                      alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
-                      style="-fx-background-color: transparent;">
-                <!-- کارت‌های آگهی (item_ad.fxml) به صورت داینامیک از کدهای کنترلر اینجا چیده می‌شوند -->
-            </FlowPane>
-        </content>
-    </ScrollPane>
-
+        <!-- 🟢 جایگزین شیک گرید آگهی‌ها به جای ListView قدیمی -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                    style="-fx-background-color: transparent;
+                           -fx-background: transparent;
+                           -fx-border-color: transparent;
+                           -fx-padding: 5 0 0 0;">
+            <content>
+                <FlowPane fx:id="adsFlowPane" hgap="22" vgap="22"
+                          alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
+                          style="-fx-background-color: transparent;">
+                    <!-- کارت‌های آگهی (item_ad.fxml) به صورت داینامیک از کدهای کنترلر اینجا چیده می‌شوند -->
+                </FlowPane>
+            </content>
+        </ScrollPane>
+    </VBox>
 </VBox>

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
 @RestController // کلاسی برای دریافت HTTP و برگرداندن پاسخ JSON
@@ -116,5 +117,13 @@ public class UserController {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد")); // استثناعه چون کنترلر در اینجا مستقیم با ریپازیتوری کار میکنه
         return ResponseEntity.ok(user.getRole() == Role.ADMIN);
+    }
+
+    // آپلود عکس پروفایل کاربر جاری
+    @PostMapping(value = "/profile/image", consumes = "multipart/form-data")
+    public ResponseEntity<UserResponse> uploadProfileImage(@RequestParam("image") MultipartFile image) {
+        Long userId = getCurrentUserId();
+        UserResponse response = userService.updateProfileImage(userId, image);
+        return ResponseEntity.ok(response);
     }
 }

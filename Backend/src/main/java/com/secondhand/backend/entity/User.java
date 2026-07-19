@@ -36,6 +36,10 @@ public class User {
     @Column(nullable = false)
     private boolean blocked = false;
 
+    // مسیر عکس پروفایل (اختیاری)
+    @Column(name = "profile_image_path")
+    private String profileImagePath;
+
     public User() {}
 
     public User(Long id, String fullName, String username, String password,
@@ -60,6 +64,7 @@ public class User {
     public Role getRole() { return role; }
     public boolean isActive() { return active; }
     public boolean isBlocked() { return blocked; }
+    public String getProfileImagePath() { return profileImagePath; }
 
     public void setId(Long id) { this.id = id; }
     public void setFullName(String fullName) { this.fullName = fullName; }
@@ -70,4 +75,5 @@ public class User {
     public void setRole(Role role) { this.role = role; }
     public void setActive(boolean active) { this.active = active; }
     public void setBlocked(boolean blocked) { this.blocked = blocked; }
+    public void setProfileImagePath(String profileImagePath) { this.profileImagePath = profileImagePath; }
 }

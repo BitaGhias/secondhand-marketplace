@@ -3,9 +3,11 @@ package com.secondhand.frontend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.service.ApiClient;
+import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
+import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 import java.net.URI;
@@ -25,9 +27,11 @@ public class RegisterController {
     @FXML private Hyperlink loginLink;
     @FXML private Label errorLabel;
     @FXML private ProgressIndicator loadingIndicator;
+    @FXML private HBox titleBar;
 
     @FXML
     public void initialize() {
+        WindowUtil.makeDraggable(titleBar);
         System.out.println("✅ RegisterController initialized");
     }
 
@@ -192,12 +196,6 @@ public class RegisterController {
     private void minimizeWindow() {
         Stage stage = (Stage) fullNameField.getScene().getWindow();
         stage.setIconified(true);
-    }
-
-    @FXML
-    private void maximizeWindow() {
-        Stage stage = (Stage) fullNameField.getScene().getWindow();
-        stage.setMaximized(!stage.isMaximized());
     }
 
     @FXML

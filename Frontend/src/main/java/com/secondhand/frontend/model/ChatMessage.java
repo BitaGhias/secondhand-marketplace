@@ -1,11 +1,15 @@
 package com.secondhand.frontend.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ChatMessage {
     private Long id;
     private Long conversationId;
     private Long senderId;
     private String senderUsername;
-    private String content;
+    // ⚠️ نام فیلد مطابق ChatMessageResponse بک‌اند: text
+    private String text;
     private String timestamp;
 
     // Getters & Setters
@@ -21,8 +25,8 @@ public class ChatMessage {
     public String getSenderUsername() { return senderUsername; }
     public void setSenderUsername(String senderUsername) { this.senderUsername = senderUsername; }
 
-    public String getContent() { return content; }
-    public void setContent(String content) { this.content = content; }
+    public String getText() { return text; }
+    public void setText(String text) { this.text = text; }
 
     public String getTimestamp() { return timestamp; }
     public void setTimestamp(String timestamp) { this.timestamp = timestamp; }

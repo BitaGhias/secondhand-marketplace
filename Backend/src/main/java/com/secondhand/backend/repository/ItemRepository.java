@@ -1,5 +1,6 @@
 package com.secondhand.backend.repository;
 
+import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,19 +11,21 @@ import java.util.List;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    List<Item> findByStatus(String status);
+    // نوع پارامتر status باید ItemStatus باشد (نه String) چون فیلد انتیتی از نوع Enum است
+    List<Item> findByStatus(ItemStatus status);
     List<Item> findByUserId(Long userId);
-    List<Item> findByCategoryIdAndStatus(Long categoryId, String status);
-    List<Item> findByUserIdAndStatusNot(Long userId, String status);
+    List<Item> findByCategoryIdAndStatus(Long categoryId, ItemStatus status);
+    List<Item> findByUserIdAndStatusNot(Long userId, ItemStatus status);
+    List<Item> findByBuyerId(Long buyerId);
 
     List<Item> findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
-            String status1, String titleKeyword, String status2, String descKeyword
+            ItemStatus status1, String titleKeyword, ItemStatus status2, String descKeyword
     );
 
-    List<Item> findByStatusAndCityId(String status, Long cityId);
+    List<Item> findByStatusAndCityId(ItemStatus status, Long cityId);
 
     //جستجوی پیشرفته
-    @Query("SELECT i FROM Item i WHERE i.status = 'APPROVED' " +
+    @Query("SELECT i FROM Item i WHERE i.status = com.secondhand.backend.constant.ItemStatus.APPROVED " +
             "AND (:keyword IS NULL OR LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
             "AND (:categoryId IS NULL OR i.category.id = :categoryId) " +

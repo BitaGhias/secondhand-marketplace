@@ -5,55 +5,46 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
 
-<VBox prefHeight="800.0" prefWidth="700.0" spacing="15"
+<VBox prefHeight="800.0" prefWidth="700.0" spacing="0"
       style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.CreateAdController">
 
-    <padding><Insets top="25" right="25" bottom="25" left="25"/></padding>
-
-    <!-- هدر -->
-    <HBox alignment="CENTER_LEFT" spacing="15">
-        <Button text="← بازگشت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
-        <HBox HBox.hgrow="ALWAYS"/>
-        <Label fx:id="pageTitle" text="📝 ثبت آگهی جدید" style="-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+    <!-- ===== Title Bar ===== -->
+    <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
+          style="-fx-background-color: rgba(0,0,0,0.25);
+                 -fx-padding: 10 15;
+                 -fx-border-color: rgba(255,255,255,0.05);
+                 -fx-border-width: 0 0 1 0;">
+        <children>
+            <Label text="🛒" style="-fx-text-fill: #667eea; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+            <Label text="بازار سفید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-opacity: 0.9;"/>
+            <HBox HBox.hgrow="ALWAYS" />
+            <Button text="─" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#minimizeWindow"/>
+            <Button text="☐" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#maximizeWindow"/>
+            <Button text="✕" style="-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#closeWindow"/>
+        </children>
     </HBox>
 
-    <Separator style="-fx-opacity: 0.1;"/>
+    <VBox spacing="15" VBox.vgrow="ALWAYS">
+        <padding><Insets top="15" right="25" bottom="25" left="25"/></padding>
+        <!-- هدر -->
+        <HBox alignment="CENTER_LEFT" spacing="15">
+            <Button text="← بازگشت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
+            <HBox HBox.hgrow="ALWAYS"/>
+            <Label fx:id="pageTitle" text="📝 ثبت آگهی جدید" style="-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold;"/>
 
-    <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-        <VBox spacing="15" style="-fx-background-color: rgba(255,255,255,0.02); -fx-background-radius: 20; -fx-padding: 25;">
+        </HBox>
 
-            <!-- عنوان -->
-            <VBox spacing="5" nodeOrientation="RIGHT_TO_LEFT">
-                <Label text="عنوان آگهی" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                <TextField fx:id="titleField" promptText="مثال: لپ‌تاپ لنوو"
-                           style="-fx-background-color: rgba(255,255,255,0.05);
-                                  -fx-text-fill: white;
-                                  -fx-prompt-text-fill: rgba(255,255,255,0.3);
-                                  -fx-background-radius: 12;
-                                  -fx-border-color: rgba(255,255,255,0.1);
-                                  -fx-border-radius: 12;
-                                  -fx-padding: 12 15;"/>
-            </VBox>
+        <Separator style="-fx-opacity: 0.1;"/>
 
-            <!-- توضیحات -->
-            <VBox spacing="5" nodeOrientation="RIGHT_TO_LEFT">
-                <Label text="توضیحات" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                <TextArea fx:id="descriptionArea" promptText="توضیحات کامل آگهی..." prefHeight="100"
-                          style="-fx-background-color: rgba(255,255,255,0.05);
-                                 -fx-text-fill: white;
-                                 -fx-prompt-text-fill: rgba(255,255,255,0.3);
-                                 -fx-background-radius: 12;
-                                 -fx-border-color: rgba(255,255,255,0.1);
-                                 -fx-border-radius: 12;"/>
-            </VBox>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
+            <VBox spacing="15" style="-fx-background-color: rgba(255,255,255,0.02); -fx-background-radius: 20; -fx-padding: 25;">
 
-            <HBox spacing="15">
-                <!-- قیمت -->
-                <VBox spacing="5" HBox.hgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
-                    <Label text="قیمت (تومان)" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                    <TextField fx:id="priceField" promptText="مثال: ۱۸۰۰۰۰۰۰"
+                <!-- عنوان -->
+                <VBox spacing="5" nodeOrientation="RIGHT_TO_LEFT">
+                    <Label text="عنوان آگهی" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                    <TextField fx:id="titleField" promptText="مثال: لپ‌تاپ لنوو"
                                style="-fx-background-color: rgba(255,255,255,0.05);
                                       -fx-text-fill: white;
                                       -fx-prompt-text-fill: rgba(255,255,255,0.3);
@@ -63,10 +54,10 @@
                                       -fx-padding: 12 15;"/>
                 </VBox>
 
-                <!-- دسته‌بندی -->
-                <VBox spacing="5" HBox.hgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
-                    <Label text="دسته‌بندی" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                    <ComboBox fx:id="categoryComboBox" promptText="انتخاب کنید"
+                <!-- توضیحات -->
+                <VBox spacing="5" nodeOrientation="RIGHT_TO_LEFT">
+                    <Label text="توضیحات" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                    <TextArea fx:id="descriptionArea" promptText="توضیحات کامل آگهی..." prefHeight="100"
                               style="-fx-background-color: rgba(255,255,255,0.05);
                                      -fx-text-fill: white;
                                      -fx-prompt-text-fill: rgba(255,255,255,0.3);
@@ -75,49 +66,75 @@
                                      -fx-border-radius: 12;"/>
                 </VBox>
 
-                <!-- شهر -->
-                <VBox spacing="5" HBox.hgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
-                    <Label text="شهر" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                    <ComboBox fx:id="cityComboBox" promptText="انتخاب کنید"
-                              style="-fx-background-color: rgba(255,255,255,0.05);
-                                     -fx-text-fill: white;
-                                     -fx-prompt-text-fill: rgba(255,255,255,0.3);
-                                     -fx-background-radius: 12;
-                                     -fx-border-color: rgba(255,255,255,0.1);
-                                     -fx-border-radius: 12;"/>
-                </VBox>
-            </HBox>
+                <HBox spacing="15">
+                    <!-- قیمت -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
+                        <Label text="قیمت (تومان)" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                        <TextField fx:id="priceField" promptText="مثال: ۱۸۰۰۰۰۰۰"
+                                   style="-fx-background-color: rgba(255,255,255,0.05);
+                                          -fx-text-fill: white;
+                                          -fx-prompt-text-fill: rgba(255,255,255,0.3);
+                                          -fx-background-radius: 12;
+                                          -fx-border-color: rgba(255,255,255,0.1);
+                                          -fx-border-radius: 12;
+                                          -fx-padding: 12 15;"/>
+                    </VBox>
 
-            <!-- تصاویر -->
-            <VBox spacing="5" nodeOrientation="RIGHT_TO_LEFT">
-                <Label text="تصاویر" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Button text="➕ افزودن تصویر" onAction="#addImage"
-                            style="-fx-background-color: rgba(255,255,255,0.05);
-                                   -fx-text-fill: white;
-                                   -fx-background-radius: 12;
-                                   -fx-border-color: rgba(255,255,255,0.1);
-                                   -fx-border-radius: 12;
-                                   -fx-padding: 10 20;
-                                   -fx-cursor: hand;"/>
-                    <FlowPane fx:id="imagePreviewContainer" hgap="10" vgap="10"/>
+                    <!-- دسته‌بندی -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
+                        <Label text="دسته‌بندی" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                        <MenuButton fx:id="categoryMenuButton" text="📂 انتخاب دسته‌بندی" maxWidth="Infinity"
+                                  style="-fx-background-color: rgba(255,255,255,0.05);
+                                         -fx-background-radius: 12;
+                                         -fx-border-color: rgba(255,255,255,0.1);
+                                         -fx-border-radius: 12;
+                                         -fx-padding: 8 12;"/>
+                    </VBox>
+
+                    <!-- شهر -->
+                    <VBox spacing="5" HBox.hgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
+                        <Label text="شهر" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                        <ComboBox fx:id="cityComboBox" promptText="انتخاب کنید"
+                                  style="-fx-background-color: rgba(255,255,255,0.05);
+                                         -fx-text-fill: white;
+                                         -fx-prompt-text-fill: rgba(255,255,255,0.3);
+                                         -fx-background-radius: 12;
+                                         -fx-border-color: rgba(255,255,255,0.1);
+                                         -fx-border-radius: 12;"/>
+                    </VBox>
                 </HBox>
+
+                <!-- تصاویر -->
+                <VBox spacing="5" nodeOrientation="RIGHT_TO_LEFT">
+                    <Label text="تصاویر" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button text="➕ افزودن تصویر" onAction="#addImage"
+                                style="-fx-background-color: rgba(255,255,255,0.05);
+                                       -fx-text-fill: white;
+                                       -fx-background-radius: 12;
+                                       -fx-border-color: rgba(255,255,255,0.1);
+                                       -fx-border-radius: 12;
+                                       -fx-padding: 10 20;
+                                       -fx-cursor: hand;"/>
+                        <FlowPane fx:id="imagePreviewContainer" hgap="10" vgap="10"/>
+                    </HBox>
+                </VBox>
+
+                <!-- دکمه ثبت -->
+                <Button fx:id="submitButton" text="🚀 ثبت آگهی" maxWidth="Infinity" onAction="#submitAd"
+                        style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2);
+                               -fx-background-radius: 25;
+                               -fx-text-fill: white;
+                               -fx-font-weight: bold;
+                               -fx-font-size: 16px;
+                               -fx-cursor: hand;
+                               -fx-padding: 14 0;
+                               -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 10, 0, 0, 4);"/>
+
+                <!-- پیام خطا/موفقیت -->
+                <Label fx:id="errorLabel" style="-fx-font-size: 13px;" visible="false"/>
+
             </VBox>
-
-            <!-- دکمه ثبت -->
-            <Button fx:id="submitButton" text="🚀 ثبت آگهی" maxWidth="Infinity" onAction="#submitAd"
-                    style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2);
-                           -fx-background-radius: 25;
-                           -fx-text-fill: white;
-                           -fx-font-weight: bold;
-                           -fx-font-size: 16px;
-                           -fx-cursor: hand;
-                           -fx-padding: 14 0;
-                           -fx-effect: dropshadow(gaussian, rgba(102,126,234,0.3), 10, 0, 0, 4);"/>
-
-            <!-- پیام خطا/موفقیت -->
-            <Label fx:id="errorLabel" style="-fx-font-size: 13px;" visible="false"/>
-
-        </VBox>
-    </ScrollPane>
+        </ScrollPane>
+    </VBox>
 </VBox>

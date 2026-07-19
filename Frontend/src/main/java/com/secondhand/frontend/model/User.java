@@ -8,6 +8,7 @@ public class User {
     private boolean blocked;
     private String phoneNumber;
     private String email;
+    private String profileImagePath;
 
     public User() {}
 
@@ -42,4 +43,23 @@ public class User {
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
+
+    public String getProfileImagePath() { return profileImagePath; }
+    public void setProfileImagePath(String profileImagePath) { this.profileImagePath = profileImagePath; }
+
+    /**
+     * آدرس کامل عکس پروفایل روی سرور (یا null اگر عکس ندارد)
+     */
+    public String getProfileImageUrl() {
+        if (profileImagePath == null || profileImagePath.isBlank()) return null;
+        String normalized = profileImagePath.replace("\\", "/");
+        if (normalized.startsWith("http")) return normalized;
+        if (!normalized.startsWith("/")) normalized = "/" + normalized;
+        return "http://127.0.0.1:8080" + normalized;
+    }
+
+    @Override
+    public String toString() {
+        return username != null ? username : "";
+    }
 }

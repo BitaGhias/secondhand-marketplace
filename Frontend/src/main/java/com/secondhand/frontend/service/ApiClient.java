@@ -1,13 +1,20 @@
 package com.secondhand.frontend.service;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
+import java.io.File;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 public class ApiClient {
 
@@ -15,8 +22,11 @@ public class ApiClient {
     private static final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
+
+    // ⚠️ FAIL_ON_UNKNOWN_PROPERTIES غیرفعال شده تا فیلدهای اضافی پاسخ سرور باعث خطا نشوند
     private static final ObjectMapper mapper = new ObjectMapper()
-            .registerModule(new JavaTimeModule());
+            .registerModule(new JavaTimeModule())
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static String token = null;
 
@@ -67,6 +77,50 @@ public class ApiClient {
                 .header("Authorization", getAuthHeader())
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    // ===== POST Multipart (برای آپلود تصویر آگهی) =====
+    public static HttpResponse<String> postMultipart(String endpoint,
+                                                     Map<String, String> fields,
+                                                     String fileFieldName,
+                                                     List<File> files) throws Exception {
+        String boundary = "----SecondHandBoundary" + System.currentTimeMillis();
+        String CRLF = "\r\n";
+        List<byte[]> byteArrays = new ArrayList<>();
+
+        // فیلدهای متنی
+        for (Map.Entry<String, String> field : fields.entrySet()) {
+            String part = "--" + boundary + CRLF +
+                    "Content-Disposition: form-data; name=\"" + field.getKey() + "\"" + CRLF +
+                    "Content-Type: text/plain; charset=UTF-8" + CRLF + CRLF +
+                    field.getValue() + CRLF;
+            byteArrays.add(part.getBytes(StandardCharsets.UTF_8));
+        }
+
+        // فایل‌ها
+        if (files != null) {
+            for (File file : files) {
+                if (file == null || !file.exists()) continue;
+                String mimeType = Files.probeContentType(file.toPath());
+                if (mimeType == null) mimeType = "application/octet-stream";
+                String header = "--" + boundary + CRLF +
+                        "Content-Disposition: form-data; name=\"" + fileFieldName + "\"; filename=\"" + file.getName() + "\"" + CRLF +
+                        "Content-Type: " + mimeType + CRLF + CRLF;
+                byteArrays.add(header.getBytes(StandardCharsets.UTF_8));
+                byteArrays.add(Files.readAllBytes(file.toPath()));
+                byteArrays.add(CRLF.getBytes(StandardCharsets.UTF_8));
+            }
+        }
+
+        byteArrays.add(("--" + boundary + "--" + CRLF).getBytes(StandardCharsets.UTF_8));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + endpoint))
+                .header("Authorization", getAuthHeader())
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .POST(HttpRequest.BodyPublishers.ofByteArrays(byteArrays))
                 .build();
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }

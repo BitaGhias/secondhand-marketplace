@@ -10,6 +10,7 @@ public class UserResponse {
     private boolean blocked;
     private String phoneNumber;
     private String email;
+    private String profileImagePath;
 
     public UserResponse() {}
 
@@ -31,6 +32,7 @@ public class UserResponse {
     public boolean isBlocked() { return blocked; }
     public String getPhoneNumber() { return phoneNumber; }
     public String getEmail() { return email; }
+    public String getProfileImagePath() { return profileImagePath; }
 
     public void setId(Long id) { this.id = id; }
     public void setFullName(String fullName) { this.fullName = fullName; }
@@ -39,4 +41,5 @@ public class UserResponse {
     public void setBlocked(boolean blocked) { this.blocked = blocked; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public void setEmail(String email) { this.email = email; }
+    public void setProfileImagePath(String profileImagePath) { this.profileImagePath = profileImagePath; }
 }

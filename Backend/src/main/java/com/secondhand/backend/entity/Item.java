@@ -43,6 +43,11 @@ public class Item {
     @Column(name = "rejection_reason")
     private String rejectionReason;
 
+    // خریدار آگهی (پس از خرید ثبت می‌شود)
+    @ManyToOne
+    @JoinColumn(name = "buyer_id")
+    private User buyer;
+
     public Item() {}
 
     public Item(Long id, String title, String description, Double price, ItemStatus status,
@@ -69,6 +74,7 @@ public class Item {
     public Category getCategory() { return category; }
     public City getCity() { return city; }
     public String getRejectionReason() { return rejectionReason; }
+    public User getBuyer() { return buyer; }
 
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
@@ -80,4 +86,5 @@ public class Item {
     public void setCategory(Category category) { this.category = category; }
     public void setCity(City city) { this.city = city; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+    public void setBuyer(User buyer) { this.buyer = buyer; }
 }

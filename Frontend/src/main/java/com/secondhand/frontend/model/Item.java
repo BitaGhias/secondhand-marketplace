@@ -18,6 +18,8 @@ public class Item {
     private Double averageRating;
     private Long categoryId;
     private Long cityId;
+    private Long buyerId;
+    private String buyerUsername;
 
     // ===== Constructors =====
     public Item() {}
@@ -133,7 +135,7 @@ public class Item {
         if (status == null) return "#888888";
         return switch (status.toUpperCase()) {
             case "PENDING" -> "#f9a825";    // زرد
-            case "ACTIVE" -> "#4caf50";     // سبز
+            case "APPROVED", "ACTIVE" -> "#4caf50";     // سبز
             case "SOLD" -> "#2196f3";       // آبی
             case "DELETED" -> "#f44336";    // قرمز
             case "REJECTED" -> "#f44336";   // قرمز
@@ -145,7 +147,7 @@ public class Item {
      * آیا آگهی فعال است؟
      */
     public boolean isActive() {
-        return "ACTIVE".equalsIgnoreCase(status);
+        return "APPROVED".equalsIgnoreCase(status) || "ACTIVE".equalsIgnoreCase(status);
     }
 
     /**
@@ -245,5 +247,18 @@ public class Item {
     @Override
     public String toString() {
         return title + " - " + getFormattedPrice();
+    }
+
+    public Long getBuyerId() { return buyerId; }
+    public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }
+
+    public String getBuyerUsername() { return buyerUsername; }
+    public void setBuyerUsername(String buyerUsername) { this.buyerUsername = buyerUsername; }
+
+    /**
+     * آیا این آگهی توسط کاربر مشخص خریداری شده است؟
+     */
+    public boolean isPurchasedBy(Long userId) {
+        return isSold() && buyerId != null && buyerId.equals(userId);
     }
 }

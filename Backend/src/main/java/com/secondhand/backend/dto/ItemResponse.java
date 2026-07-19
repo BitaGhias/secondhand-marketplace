@@ -15,6 +15,8 @@ public class ItemResponse {
     private Long ownerId;
     private List<ImageResponse> images;
     private String rejectionReason;
+    private Long buyerId;
+    private String buyerUsername;
 
     public ItemResponse() {}
 
@@ -48,6 +50,8 @@ public class ItemResponse {
     public Long getOwnerId() { return ownerId; }
     public List<ImageResponse> getImages() { return images; }
     public String getRejectionReason() { return rejectionReason; }
+    public Long getBuyerId() { return buyerId; }
+    public String getBuyerUsername() { return buyerUsername; }
 
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
@@ -61,4 +65,6 @@ public class ItemResponse {
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
     public void setImages(List<ImageResponse> images) { this.images = images; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+    public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }
+    public void setBuyerUsername(String buyerUsername) { this.buyerUsername = buyerUsername; }
 }

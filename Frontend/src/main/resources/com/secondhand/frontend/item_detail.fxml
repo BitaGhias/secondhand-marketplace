@@ -10,118 +10,143 @@
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.ItemDetailController">
 
-    <padding><Insets top="25" right="30" bottom="25" left="30"/></padding>
-
-    <!-- دکمه بازگشت -->
-    <HBox alignment="CENTER_LEFT">
-        <Button text="← بازگشت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
-        <HBox HBox.hgrow="ALWAYS"/>
-        <Label fx:id="errorLabel" style="-fx-font-size: 13px;" visible="false"/>
+    <!-- ===== Title Bar ===== -->
+    <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
+          style="-fx-background-color: rgba(0,0,0,0.25);
+                 -fx-padding: 10 15;
+                 -fx-border-color: rgba(255,255,255,0.05);
+                 -fx-border-width: 0 0 1 0;">
+        <children>
+            <Label text="🛒" style="-fx-text-fill: #667eea; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+            <Label text="بازار سفید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-opacity: 0.9;"/>
+            <HBox HBox.hgrow="ALWAYS" />
+            <Button text="─" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#minimizeWindow"/>
+            <Button text="☐" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#maximizeWindow"/>
+            <Button text="✕" style="-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#closeWindow"/>
+        </children>
     </HBox>
 
-    <Separator style="-fx-opacity: 0.1;"/>
+    <VBox spacing="15" VBox.vgrow="ALWAYS">
+        <padding><Insets top="15" right="25" bottom="25" left="25"/></padding>
+        <!-- دکمه بازگشت -->
+        <HBox alignment="CENTER_LEFT">
+            <Button text="← بازگشت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
+            <HBox HBox.hgrow="ALWAYS"/>
+            <Label fx:id="errorLabel" style="-fx-font-size: 13px;" visible="false"/>
+        </HBox>
 
-    <HBox spacing="30" VBox.vgrow="ALWAYS">
+        <Separator style="-fx-opacity: 0.1;"/>
 
-        <!-- ===== ستون تصاویر ===== -->
-        <VBox spacing="15" prefWidth="400" alignment="TOP_CENTER">
-            <!-- تصویر اصلی -->
-            <ImageView fx:id="mainImageView" fitHeight="350" fitWidth="400" preserveRatio="true"
-                       style="-fx-background-color: rgba(0,0,0,0.3);
-                              -fx-background-radius: 15;
-                              -fx-border-color: rgba(255,255,255,0.05);
-                              -fx-border-radius: 15;"/>
+        <HBox spacing="30" VBox.vgrow="ALWAYS">
 
-            <!-- تصاویر کوچک -->
-            <HBox fx:id="thumbnailContainer" spacing="10" alignment="CENTER"/>
-        </VBox>
+            <!-- ===== ستون تصاویر ===== -->
+            <VBox spacing="15" prefWidth="400" alignment="TOP_CENTER">
+                <!-- تصویر اصلی -->
+                <ImageView fx:id="mainImageView" fitHeight="350" fitWidth="400" preserveRatio="true"
+                           style="-fx-background-color: rgba(0,0,0,0.3);
+                                  -fx-background-radius: 15;
+                                  -fx-border-color: rgba(255,255,255,0.05);
+                                  -fx-border-radius: 15;"/>
 
-        <!-- ===== ستون اطلاعات ===== -->
-        <VBox spacing="15" HBox.hgrow="ALWAYS">
+                <!-- تصاویر کوچک -->
+                <HBox fx:id="thumbnailContainer" spacing="10" alignment="CENTER"/>
+            </VBox>
 
-            <!-- عنوان -->
-            <Label fx:id="titleLabel" style="-fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold;"/>
+            <!-- ===== ستون اطلاعات ===== -->
+            <VBox spacing="15" HBox.hgrow="ALWAYS">
 
-            <!-- قیمت -->
-            <Label fx:id="priceLabel" style="-fx-text-fill: #ff758c; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+                <!-- عنوان -->
+                <Label fx:id="titleLabel" style="-fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold;"/>
 
-            <!-- وضعیت -->
-            <Label fx:id="statusLabel" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
+                <!-- قیمت -->
+                <Label fx:id="priceLabel" style="-fx-text-fill: #ff758c; -fx-font-size: 22px; -fx-font-weight: bold;"/>
 
-            <!-- توضیحات -->
-            <Label fx:id="descriptionLabel" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 14px; -fx-wrap-text: true;"/>
+                <!-- وضعیت -->
+                <Label fx:id="statusLabel" style="-fx-font-size: 14px; -fx-font-weight: bold;"/>
 
-            <Separator style="-fx-opacity: 0.05;"/>
+                <!-- توضیحات -->
+                <Label fx:id="descriptionLabel" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 14px; -fx-wrap-text: true;"/>
 
-            <!-- اطلاعات اضافی -->
-            <HBox spacing="20">
-                <Label fx:id="cityLabel" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
-                <Label fx:id="categoryLabel" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
-            </HBox>
+                <Separator style="-fx-opacity: 0.05;"/>
 
-            <!-- فروشنده و امتیاز -->
-            <HBox spacing="20" alignment="CENTER_LEFT">
-                <Label fx:id="ownerLabel" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 14px; -fx-font-weight: bold;"/>
-                <Label fx:id="ratingLabel" style="-fx-text-fill: #f9a825; -fx-font-size: 14px;"/>
-            </HBox>
+                <!-- اطلاعات اضافی -->
+                <HBox spacing="20">
+                    <Label fx:id="cityLabel" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
+                    <Label fx:id="categoryLabel" style="-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 13px;"/>
+                </HBox>
 
-            <Separator style="-fx-opacity: 0.05;"/>
+                <!-- فروشنده و امتیاز -->
+                <HBox spacing="20" alignment="CENTER_LEFT">
+                    <Label fx:id="ownerLabel" style="-fx-text-fill: rgba(255,255,255,0.7); -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                    <Label fx:id="ratingLabel" style="-fx-text-fill: #f9a825; -fx-font-size: 14px;"/>
+                </HBox>
 
-            <!-- ===== دکمه‌های اقدام (برای خریدار) ===== -->
-            <HBox fx:id="buyerActions" spacing="15" alignment="CENTER_LEFT">
-                <Button fx:id="chatButton" text="💬 پیام به فروشنده" onAction="#startChat"
-                        style="-fx-background-color: linear-gradient(to right, #11998e, #38ef7d);
-                               -fx-text-fill: white;
-                               -fx-background-radius: 12;
-                               -fx-padding: 12 25;
-                               -fx-font-weight: bold;
-                               -fx-cursor: hand;"/>
+                <Separator style="-fx-opacity: 0.05;"/>
 
-                <Button fx:id="favoriteButton" text="🤍" onAction="#toggleFavorite"
-                        style="-fx-background-color: transparent;
-                               -fx-text-fill: rgba(255,255,255,0.5);
-                               -fx-font-size: 28px;
-                               -fx-cursor: hand;"/>
+                <!-- ===== دکمه‌های اقدام (برای خریدار) ===== -->
+                <HBox fx:id="buyerActions" spacing="15" alignment="CENTER_LEFT">
+                    <Button fx:id="buyButton" text="🛒 خرید" onAction="#buyItem"
+                            style="-fx-background-color: linear-gradient(to right, #f093fb, #f5576c);
+                                   -fx-text-fill: white;
+                                   -fx-background-radius: 12;
+                                   -fx-padding: 12 25;
+                                   -fx-font-weight: bold;
+                                   -fx-cursor: hand;"/>
 
-                <Button fx:id="ratingButton" text="⭐ امتیاز" onAction="#showRatingDialog"
-                        style="-fx-background-color: rgba(255,255,255,0.05);
-                               -fx-text-fill: white;
-                               -fx-background-radius: 12;
-                               -fx-border-color: rgba(255,255,255,0.1);
-                               -fx-border-radius: 12;
-                               -fx-padding: 12 25;
-                               -fx-cursor: hand;"/>
-            </HBox>
+                    <Button fx:id="chatButton" text="💬 پیام به فروشنده" onAction="#startChat"
+                            style="-fx-background-color: linear-gradient(to right, #11998e, #38ef7d);
+                                   -fx-text-fill: white;
+                                   -fx-background-radius: 12;
+                                   -fx-padding: 12 25;
+                                   -fx-font-weight: bold;
+                                   -fx-cursor: hand;"/>
 
-            <!-- ===== دکمه‌های مدیریت (برای مالک) ===== -->
-            <HBox fx:id="ownerActions" spacing="15" alignment="CENTER_LEFT" visible="false">
-                <Button fx:id="editButton" text="✏️ ویرایش" onAction="#editItem"
-                        style="-fx-background-color: #667eea;
-                               -fx-text-fill: white;
-                               -fx-background-radius: 12;
-                               -fx-padding: 12 25;
-                               -fx-font-weight: bold;
-                               -fx-cursor: hand;"/>
+                    <Button fx:id="favoriteButton" text="🤍" onAction="#toggleFavorite"
+                            style="-fx-background-color: transparent;
+                                   -fx-text-fill: rgba(255,255,255,0.5);
+                                   -fx-font-size: 28px;
+                                   -fx-cursor: hand;"/>
 
-                <Button fx:id="deleteButton" text="🗑️ حذف" onAction="#deleteItem"
-                        style="-fx-background-color: #ff4757;
-                               -fx-text-fill: white;
-                               -fx-background-radius: 12;
-                               -fx-padding: 12 25;
-                               -fx-font-weight: bold;
-                               -fx-cursor: hand;"/>
+                    <Button fx:id="ratingButton" text="⭐ امتیاز" onAction="#showRatingDialog"
+                            style="-fx-background-color: rgba(255,255,255,0.05);
+                                   -fx-text-fill: white;
+                                   -fx-background-radius: 12;
+                                   -fx-border-color: rgba(255,255,255,0.1);
+                                   -fx-border-radius: 12;
+                                   -fx-padding: 12 25;
+                                   -fx-cursor: hand;"/>
+                </HBox>
 
-                <Button fx:id="soldButton" text="✅ فروخته شد" onAction="#markAsSold"
-                        style="-fx-background-color: #2ed573;
-                               -fx-text-fill: white;
-                               -fx-background-radius: 12;
-                               -fx-padding: 12 25;
-                               -fx-font-weight: bold;
-                               -fx-cursor: hand;"/>
-            </HBox>
+                <!-- ===== دکمه‌های مدیریت (برای مالک) ===== -->
+                <HBox fx:id="ownerActions" spacing="15" alignment="CENTER_LEFT" visible="false">
+                    <Button fx:id="editButton" text="✏️ ویرایش" onAction="#editItem"
+                            style="-fx-background-color: #667eea;
+                                   -fx-text-fill: white;
+                                   -fx-background-radius: 12;
+                                   -fx-padding: 12 25;
+                                   -fx-font-weight: bold;
+                                   -fx-cursor: hand;"/>
 
-            <Region VBox.vgrow="ALWAYS"/>
+                    <Button fx:id="deleteButton" text="🗑️ حذف" onAction="#deleteItem"
+                            style="-fx-background-color: #ff4757;
+                                   -fx-text-fill: white;
+                                   -fx-background-radius: 12;
+                                   -fx-padding: 12 25;
+                                   -fx-font-weight: bold;
+                                   -fx-cursor: hand;"/>
 
-        </VBox>
-    </HBox>
+                    <Button fx:id="soldButton" text="✅ فروخته شد" onAction="#markAsSold"
+                            style="-fx-background-color: #2ed573;
+                                   -fx-text-fill: white;
+                                   -fx-background-radius: 12;
+                                   -fx-padding: 12 25;
+                                   -fx-font-weight: bold;
+                                   -fx-cursor: hand;"/>
+                </HBox>
+
+                <Region VBox.vgrow="ALWAYS"/>
+
+            </VBox>
+        </HBox>
+    </VBox>
 </VBox>

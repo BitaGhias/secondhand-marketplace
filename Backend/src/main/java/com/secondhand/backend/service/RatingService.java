@@ -80,19 +80,13 @@ public class RatingService {
             throw new BadRequestException("شما نمی‌توانید به خودتان امتیاز بدهید!");
         }
 
-        //  بررسی وجود مکالمه بین خریدار و فروشنده برای این آگهی
-        Optional<Conversation> existingConversation = conversationRepository
-                .findByBuyerIdAndSellerIdAndItemId(raterId, seller.getId(), item.getId());
+        //  فقط خریدار واقعی آگهی (پس از خرید) می‌تواند امتیاز دهد
+        boolean isBuyer = item.getStatus() == ItemStatus.SOLD
+                && item.getBuyer() != null
+                && item.getBuyer().getId().equals(raterId);
 
-        boolean hasConversation = existingConversation.isPresent();
-
-        //  بررسی اینکه آگهی فروخته شده باشه
-        boolean isSold = item.getStatus() == ItemStatus.SOLD;
-
-        if (!hasConversation && !isSold) {
-            throw new BadRequestException(
-                    "شما برای امتیازدهی باید با فروشنده ارتباط داشته باشید یا معامله انجام شده باشد!"
-            );
+        if (!isBuyer) {
+            throw new BadRequestException("امتیازدهی فقط پس از خرید این کالا امکان‌پذیر است!");
         }
 
 
