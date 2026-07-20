@@ -19,7 +19,6 @@ import javafx.stage.Stage;
 import java.util.List;
 
 public class MyAdsController extends BaseController {
-    // ✅ مثل صفحه adlist، کارت‌های item-ad کنار هم در FlowPane چیده می‌شوند
     @FXML private FlowPane myAdsFlowPane;
     @FXML private HBox titleBar;
 
@@ -30,15 +29,12 @@ public class MyAdsController extends BaseController {
     }
 
     private void loadMyAds() {
-        new Thread(() -> {
-            try {
-                List<Item> myItems = ItemService.getMyItems();
-                Platform.runLater(() -> renderItems(myItems));
-            } catch (Exception e) {
-                e.printStackTrace();
-                Platform.runLater(() -> showEmptyMessage("خطا در دریافت آگهی‌های من: " + e.getMessage()));
-            }
-        }).start();
+        ItemService.getMyItemsAsync()
+                .thenAccept(myItems -> Platform.runLater(() -> renderItems(myItems)))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showEmptyMessage("خطا در دریافت آگهی‌های من: " + ex.getMessage()));
+                    return null;
+                });
     }
 
     private void renderItems(List<Item> items) {
@@ -67,7 +63,7 @@ public class MyAdsController extends BaseController {
         myAdsFlowPane.getChildren().clear();
         Label emptyLabel = new Label(text);
         emptyLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: rgba(255,255,255,0.45);");
-        // نمایش پیام در مرکز صفحه
+
         StackPane emptyPane = new StackPane(emptyLabel);
         emptyPane.setAlignment(Pos.CENTER);
         emptyPane.prefWidthProperty().bind(myAdsFlowPane.widthProperty());
