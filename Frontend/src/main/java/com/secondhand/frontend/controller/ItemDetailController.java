@@ -3,14 +3,14 @@ package com.secondhand.frontend.controller;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Conversation;
 import com.secondhand.frontend.model.Item;
-import com.secondhand.frontend.model.Image; // در صورت تغییر نام به AdImage این خط را اصلاح کنید
+import com.secondhand.frontend.model.Image;
 import com.secondhand.frontend.service.ChatService;
 import com.secondhand.frontend.service.FavoriteService;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.RatingService;
 import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.WindowUtil;
-import com.secondhand.frontend.util.ImageLoaderUtil; // 🟢 اضافه شد
+import com.secondhand.frontend.util.ImageLoaderUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -96,7 +96,6 @@ public class ItemDetailController extends BaseController {
     private void loadImages() {
         List<Image> images = currentItem.getImages();
         if (images != null && !images.isEmpty()) {
-            // 🟢 استفاده از ابزار جدید برای بارگذاری تصویر اصلی
             ImageLoaderUtil.loadImageWithDefault(mainImageView, images.get(0).getFullUrl());
 
             thumbnailContainer.getChildren().clear();
@@ -108,14 +107,12 @@ public class ItemDetailController extends BaseController {
                 thumb.setStyle("-fx-cursor: hand; -fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 8;");
 
                 final String imageUrl = images.get(i).getFullUrl();
-                // 🟢 بارگذاری تصاویر بندانگشتی (Thumbnail)
                 ImageLoaderUtil.loadImageWithDefault(thumb, imageUrl);
 
                 thumb.setOnMouseClicked(e -> ImageLoaderUtil.loadImageWithDefault(mainImageView, imageUrl));
                 thumbnailContainer.getChildren().add(thumb);
             }
         } else {
-            // 🟢 لود تصویر پیش‌فرض در صورت نبود عکس
             ImageLoaderUtil.loadDefaultImage(mainImageView);
         }
     }
@@ -231,33 +228,28 @@ public class ItemDetailController extends BaseController {
         final int score = scoreComboBox.getValue() != null ? scoreComboBox.getValue() : 5;
         final String comment = commentArea.getText() != null ? commentArea.getText().trim() : "";
 
-        new Thread(() -> {
-            try {
-                ItemService.purchaseItem(currentItem.getId());
-
-                String ratingMsg = "";
-                if (rateToo) {
-                    try {
-                        RatingService.rateSeller(currentItem.getId(), score, comment);
-                        ratingMsg = " و امتیاز شما ثبت شد";
-                    } catch (Exception ratingError) {
-                        ratingMsg = " (ثبت امتیاز ناموفق بود: " + ratingError.getMessage() + ")";
+        // استفاده از ساختار ناهمگام جدید ItemService که در مراحل قبلی ساخته شد
+        ItemService.purchaseItemAsync(currentItem.getId())
+                .thenCompose(v -> {
+                    if (rateToo) {
+                        return RatingService.rateSellerAsync(currentItem.getId(), score, comment)
+                                .thenApply(r -> " و امتیاز شما ثبت شد");
                     }
-                }
-
-                final String msg = "✅ خرید با موفقیت انجام شد" + ratingMsg + " — در بخش «خریدها» قابل مشاهده است";
-                Platform.runLater(() -> {
+                    return java.util.concurrent.CompletableFuture.completedFuture("");
+                })
+                .thenAccept(ratingMsg -> Platform.runLater(() -> {
                     currentItem.setStatus("SOLD");
                     currentItem.setBuyerId(currentUserId);
                     statusLabel.setText(currentItem.getPersianStatus());
                     statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
                     configureActions();
-                    showMessage(msg, "success");
+                    showMessage("✅ خرید با موفقیت انجام شد" + ratingMsg + " — در بخش «خریدها» قابل مشاهده است", "success");
+                }))
+                .exceptionally(ex -> {
+                    String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    showMessage("خطا در خرید: " + errorMsg, "error");
+                    return null;
                 });
-            } catch (Exception e) {
-                showMessage("خطا در خرید: " + e.getMessage(), "error");
-            }
-        }).start();
     }
 
     @FXML
@@ -314,14 +306,13 @@ public class ItemDetailController extends BaseController {
                 int score = scoreComboBox.getValue();
                 String comment = commentArea.getText().trim();
 
-                new Thread(() -> {
-                    try {
-                        RatingService.rateSeller(currentItem.getId(), score, comment);
-                        showMessage("امتیاز با موفقیت ثبت شد", "success");
-                    } catch (Exception e) {
-                        showMessage("خطا در ثبت امتیاز: " + e.getMessage(), "error");
-                    }
-                }).start();
+                RatingService.rateSellerAsync(currentItem.getId(), score, comment)
+                        .thenAccept(v -> showMessage("امتیاز با موفقیت ثبت شد", "success"))
+                        .exceptionally(ex -> {
+                            String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                            showMessage("خطا در ثبت امتیاز: " + errorMsg, "error");
+                            return null;
+                        });
             }
         } catch (Exception e) {
             showMessage("خطا در بارگذاری دیالوگ: " + e.getMessage(), "error");
@@ -365,27 +356,33 @@ public class ItemDetailController extends BaseController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                ItemService.deleteItem(currentItem.getId());
-                showMessage("آگهی با موفقیت حذف شد", "success");
-                goBack();
-            } catch (Exception e) {
-                showMessage("خطا در حذف آگهی: " + e.getMessage(), "error");
-            }
+            ItemService.deleteItemAsync(currentItem.getId())
+                    .thenAccept(v -> Platform.runLater(() -> {
+                        showMessage("آگهی با موفقیت حذف شد", "success");
+                        goBack();
+                    }))
+                    .exceptionally(ex -> {
+                        String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                        showMessage("خطا در حذف آگهی: " + errorMsg, "error");
+                        return null;
+                    });
         }
     }
 
     @FXML
     private void markAsSold() {
-        try {
-            ItemService.markAsSold(currentItem.getId());
-            showMessage("وضعیت آگهی به فروخته شده تغییر کرد", "success");
-            currentItem.setStatus("SOLD");
-            statusLabel.setText(currentItem.getPersianStatus());
-            statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
-        } catch (Exception e) {
-            showMessage("خطا در تغییر وضعیت: " + e.getMessage(), "error");
-        }
+        ItemService.markAsSoldAsync(currentItem.getId())
+                .thenAccept(v -> Platform.runLater(() -> {
+                    showMessage("وضعیت آگهی به فروخته شده تغییر کرد", "success");
+                    currentItem.setStatus("SOLD");
+                    statusLabel.setText(currentItem.getPersianStatus());
+                    statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+                }))
+                .exceptionally(ex -> {
+                    String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    showMessage("خطا در تغییر وضعیت: " + errorMsg, "error");
+                    return null;
+                });
     }
 
     @FXML
