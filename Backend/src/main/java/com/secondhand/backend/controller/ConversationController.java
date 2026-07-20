@@ -6,6 +6,7 @@ import com.secondhand.backend.dto.chat.ConversationResponse;
 import com.secondhand.backend.service.ConversationService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,14 +34,14 @@ public class ConversationController {
     public ResponseEntity<ConversationResponse> startConversation(@RequestParam Long itemId) {
         Long buyerId = getCurrentUserId();
         ConversationResponse response = conversationService.startConversation(itemId, buyerId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/message")
     public ResponseEntity<ChatMessageResponse> sendMessage(@RequestBody ChatMessageRequest request) {
         Long senderId = getCurrentUserId();
         ChatMessageResponse response = conversationService.sendMessage(request, senderId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/messages/{conversationId}")

@@ -5,6 +5,7 @@ import com.secondhand.backend.dto.rating.RatingResponse;
 import com.secondhand.backend.service.RatingService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +33,7 @@ public class RatingController {
     public ResponseEntity<RatingResponse> addRating(@RequestBody RatingCreateRequest request) {
         Long raterId = getCurrentUserId();
         RatingResponse response = ratingService.addRating(request, raterId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/seller/{sellerId}/average")

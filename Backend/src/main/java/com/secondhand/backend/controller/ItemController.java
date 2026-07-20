@@ -4,6 +4,7 @@ import com.secondhand.backend.dto.item.*;
 import com.secondhand.backend.service.ItemService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -43,7 +44,7 @@ public class ItemController {
         request.setCityId(cityId);
         request.setImages(images);
 
-        return ResponseEntity.ok(itemService.addItem(request, userId));
+        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addItem(request, userId));
     }
 
     @GetMapping("/approved")

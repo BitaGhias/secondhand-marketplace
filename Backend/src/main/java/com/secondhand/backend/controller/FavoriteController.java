@@ -5,6 +5,7 @@ import com.secondhand.backend.dto.favorite.FavoriteResponse;
 import com.secondhand.backend.service.FavoriteService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +33,7 @@ public class FavoriteController {
     public ResponseEntity<FavoriteResponse> addFavorite(@RequestBody FavoriteRequest request) {
         Long userId = getCurrentUserId();
         FavoriteResponse response = favoriteService.addFavorite(request, userId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @DeleteMapping("/remove")

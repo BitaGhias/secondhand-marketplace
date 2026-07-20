@@ -5,6 +5,7 @@ import com.secondhand.backend.dto.comment.CommentResponse;
 import com.secondhand.backend.service.CommentService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -32,7 +33,7 @@ public class CommentController {
     public ResponseEntity<CommentResponse> addComment(@RequestBody CommentCreateRequest request) {
         Long userId = getCurrentUserId();
         CommentResponse response = commentService.addComment(request, userId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/item/{itemId}")
