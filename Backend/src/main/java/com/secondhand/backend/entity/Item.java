@@ -19,7 +19,7 @@ public class Item {
     private String description;
 
     @Column(nullable = false)
-    private Double price;
+    private Long price;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -50,7 +50,7 @@ public class Item {
 
     public Item() {}
 
-    public Item(Long id, String title, String description, Double price, ItemStatus status,
+    public Item(Long id, String title, String description, Long price, ItemStatus status,
                 LocalDateTime createdAt, User user, Category category, City city, String rejectionReason) {
         this.id = id;
         this.title = title;
@@ -67,7 +67,7 @@ public class Item {
     public Long getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
-    public Double getPrice() { return price; }
+    public Long getPrice() { return price; }
     public ItemStatus getStatus() { return status; }
     public LocalDateTime getCreatedAt() { return createdAt; }
     public User getUser() { return user; }
@@ -79,7 +79,7 @@ public class Item {
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
-    public void setPrice(Double price) { this.price = price; }
+    public void setPrice(Long price) { this.price = price; }
     public void setStatus(ItemStatus status) { this.status = status; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
     public void setUser(User user) { this.user = user; }
