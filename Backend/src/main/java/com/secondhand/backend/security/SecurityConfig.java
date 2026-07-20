@@ -12,8 +12,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebSecurity // فعال کردن امنیت وب
-public class SecurityConfig { // بررسی درخواست ها قبل از رسیدن به کنترلر
+@EnableWebSecurity
+public class SecurityConfig {
 
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -21,20 +21,15 @@ public class SecurityConfig { // بررسی درخواست ها قبل از رس
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // غیرفعال کردن CSRF
                 .csrf(AbstractHttpConfigurer::disable)
-
-                // بدون حالت (Stateless) - هیچ جلسه‌ای ذخیره نمیشه
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-
-                // تنظیم دسترسی‌ها (ترتیب قوانین مهم است: از خاص به عام)
                 .authorizeHttpRequests(auth -> auth
                         // --- ثبت‌نام و ورود (عمومی) ---
                         .requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
 
-                        // --- مسیرهای ادمین (قبل از الگوهای عمومی تعریف می‌شوند) ---
+                        // --- مسیرهای ادمین ---
                         .requestMatchers("/api/auth/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/items/pending").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/items/*/status").hasRole("ADMIN")
@@ -44,10 +39,10 @@ public class SecurityConfig { // بررسی درخواست ها قبل از رس
                         .requestMatchers(HttpMethod.DELETE, "/api/categories/{id}").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/cities/add").hasRole("ADMIN")
 
-                        // --- مسیرهای احرازشده که با الگوی {id} تداخل دارند ---
+                        // --- مسیرهای احراز‌شده ---
                         .requestMatchers(HttpMethod.GET, "/api/items/user", "/api/items/purchased").authenticated()
 
-                        // --- مسیرهای عمومی (بدون نیاز به توکن) ---
+                        // --- مسیرهای عمومی (بدون توکن) ---
                         .requestMatchers(HttpMethod.GET,
                                 "/api/health",
                                 "/api/items/approved",
@@ -61,15 +56,19 @@ public class SecurityConfig { // بررسی درخواست ها قبل از رس
                                 "/api/categories/popular",
                                 "/api/categories/{id}/subcategories",
                                 "/api/cities",
+                                // FIX: این‌ها فراموش شده بودند
+                                "/api/categories/{id}",
+                                "/api/ratings/seller/**",
+                                "/api/comments/item/**",
                                 "/uploads/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/items/search/advanced").permitAll()
+                        // FIX: logout عمومی است
+                        .requestMatchers(HttpMethod.POST, "/api/auth/logout").permitAll()
 
-                        // --- بقیه مسیرها نیاز به توکن دارن ---
+                        // --- بقیه نیاز به توکن دارند ---
                         .anyRequest().authenticated()
                 )
-
-                // اضافه کردن فیلتر JWT قبل از فیلتر پیش‌فرض Spring Security
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
