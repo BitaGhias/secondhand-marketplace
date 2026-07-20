@@ -139,4 +139,28 @@ public class UserService {
     public static List<User> getAllUsers() {
         return getAllUsersAsync().join();
     }
+
+    // در کلاس UserService اضافه کنید:
+
+    public static CompletableFuture<Void> toggleBlockAsync(Long userId) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(ApiClient.getBaseUrl() + "/api/admin/users/toggle-block/" + userId))
+                .header("Authorization", "Bearer " + ApiClient.getToken())
+                .POST(HttpRequest.BodyPublishers.noBody()) // یا PUT بسته به API شما
+                .build();
+
+        ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenAccept(res -> {
+                    if (res.statusCode() >= 200 && res.statusCode() < 300) future.complete(null);
+                    else future.completeExceptionally(new RuntimeException("خطا در تغییر وضعیت کاربر"));
+                })
+                .exceptionally(ex -> { future.completeExceptionally(ex); return null; });
+        return future;
+    }
+
+    // متد همگام (Wrapper) برای رفع خطای کامپایل کنترلر:
+    public static void toggleBlock(Long userId) {
+        toggleBlockAsync(userId).join();
+    }
 }

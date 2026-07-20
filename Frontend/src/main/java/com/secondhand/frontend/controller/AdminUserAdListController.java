@@ -78,32 +78,27 @@ public class AdminUserAdListController extends BaseController {
     }
 
     private void loadUserAds() {
-        new Thread(() -> {
-            try {
-                List<Item> items = ItemService.getUserItemsForAdmin(user.getId());
-
-                List<Item> posted = new ArrayList<>();
-                List<Item> sold = new ArrayList<>();
-                List<Item> deleted = new ArrayList<>();
-                for (Item item : items) {
-                    if (item.isSold()) {
-                        sold.add(item);
-                    } else if ("DELETED".equalsIgnoreCase(item.getStatus())) {
-                        deleted.add(item);
-                    } else {
-                        posted.add(item);
+        ItemService.getUserItemsForAdminAsync(user.getId())
+                .thenAccept(items -> {
+                    List<Item> posted = new ArrayList<>();
+                    List<Item> sold = new ArrayList<>();
+                    List<Item> deleted = new ArrayList<>();
+                    for (Item item : items) {
+                        if (item.isSold()) sold.add(item);
+                        else if ("DELETED".equalsIgnoreCase(item.getStatus())) deleted.add(item);
+                        else posted.add(item);
                     }
-                }
 
-                Platform.runLater(() -> {
-                    fillSection(postedFlowPane, postedCountLabel, posted, "این کاربر آگهی ثبت‌شده‌ای ندارد");
-                    fillSection(soldFlowPane, soldCountLabel, sold, "این کاربر آگهی فروخته‌شده‌ای ندارد");
-                    fillSection(deletedFlowPane, deletedCountLabel, deleted, "این کاربر آگهی حذف‌شده‌ای ندارد");
+                    Platform.runLater(() -> {
+                        fillSection(postedFlowPane, postedCountLabel, posted, "این کاربر آگهی ثبت‌شده‌ای ندارد");
+                        fillSection(soldFlowPane, soldCountLabel, sold, "این کاربر آگهی فروخته‌شده‌ای ندارد");
+                        fillSection(deletedFlowPane, deletedCountLabel, deleted, "این کاربر آگهی حذف‌شده‌ای ندارد");
+                    });
+                })
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showMessage("خطا در دریافت آگهی‌ها: " + ex.getMessage(), false));
+                    return null;
                 });
-            } catch (Exception e) {
-                Platform.runLater(() -> showMessage("خطا در دریافت آگهی‌های کاربر: " + e.getMessage(), false));
-            }
-        }).start();
     }
 
     private void fillSection(FlowPane pane, Label countLabel, List<Item> items, String emptyText) {
@@ -161,25 +156,20 @@ public class AdminUserAdListController extends BaseController {
         confirm.setTitle(block ? "مسدود کردن کاربر" : "فعال‌سازی کاربر");
         confirm.setHeaderText((block ? "آیا از مسدود کردن «" : "آیا از فعال‌سازی «")
                 + user.getUsername() + "» اطمینان دارید؟");
-        confirm.getDialogPane().getStylesheets().add(
-                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        confirm.getDialogPane().setStyle("-fx-background-color: #1a1936;");
-
+        // تنظیمات استایل ...
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
-        new Thread(() -> {
-            try {
-                User updated = UserService.toggleBlock(user.getId(), block);
-                Platform.runLater(() -> {
-                    user.setBlocked(updated.isBlocked());
+        UserService.toggleBlockAsync(user.getId()) // متد Async جدید
+                .thenAccept(v -> Platform.runLater(() -> {
+                    user.setBlocked(block); // به‌روزرسانی محلی وضعیت
                     renderUserInfo();
                     showMessage(block ? "🔒 کاربر مسدود شد" : "🔓 کاربر فعال شد", true);
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showMessage("خطا: " + ex.getMessage(), false));
+                    return null;
                 });
-            } catch (Exception e) {
-                Platform.runLater(() -> showMessage("خطا: " + e.getMessage(), false));
-            }
-        }).start();
     }
 
     private void showMessage(String text, boolean success) {
