@@ -1,10 +1,6 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.user.*;
-import com.secondhand.backend.entity.User;
-import com.secondhand.backend.exception.custom.ResourceNotFoundException;
-import com.secondhand.backend.repository.UserRepository;
 import com.secondhand.backend.service.UserService;
 import com.secondhand.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
-@RestController // کلاسی برای دریافت HTTP و برگرداندن پاسخ JSON
+@RestController
 @RequestMapping("/api/auth")
 public class UserController {
 
@@ -26,104 +22,67 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    @Autowired
-    private UserRepository userRepository;
-
     private Long getCurrentUserId() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-        return userService.getUserIdByUsername(username);
+        return userService.getUserIdByUsername(userDetails.getUsername());
     }
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(@RequestBody UserRegisterRequest request) {
-        UserResponse response = userService.registerUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(request));
     }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequest request) {
-        UserResponse userResponse = userService.loginUser(
-                request.getUsername(),
-                request.getPassword()
-        );
-
-        String token = jwtUtil.generateToken(
-                userResponse.getUsername(),
-                userResponse.getId(),
-                userResponse.getRole().name()
-        );
-
-        LoginResponse loginResponse = new LoginResponse(userResponse, token);
-        return ResponseEntity.ok(loginResponse);
+        UserResponse userResponse = userService.loginUser(request.getUsername(), request.getPassword());
+        String token = jwtUtil.generateToken(userResponse.getUsername(), userResponse.getId(), userResponse.getRole().name());
+        return ResponseEntity.ok(new LoginResponse(userResponse, token));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
-        UserResponse response = userService.getUserById(id);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @GetMapping("/profile")
     public ResponseEntity<UserResponse> getMyProfile() {
-        Long userId = getCurrentUserId();
-        UserResponse response = userService.getUserById(userId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.getUserById(getCurrentUserId()));
     }
 
     @PutMapping("/profile")
     public ResponseEntity<UserResponse> updateMyProfile(@RequestBody UserUpdateRequest request) {
-        Long userId = getCurrentUserId();
-        UserResponse response = userService.updateUserProfile(userId, request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.updateUserProfile(getCurrentUserId(), request));
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<UserResponse> changePassword(
-            @RequestParam String oldPassword,
-            @RequestParam String newPassword) {
-        Long userId = getCurrentUserId();
-        UserResponse response = userService.changePassword(userId, oldPassword, newPassword);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<UserResponse> changePassword(@RequestParam String oldPassword, @RequestParam String newPassword) {
+        return ResponseEntity.ok(userService.changePassword(getCurrentUserId(), oldPassword, newPassword));
     }
 
     @GetMapping("/admin/all")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
-        Long adminId = getCurrentUserId();
-        List<UserResponse> users = userService.getAllUsers(adminId);
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(userService.getAllUsers(getCurrentUserId()));
     }
 
     @PostMapping("/admin/toggle-block")
-    public ResponseEntity<UserResponse> toggleBlock(
-            @RequestParam Long userId,
-            @RequestParam boolean block) {
-        Long adminId = getCurrentUserId();
-        UserResponse response = userService.toggleUserBlockStatus(adminId, userId, block);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<UserResponse> toggleBlock(@RequestParam Long userId, @RequestParam boolean block) {
+        return ResponseEntity.ok(userService.toggleUserBlockStatus(getCurrentUserId(), userId, block));
     }
 
     @PostMapping("/admin/make-admin")
     public ResponseEntity<UserResponse> makeAdmin(@RequestParam Long userId) {
-        Long adminId = getCurrentUserId();
-        UserResponse response = userService.makeAdmin(adminId, userId);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.makeAdmin(getCurrentUserId(), userId));
     }
 
     @GetMapping("/admin/is-admin")
     public ResponseEntity<Boolean> isAdmin() {
-        Long userId = getCurrentUserId();
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد")); // استثناعه چون کنترلر در اینجا مستقیم با ریپازیتوری کار میکنه
-        return ResponseEntity.ok(user.getRole() == Role.ADMIN);
+        // وابستگی به UserRepository حذف شد و از سرویس استفاده می‌شود
+        return ResponseEntity.ok(userService.isAdmin(getCurrentUserId()));
     }
 
-    // آپلود عکس پروفایل کاربر جاری
     @PostMapping(value = "/profile/image", consumes = "multipart/form-data")
     public ResponseEntity<UserResponse> uploadProfileImage(@RequestParam("image") MultipartFile image) {
-        Long userId = getCurrentUserId();
-        UserResponse response = userService.updateProfileImage(userId, image);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(userService.updateProfileImage(getCurrentUserId(), image));
     }
 }
