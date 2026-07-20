@@ -1,6 +1,5 @@
 package com.secondhand.backend.repository;
 
-import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,21 +10,28 @@ import java.util.List;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    // نوع پارامتر status باید ItemStatus باشد (نه String) چون فیلد انتیتی از نوع Enum است
-    List<Item> findByStatus(ItemStatus status);
-    List<Item> findByUserId(Long userId);
-    List<Item> findByCategoryIdAndStatus(Long categoryId, ItemStatus status);
-    List<Item> findByUserIdAndStatusNot(Long userId, ItemStatus status);
-    List<Item> findByBuyerId(Long buyerId);
+    // ✅ فقط ۱ پارامتر
+    List<Item> findByStatus(String status);
 
+    List<Item> findByUserId(Long userId);
+
+    // ✅ فقط ۲ پارامتر
+    List<Item> findByCategoryIdAndStatus(Long categoryId, String status);
+
+    List<Item> findByUserIdAndStatusNot(Long userId, String status);
+
+    // ✅ جستجو با ۱ پارامتر + keyword
+    @Query("SELECT i FROM Item i WHERE i.status = :status AND (LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Item> findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
-            ItemStatus status1, String titleKeyword, ItemStatus status2, String descKeyword
+            @Param("status") String status,
+            @Param("keyword") String keyword
     );
 
-    List<Item> findByStatusAndCityId(ItemStatus status, Long cityId);
+    // ✅ فقط ۲ پارامتر - اصلاح شد
+    List<Item> findByStatusAndCityId(String status, Long cityId);
 
-    //جستجوی پیشرفته
-    @Query("SELECT i FROM Item i WHERE i.status = com.secondhand.backend.constant.ItemStatus.APPROVED " +
+    // ✅ جستجوی پیشرفته با ۵ پارامتر
+    @Query("SELECT i FROM Item i WHERE i.status = 'APPROVED' " +
             "AND (:keyword IS NULL OR LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
             "AND (:categoryId IS NULL OR i.category.id = :categoryId) " +
@@ -39,4 +45,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             @Param("minPrice") Long minPrice,
             @Param("maxPrice") Long maxPrice
     );
+
+    // ✅ برای خرید
+    List<Item> findByBuyerId(Long buyerId);
 }

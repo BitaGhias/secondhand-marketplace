@@ -7,12 +7,11 @@ import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.Rating;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
-import com.secondhand.backend.exception.custom.ForbiddenException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
-import com.secondhand.backend.repository.ConversationRepository;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.RatingRepository;
 import com.secondhand.backend.repository.UserRepository;
+import com.secondhand.backend.util.UserValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -30,18 +29,6 @@ public class RatingService {
     @Autowired
     private ItemRepository itemRepository;
 
-    @Autowired
-    private ConversationRepository conversationRepository;
-
-    private void validateUser(User user) {
-        if (!user.isActive()) {
-            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
-        }
-        if (user.isBlocked()) {
-            throw new ForbiddenException("حساب کاربری شما مسدود شده است!");
-        }
-    }
-
     private RatingResponse convertToResponse(Rating rating) {
         return new RatingResponse(
                 rating.getId(),
@@ -57,19 +44,17 @@ public class RatingService {
     }
 
     public RatingResponse addRating(RatingCreateRequest request, Long raterId) {
-
         if (request.getScore() < 1 || request.getScore() > 5) {
             throw new BadRequestException("امتیاز وارد شده باید عددی بین ۱ تا ۵ باشد!");
         }
 
         User rater = userRepository.findById(raterId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر ثبت‌کننده امتیاز یافت نشد"));
-        validateUser(rater);
+        UserValidationHelper.validateActiveAndNotBlocked(rater);
 
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
-        //  بررسی اینکه آگهی تایید شده باشه (فقط APPROVED یا SOLD قابل امتیازدهی هستن)
         if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD) {
             throw new BadRequestException("این آگهی قابل امتیازدهی نیست!");
         }
@@ -79,7 +64,7 @@ public class RatingService {
             throw new BadRequestException("شما نمی‌توانید به خودتان امتیاز بدهید!");
         }
 
-        //  فقط خریدار واقعی آگهی (پس از خرید) می‌تواند امتیاز دهد
+        // فقط خریدار واقعی آگهی می‌تواند امتیاز دهد
         boolean isBuyer = item.getStatus() == ItemStatus.SOLD
                 && item.getBuyer() != null
                 && item.getBuyer().getId().equals(raterId);
@@ -87,7 +72,6 @@ public class RatingService {
         if (!isBuyer) {
             throw new BadRequestException("امتیازدهی فقط پس از خرید این کالا امکان‌پذیر است!");
         }
-
 
         Optional<Rating> existingRating = ratingRepository.findByRaterIdAndItemId(raterId, request.getItemId());
         if (existingRating.isPresent()) {
@@ -106,7 +90,6 @@ public class RatingService {
     }
 
     public double getSellerAverageRating(Long sellerId) {
-
         if (!userRepository.existsById(sellerId)) {
             throw new ResourceNotFoundException("فروشنده یافت نشد");
         }

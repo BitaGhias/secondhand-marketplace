@@ -1,13 +1,6 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.dto.item.*;
-import com.secondhand.backend.entity.Image;
-import com.secondhand.backend.entity.Item;
-import com.secondhand.backend.exception.custom.BadRequestException;
-import com.secondhand.backend.exception.custom.ResourceNotFoundException;
-import com.secondhand.backend.repository.ImageRepository;
-import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.service.ItemService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,30 +10,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/items")
 public class ItemController {
 
-    @Autowired
-    private ItemService itemService;
-
-    @Autowired
-    private UserService userService;
-
-    @Autowired
-    private ImageRepository imageRepository;
-
-    @Autowired
-    private ItemRepository itemRepository;
+    @Autowired private ItemService itemService;
+    @Autowired private UserService userService;
 
     private Long getCurrentUserId() {
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
                 .getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-        return userService.getUserIdByUsername(username);
+        return userService.getUserIdByUsername(userDetails.getUsername());
     }
 
     @PostMapping(value = "/create", consumes = "multipart/form-data")
@@ -53,7 +35,6 @@ public class ItemController {
             @RequestParam(value = "images", required = false) List<MultipartFile> images) {
 
         Long userId = getCurrentUserId();
-
         ItemCreateRequest request = new ItemCreateRequest();
         request.setTitle(title);
         request.setDescription(description);
@@ -62,21 +43,17 @@ public class ItemController {
         request.setCityId(cityId);
         request.setImages(images);
 
-        ItemResponse createdItem = itemService.addItem(request, userId);
-        return ResponseEntity.ok(createdItem);
+        return ResponseEntity.ok(itemService.addItem(request, userId));
     }
 
     @GetMapping("/approved")
     public ResponseEntity<List<ItemResponse>> getApprovedItems() {
-        List<ItemResponse> items = itemService.getApprovedItems();
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(itemService.getApprovedItems());
     }
 
     @GetMapping("/pending")
     public ResponseEntity<List<ItemResponse>> getPendingItems() {
-        Long adminId = getCurrentUserId();
-        List<ItemResponse> items = itemService.getPendingItems(adminId);
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(itemService.getPendingItems(getCurrentUserId()));
     }
 
     @PutMapping("/{id}/status")
@@ -84,111 +61,73 @@ public class ItemController {
             @PathVariable Long id,
             @RequestParam String status,
             @RequestParam(required = false) String rejectionReason) {
-        Long adminId = getCurrentUserId();
-        ItemResponse updatedItem = itemService.updateItemStatus(adminId, id, status, rejectionReason);
-        return ResponseEntity.ok(updatedItem);
+        return ResponseEntity.ok(itemService.updateItemStatus(getCurrentUserId(), id, status, rejectionReason));
     }
 
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<List<ItemResponse>> getItemsByCategory(@PathVariable Long categoryId) {
-        List<ItemResponse> items = itemService.getApprovedItemsByCategory(categoryId);
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(itemService.getApprovedItemsByCategory(categoryId));
     }
 
     @GetMapping("/user")
     public ResponseEntity<List<ItemResponse>> getMyItems() {
-        Long userId = getCurrentUserId();
-        List<ItemResponse> items = itemService.getItemByUser(userId);
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(itemService.getItemByUser(getCurrentUserId()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteItem(@PathVariable Long id) {
-        Long userId = getCurrentUserId();
-        itemService.deleteItem(id, userId);
+        itemService.deleteItem(id, getCurrentUserId());
         return ResponseEntity.ok("آگهی با موفقیت حذف شد.");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ItemResponse> updateItem(
-            @PathVariable Long id,
-            @RequestBody ItemUpdateRequest request) {
-        Long userId = getCurrentUserId();
-        ItemResponse updatedItem = itemService.updateItem(id, userId, request);
-        return ResponseEntity.ok(updatedItem);
+    public ResponseEntity<ItemResponse> updateItem(@PathVariable Long id, @RequestBody ItemUpdateRequest request) {
+        return ResponseEntity.ok(itemService.updateItem(id, getCurrentUserId(), request));
     }
 
     @GetMapping("/search")
     public ResponseEntity<List<ItemResponse>> searchItems(@RequestParam String keyword) {
-        List<ItemResponse> results = itemService.searchItems(keyword);
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(itemService.searchItems(keyword));
     }
 
     @GetMapping("/city/{cityId}")
     public ResponseEntity<List<ItemResponse>> getItemsByCity(@PathVariable Long cityId) {
-        List<ItemResponse> items = itemService.getItemsByCity(cityId);
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(itemService.getItemsByCity(cityId));
     }
 
     @PutMapping("/{id}/sold")
     public ResponseEntity<ItemResponse> markAsSold(@PathVariable Long id) {
-        Long userId = getCurrentUserId();
-        ItemResponse updatedItem = itemService.markAsSold(id, userId);
-        return ResponseEntity.ok(updatedItem);
+        return ResponseEntity.ok(itemService.markAsSold(id, getCurrentUserId()));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ItemResponse> getItemById(@PathVariable Long id) {
-        ItemResponse item = itemService.getItemById(id);
-        return ResponseEntity.ok(item);
+        return ResponseEntity.ok(itemService.getItemById(id));
     }
 
     @GetMapping("/{id}/images")
     public ResponseEntity<List<ImageResponse>> getItemImages(@PathVariable Long id) {
-
-        Item item = itemRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
-
-        if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD) {
-            throw new BadRequestException("این آگهی قابل نمایش نیست");
-        }
-
-        List<Image> images = imageRepository.findByItemId(id);
-        List<ImageResponse> responses = new ArrayList<>();
-        for (Image img : images) {
-            responses.add(new ImageResponse(img.getId(), img.getImagePath()));
-        }
-
-        return ResponseEntity.ok(responses);
+        // منطق دیتابیسی به سرویس منتقل شده است
+        return ResponseEntity.ok(itemService.getItemImages(id));
     }
 
     @PostMapping("/search/advanced")
     public ResponseEntity<List<ItemResponse>> searchAdvanced(@RequestBody ItemSearchRequest request) {
-        List<ItemResponse> results = itemService.searchItemsAdvanced(request);
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(itemService.searchItemsAdvanced(request));
     }
 
-    // خرید آگهی توسط خریدار
     @PutMapping("/{id}/purchase")
     public ResponseEntity<ItemResponse> purchaseItem(@PathVariable Long id) {
-        Long buyerId = getCurrentUserId();
-        ItemResponse purchased = itemService.purchaseItem(id, buyerId);
-        return ResponseEntity.ok(purchased);
+        return ResponseEntity.ok(itemService.purchaseItem(id, getCurrentUserId()));
     }
 
-    // لیست خریدهای کاربر جاری
     @GetMapping("/purchased")
     public ResponseEntity<List<ItemResponse>> getPurchasedItems() {
-        Long userId = getCurrentUserId();
-        List<ItemResponse> items = itemService.getPurchasedItems(userId);
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(itemService.getPurchasedItems(getCurrentUserId()));
     }
 
-    // همه آگهی‌های یک کاربر (فقط ادمین)
     @GetMapping("/admin/user/{userId}")
     public ResponseEntity<List<ItemResponse>> getUserItemsForAdmin(@PathVariable Long userId) {
-        Long adminId = getCurrentUserId();
-        List<ItemResponse> items = itemService.getItemsByUserForAdmin(adminId, userId);
-        return ResponseEntity.ok(items);
+        return ResponseEntity.ok(itemService.getItemsByUserForAdmin(getCurrentUserId(), userId));
     }
 }

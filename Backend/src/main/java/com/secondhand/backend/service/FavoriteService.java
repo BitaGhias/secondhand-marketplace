@@ -7,11 +7,11 @@ import com.secondhand.backend.entity.Favorite;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
-import com.secondhand.backend.exception.custom.ForbiddenException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.FavoriteRepository;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.UserRepository;
+import com.secondhand.backend.util.UserValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -30,15 +30,6 @@ public class FavoriteService {
     @Autowired
     private ItemRepository itemRepository;
 
-    private void validateUser(User user) {
-        if (!user.isActive()) {
-            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
-        }
-        if (user.isBlocked()) {
-            throw new ForbiddenException("حساب کاربری شما مسدود شده است!");
-        }
-    }
-
     private FavoriteResponse convertToResponse(Favorite favorite) {
         return new FavoriteResponse(
                 favorite.getId(),
@@ -51,10 +42,9 @@ public class FavoriteService {
     }
 
     public FavoriteResponse addFavorite(FavoriteRequest request, Long userId) {
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        validateUser(user);
+        UserValidationHelper.validateActiveAndNotBlocked(user);  // از helper مشترک
 
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
@@ -81,10 +71,9 @@ public class FavoriteService {
     }
 
     public void removeFavorite(FavoriteRequest request, Long userId) {
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        validateUser(user);
+        UserValidationHelper.validateActiveAndNotBlocked(user);
 
         Favorite favorite = favoriteRepository.findByUserIdAndItemId(userId, request.getItemId())
                 .orElseThrow(() -> new BadRequestException("این آگهی در لیست علاقه‌مندی‌های شما نیست"));
@@ -93,7 +82,6 @@ public class FavoriteService {
     }
 
     public List<FavoriteResponse> getUserFavorites(Long userId) {
-
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("کاربر یافت نشد");
         }

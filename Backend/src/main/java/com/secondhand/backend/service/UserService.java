@@ -318,4 +318,10 @@ public class UserService {
         User updatedUser = userRepository.save(user);
         return convertToResponse(updatedUser);
     }
+
+    public boolean isAdmin(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        return user.getRole() == Role.ADMIN;
+    }
 }

@@ -1,6 +1,5 @@
-package com.secondhand.backend.config;
+package com.secondhand.backend.security;
 
-import com.secondhand.backend.filter.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -7,11 +7,8 @@ import com.secondhand.backend.entity.*;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
-import com.secondhand.backend.repository.CategoryRepository;
-import com.secondhand.backend.repository.CityRepository;
-import com.secondhand.backend.repository.ImageRepository;
-import com.secondhand.backend.repository.ItemRepository;
-import com.secondhand.backend.repository.UserRepository;
+import com.secondhand.backend.repository.*;
+import com.secondhand.backend.util.UserValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,82 +20,60 @@ import java.util.List;
 @Service
 public class ItemService {
 
-    @Autowired
-    private ItemRepository itemRepository;
+    @Autowired private ItemRepository itemRepository;
+    @Autowired private UserRepository userRepository;
+    @Autowired private CityRepository cityRepository;
+    @Autowired private CategoryRepository categoryRepository;
+    @Autowired private ImageRepository imageRepository;
+    @Autowired private UserService userService;
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private CityRepository cityRepository;
-
-    @Autowired
-    private CategoryRepository categoryRepository;
-
-    @Autowired
-    private ImageRepository imageRepository;
-
-    private void validateUserIsActiveAndNotBlocked(User user) {
-        if (!user.isActive()) {
-            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
-        }
-        if (user.isBlocked()) {
-            throw new ForbiddenException("حساب کاربری شما مسدود شده است!");
-        }
-    }
+    // ===== Validation Methods =====
 
     private void validateItemPrice(Long price) {
-        if (price <= 0) {
-            throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
-        }
+        if (price <= 0) throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
     }
 
     private void validateItemTitleAndDescription(String title, String description) {
-        if (title == null || title.trim().isEmpty()) {
-            throw new BadRequestException("عنوان آگهی نمی‌تواند خالی باشد!");
-        }
-        if (description == null || description.trim().isEmpty()) {
-            throw new BadRequestException("توضیحات آگهی نمی‌تواند خالی باشد!");
-        }
+        if (title == null || title.trim().isEmpty()) throw new BadRequestException("عنوان آگهی نمی‌تواند خالی باشد!");
+        if (description == null || description.trim().isEmpty()) throw new BadRequestException("توضیحات آگهی نمی‌تواند خالی باشد!");
     }
 
+    // ✅ اصلاح: متد با پارامتر User
     private void validateUserIsAdmin(User user) {
         if (user.getRole() != Role.ADMIN) {
-            throw new ForbiddenException("شما دسترسی ادمین به این عملیات را ندارید!");
+            throw new ForbiddenException("شما دسترسی ادمین ندارید!");
         }
     }
 
+    // ✅ متد کمکی برای گرفتن User از userId و بررسی ادمین
+    private void validateUserIsAdmin(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
+        validateUserIsAdmin(user);
+    }
+
+    // ✅ اصلاح: متد با ۳ پارامتر
     private void validateUserIsOwnerOrAdmin(Item item, Long userId, User requester) {
-        if (!item.getUser().getId().equals(userId) && requester.getRole() != Role.ADMIN) {
+        boolean isOwner = item.getUser().getId().equals(userId);
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+        if (!isOwner && !isAdmin) {
             throw new ForbiddenException("شما اجازه این عملیات را ندارید!");
         }
     }
 
     private void validateItemNotSoldOrDeleted(Item item) {
-        if (item.getStatus() == ItemStatus.SOLD) {
-            throw new BadRequestException("آگهی فروخته شده قابل تغییر نیست!");
-        }
-        if (item.getStatus() == ItemStatus.DELETED) {
-            throw new BadRequestException("آگهی حذف شده قابل تغییر نیست!");
+        if (item.getStatus() == ItemStatus.SOLD || item.getStatus() == ItemStatus.DELETED) {
+            throw new BadRequestException("این آگهی قابل تغییر نیست!");
         }
     }
 
-
     private void validateImages(List<MultipartFile> images) {
-        if (images == null || images.isEmpty()) {
-            return;
-        }
-
-        //  محدودیت تعداد تصاویر
-        if (images.size() > 5) {
-            throw new BadRequestException("تعداد تصاویر نباید بیشتر از ۵ باشد!");
-        }
+        if (images == null || images.isEmpty()) return;
+        if (images.size() > 5) throw new BadRequestException("حداکثر ۵ تصویر مجاز است!");
 
         for (MultipartFile file : images) {
             if (!file.isEmpty()) {
-                //  بررسی نوع فایل
-                String contentType = file.getContentType();
-                if (contentType == null || !contentType.startsWith("image/")) {
+                if (file.getContentType() == null || !file.getContentType().startsWith("image/")) {
                     throw new BadRequestException("فایل ارسال شده تصویر نیست!");
                 }
 
@@ -114,15 +89,14 @@ public class ItemService {
                         throw new BadRequestException("فرمت فایل تصویر مجاز نیست! فرمت‌های مجاز: jpg, jpeg, png, gif, bmp, webp");
                     }
                 }
-
-                //  بررسی حجم فایل (حداکثر ۵ مگابایت)
-                long maxSize = 5 * 1024 * 1024;  // 5 MB
-                if (file.getSize() > maxSize) {
+                if (file.getSize() > 5 * 1024 * 1024) {
                     throw new BadRequestException("حجم تصویر نباید بیشتر از ۵ مگابایت باشد!");
                 }
             }
         }
     }
+
+    // ===== Convert Methods =====
 
     private ItemResponse convertToResponse(Item item) {
         List<Image> images = imageRepository.findByItemId(item.getId());
@@ -151,6 +125,7 @@ public class ItemService {
                 imageResponses,
                 item.getRejectionReason()
         );
+
         if (item.getBuyer() != null) {
             response.setBuyerId(item.getBuyer().getId());
             response.setBuyerUsername(item.getBuyer().getUsername());
@@ -166,16 +141,15 @@ public class ItemService {
         return responses;
     }
 
-    public ItemResponse addItem(ItemCreateRequest request, Long userId) {
+    // ===== Add Item =====
 
+    public ItemResponse addItem(ItemCreateRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        validateUserIsActiveAndNotBlocked(user);
+        UserValidationHelper.validateActiveAndNotBlocked(user);
 
         validateItemTitleAndDescription(request.getTitle(), request.getDescription());
         validateItemPrice(request.getPrice());
-
-        // اعتبارسنجی تصاویر
         validateImages(request.getImages());
 
         Category category = categoryRepository.findById(request.getCategoryId())
@@ -213,11 +187,10 @@ public class ItemService {
 
                         String fileName = System.currentTimeMillis() + extension;
                         Path filePath = uploadPath.resolve(fileName);
-
                         Files.write(filePath, file.getBytes());
 
                         Image image = new Image();
-                        image.setImagePath(filePath.toString());
+                        image.setImagePath(filePath.toString().replace("\\", "/"));
                         image.setItem(savedItem);
                         imageRepository.save(image);
                     }
@@ -230,16 +203,18 @@ public class ItemService {
         return convertToResponse(savedItem);
     }
 
+    // ===== Get Approved Items =====
+
     public List<ItemResponse> getApprovedItems() {
-        List<Item> items = itemRepository.findByStatus(ItemStatus.APPROVED);
+        List<Item> items = itemRepository.findByStatus(ItemStatus.APPROVED.name());
         return convertToResponseList(items);
     }
 
-    public ItemResponse updateItemStatus(Long requesterAdminId, Long itemId, String newStatus, String rejectionReason) {
-        User requester = userRepository.findById(requesterAdminId)
-                .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
+    // ===== Update Item Status (Admin) =====
 
-        validateUserIsAdmin(requester);
+    public ItemResponse updateItemStatus(Long requesterAdminId, Long itemId, String newStatus, String rejectionReason) {
+        // ✅ اصلاح: از متد validateUserIsAdmin با userId استفاده کن
+        validateUserIsAdmin(requesterAdminId);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
@@ -250,7 +225,7 @@ public class ItemService {
 
         validateItemNotSoldOrDeleted(item);
 
-                ItemStatus status;
+        ItemStatus status;
         try {
             status = ItemStatus.valueOf(newStatus.toUpperCase());
         } catch (IllegalArgumentException e) {
@@ -265,14 +240,12 @@ public class ItemService {
             throw new BadRequestException("آگهی در حال حاضر در وضعیت " + status.name() + " قرار دارد!");
         }
 
-
         if (status == ItemStatus.REJECTED) {
             if (rejectionReason == null || rejectionReason.trim().isEmpty()) {
                 throw new BadRequestException("لطفاً دلیل رد کردن آگهی را وارد کنید!");
             }
             item.setRejectionReason(rejectionReason);
         } else {
-            // اگه تایید شد، توضیح قبلی رو پاک کن
             item.setRejectionReason(null);
         }
 
@@ -281,39 +254,44 @@ public class ItemService {
         return convertToResponse(updatedItem);
     }
 
+    // ===== Get Pending Items (Admin) =====
+
     public List<ItemResponse> getPendingItems(Long requesterAdminId) {
-        User requester = userRepository.findById(requesterAdminId)
-                .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
-
-        validateUserIsAdmin(requester);
-
-        List<Item> items = itemRepository.findByStatus(ItemStatus.PENDING);
+        // ✅ اصلاح: از متد validateUserIsAdmin با userId استفاده کن
+        validateUserIsAdmin(requesterAdminId);
+        List<Item> items = itemRepository.findByStatus(ItemStatus.PENDING.name());
         return convertToResponseList(items);
     }
+
+    // ===== Get Items By Category =====
 
     public List<ItemResponse> getApprovedItemsByCategory(Long categoryId) {
-        List<Item> items = itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED);
+        List<Item> items = itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED.name());
         return convertToResponseList(items);
     }
+
+    // ===== Get User's Items =====
 
     public List<ItemResponse> getItemByUser(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("کاربر یافت نشد");
         }
-        List<Item> items = itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED);
+        List<Item> items = itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED.name());
         return convertToResponseList(items);
     }
 
-    public void deleteItem(Long itemId, Long userId) {
+    // ===== Delete Item =====
 
+    public void deleteItem(Long itemId, Long userId) {
         User requester = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
 
-        validateUserIsActiveAndNotBlocked(requester);
+        UserValidationHelper.validateActiveAndNotBlocked(requester);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
 
+        // ✅ اصلاح: متد با ۳ پارامتر
         validateUserIsOwnerOrAdmin(item, userId, requester);
         validateItemNotSoldOrDeleted(item);
 
@@ -323,7 +301,6 @@ public class ItemService {
                 Path filePath = Paths.get(image.getImagePath());
                 if (Files.exists(filePath)) {
                     Files.delete(filePath);
-                    System.out.println("🗑️ تصویر حذف شد: " + image.getImagePath());
                 }
             } catch (IOException e) {
                 System.out.println("⚠️ خطا در حذف تصویر: " + image.getImagePath() + " - " + e.getMessage());
@@ -336,31 +313,36 @@ public class ItemService {
         itemRepository.save(item);
     }
 
+    // ===== Search Items =====
+
     public List<ItemResponse> searchItems(String keyword) {
         if (keyword == null || keyword.trim().isEmpty()) {
             throw new BadRequestException("کلمه کلیدی جستجو نمی‌تواند خالی باشد!");
         }
 
         List<Item> items = itemRepository.findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
-                ItemStatus.APPROVED, keyword, ItemStatus.APPROVED, keyword
+                ItemStatus.APPROVED.name(), keyword
         );
         return convertToResponseList(items);
     }
+
+    // ===== Get Items By City =====
 
     public List<ItemResponse> getItemsByCity(Long cityId) {
         if (!cityRepository.existsById(cityId)) {
             throw new ResourceNotFoundException("شهر یافت نشد");
         }
-        List<Item> items = itemRepository.findByStatusAndCityId(ItemStatus.APPROVED, cityId);
+        List<Item> items = itemRepository.findByStatusAndCityId(ItemStatus.APPROVED.name(), cityId);
         return convertToResponseList(items);
     }
 
+    // ===== Mark as Sold =====
 
     public ItemResponse markAsSold(Long itemId, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
 
-        validateUserIsActiveAndNotBlocked(user);
+        UserValidationHelper.validateActiveAndNotBlocked(user);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
@@ -381,6 +363,8 @@ public class ItemService {
         return convertToResponse(updatedItem);
     }
 
+    // ===== Get Item By ID =====
+
     public ItemResponse getItemById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
@@ -391,11 +375,13 @@ public class ItemService {
         return convertToResponse(item);
     }
 
+    // ===== Update Item =====
+
     public ItemResponse updateItem(Long itemId, Long userId, ItemUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
 
-        validateUserIsActiveAndNotBlocked(user);
+        UserValidationHelper.validateActiveAndNotBlocked(user);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
@@ -441,12 +427,12 @@ public class ItemService {
         return convertToResponse(updatedItem);
     }
 
-    // ===== جستجوی پیشرفته با فیلترهای ترکیبی
+    // ===== Advanced Search =====
+
     public List<ItemResponse> searchItemsAdvanced(ItemSearchRequest request) {
-        //  مقداردهی پیش‌فرض برای مرتب‌سازی
         String sortBy = request.getSortBy();
         if (sortBy == null || sortBy.trim().isEmpty()) {
-            sortBy = "newest";  // پیش‌فرض: جدیدترین
+            sortBy = "newest";
         }
 
         List<Item> items = itemRepository.searchAdvanced(
@@ -465,13 +451,12 @@ public class ItemService {
                 items.sort((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()));
                 break;
             case "price_asc":
-                items.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
+                items.sort((a, b) -> Long.compare(a.getPrice(), b.getPrice()));
                 break;
             case "price_desc":
-                items.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
+                items.sort((a, b) -> Long.compare(b.getPrice(), a.getPrice()));
                 break;
             default:
-                // پیش‌فرض: جدیدترین
                 items.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
                 break;
         }
@@ -479,11 +464,12 @@ public class ItemService {
         return convertToResponseList(items);
     }
 
-    // ===== خرید آگهی توسط خریدار =====
+    // ===== Purchase Item =====
+
     public ItemResponse purchaseItem(Long itemId, Long buyerId) {
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        validateUserIsActiveAndNotBlocked(buyer);
+        UserValidationHelper.validateActiveAndNotBlocked(buyer);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
@@ -504,7 +490,8 @@ public class ItemService {
         return convertToResponse(updatedItem);
     }
 
-    // ===== لیست خریدهای کاربر =====
+    // ===== Get Purchased Items =====
+
     public List<ItemResponse> getPurchasedItems(Long buyerId) {
         if (!userRepository.existsById(buyerId)) {
             throw new ResourceNotFoundException("کاربر یافت نشد");
@@ -513,16 +500,32 @@ public class ItemService {
         return convertToResponseList(items);
     }
 
-    // ===== همه آگهی‌های یک کاربر برای ادمین (شامل حذف‌شده‌ها) =====
+    // ===== Get User Items For Admin =====
+
     public List<ItemResponse> getItemsByUserForAdmin(Long requesterAdminId, Long userId) {
-        User requester = userRepository.findById(requesterAdminId)
-                .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
-        validateUserIsAdmin(requester);
+        // ✅ اصلاح: از متد validateUserIsAdmin با userId استفاده کن
+        validateUserIsAdmin(requesterAdminId);
 
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("کاربر یافت نشد");
         }
         List<Item> items = itemRepository.findByUserId(userId);
         return convertToResponseList(items);
+    }
+
+    // ===== Get Item Images =====
+
+    public List<ImageResponse> getItemImages(Long itemId) {
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
+
+        if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD) {
+            throw new BadRequestException("این آگهی قابل نمایش نیست");
+        }
+
+        List<Image> images = imageRepository.findByItemId(itemId);
+        return images.stream()
+                .map(img -> new ImageResponse(img.getId(), img.getImagePath()))
+                .toList();
     }
 }
