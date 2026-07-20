@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,6 +33,11 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(@RequestBody UserRegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, String>> logout() {
+        return ResponseEntity.ok(Map.of("message", "با موفقیت خارج شدید. لطفاً توکن را در سمت کلاینت حذف کنید."));
     }
 
     @PostMapping("/login")
@@ -62,11 +68,13 @@ public class UserController {
         );
     }
 
+    // FIX: پسورد از @RequestParam (URL) به @RequestBody (JSON) منتقل شد
     @PutMapping("/change-password")
     public ResponseEntity<UserResponse> changePassword(
-            @RequestParam String oldPassword,
-            @RequestParam String newPassword
+            @RequestBody Map<String, String> body
     ) {
+        String oldPassword = body.get("oldPassword");
+        String newPassword = body.get("newPassword");
         return ResponseEntity.ok(
                 userService.changePassword(
                         currentUserService.getCurrentUserId(),
