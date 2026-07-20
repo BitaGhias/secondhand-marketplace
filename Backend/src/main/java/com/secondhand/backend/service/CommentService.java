@@ -13,6 +13,7 @@ import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.CommentRepository;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.UserRepository;
+import com.secondhand.backend.util.UserValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
@@ -30,15 +31,6 @@ public class CommentService {
     @Autowired
     private ItemRepository itemRepository;
 
-    private void validateUser(User user) {
-        if (!user.isActive()) {
-            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
-        }
-        if (user.isBlocked()) {
-            throw new ForbiddenException("حساب کاربری شما مسدود شده است!");
-        }
-    }
-
     private CommentResponse convertToResponse(Comment comment) {
         return new CommentResponse(
                 comment.getId(),
@@ -52,10 +44,9 @@ public class CommentService {
     }
 
     public CommentResponse addComment(CommentCreateRequest request, Long userId) {
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        validateUser(user);
+        UserValidationHelper.validateActiveAndNotBlocked(user);  //  از helper مشترک
 
         if (request.getText() == null || request.getText().trim().isEmpty()) {
             throw new BadRequestException("متن کامنت نمی‌تواند خالی باشد!");
@@ -78,7 +69,6 @@ public class CommentService {
     }
 
     public List<CommentResponse> getCommentsByItem(Long itemId) {
-
         if (!itemRepository.existsById(itemId)) {
             throw new ResourceNotFoundException("آگهی یافت نشد");
         }
@@ -91,26 +81,32 @@ public class CommentService {
         return responses;
     }
 
-    public void deleteComment(Long commentId, Long adminId) {
-
-        User admin = userRepository.findById(adminId)
-                .orElseThrow(() -> new ResourceNotFoundException("ادمین یافت نشد"));
-
-        if (admin.getRole() != Role.ADMIN) {
-            throw new ForbiddenException("شما دسترسی حذف کامنت را ندارید!");
-        }
+    /**
+     *  FIX: کاربر عادی می‌تواند کامنت خودش را حذف کند
+     *         ادمین می‌تواند هر کامنتی را حذف کند
+     *         قبلاً فقط ادمین می‌توانست حذف کند
+     */
+    public void deleteComment(Long commentId, Long requesterId) {
+        User requester = userRepository.findById(requesterId)
+                .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
 
         Comment comment = commentRepository.findById(commentId)
                 .orElseThrow(() -> new ResourceNotFoundException("کامنت یافت نشد"));
+
+        boolean isAdmin = requester.getRole() == Role.ADMIN;
+        boolean isOwner = comment.getUser().getId().equals(requesterId);
+
+        if (!isAdmin && !isOwner) {
+            throw new ForbiddenException("شما اجازه حذف این کامنت را ندارید!");
+        }
 
         commentRepository.delete(comment);
     }
 
     public CommentResponse updateComment(Long commentId, Long userId, String newText) {
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        validateUser(user);
+        UserValidationHelper.validateActiveAndNotBlocked(user);  //  از helper مشترک
 
         if (newText == null || newText.trim().isEmpty()) {
             throw new BadRequestException("متن کامنت نمی‌تواند خالی باشد!");
