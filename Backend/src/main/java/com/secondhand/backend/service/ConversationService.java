@@ -9,6 +9,7 @@ import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.*;
+import com.secondhand.backend.util.UserValidationHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,17 +33,7 @@ public class ConversationService {
     @Autowired
     private ItemRepository itemRepository;
 
-    private void validateUser(User user) {
-        if (!user.isActive()) {
-            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
-        }
-        if (user.isBlocked()) {
-            throw new ForbiddenException("حساب کاربری شما مسدود شده است!");
-        }
-    }
-
     private ConversationResponse convertToConversationResponse(Conversation conv, Long userId) {
-
         List<ChatMessage> messages = chatMessageRepository
                 .findByConversationIdAndIsDeletedFalseOrderByTimestampAsc(conv.getId());
 
@@ -84,10 +75,19 @@ public class ConversationService {
         );
     }
 
+    // بررسی عضویت کاربر در مکالمه
+    private void validateConversationMembership(Conversation conversation, Long userId) {
+        boolean isBuyer = conversation.getBuyer().getId().equals(userId);
+        boolean isSeller = conversation.getSeller().getId().equals(userId);
+        if (!isBuyer && !isSeller) {
+            throw new ForbiddenException("شما عضو این مکالمه نیستید!");
+        }
+    }
+
     public ConversationResponse startConversation(Long itemId, Long buyerId) {
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("خریدار یافت نشد"));
-        validateUser(buyer);
+        UserValidationHelper.validateActiveAndNotBlocked(buyer);
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
@@ -102,7 +102,7 @@ public class ConversationService {
             throw new BadRequestException("شما نمی‌توانید با خودتان روی آگهی خودتان چت کنید!");
         }
 
-        validateUser(seller);
+        UserValidationHelper.validateActiveAndNotBlocked(seller);
 
         Optional<Conversation> existing = conversationRepository
                 .findByBuyerIdAndSellerIdAndItemId(buyerId, seller.getId(), itemId);
@@ -123,15 +123,12 @@ public class ConversationService {
     public ChatMessageResponse sendMessage(ChatMessageRequest request, Long senderId) {
         User sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new ResourceNotFoundException("فرستنده یافت نشد"));
-        validateUser(sender);
+        UserValidationHelper.validateActiveAndNotBlocked(sender);
 
         Conversation conversation = conversationRepository.findById(request.getConversationId())
                 .orElseThrow(() -> new ResourceNotFoundException("مکالمه یافت نشد"));
 
-        if (!conversation.getBuyer().getId().equals(senderId) &&
-                !conversation.getSeller().getId().equals(senderId)) {
-            throw new ForbiddenException("شما عضو این مکالمه نیستید!");
-        }
+        validateConversationMembership(conversation, senderId);
 
         User otherUser = conversation.getBuyer().getId().equals(senderId)
                 ? conversation.getSeller()
@@ -157,10 +154,15 @@ public class ConversationService {
         return convertToMessageResponse(saved);
     }
 
+    /**
+     *  FIX: بررسی عضویت کاربر در مکالمه قبل از نمایش پیام‌ها
+     *         قبلاً هر کاربری می‌توانست پیام هر مکالمه‌ای را بخواند
+     */
     public List<ChatMessageResponse> getMessages(Long conversationId, Long userId) {
-        if (!conversationRepository.existsById(conversationId)) {
-            throw new ResourceNotFoundException("مکالمه یافت نشد");
-        }
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new ResourceNotFoundException("مکالمه یافت نشد"));
+
+        validateConversationMembership(conversation, userId);  //  چک عضویت اضافه شد
 
         chatMessageRepository.markAllAsRead(conversationId, userId);
 
@@ -189,7 +191,6 @@ public class ConversationService {
 
     @Transactional
     public ChatMessageResponse editMessage(Long messageId, Long userId, String newText) {
-
         ChatMessage message = chatMessageRepository.findById(messageId)
                 .orElseThrow(() -> new ResourceNotFoundException("پیام یافت نشد"));
 
@@ -213,7 +214,6 @@ public class ConversationService {
 
     @Transactional
     public ChatMessageResponse deleteMessage(Long messageId, Long userId) {
-
         ChatMessage message = chatMessageRepository.findById(messageId)
                 .orElseThrow(() -> new ResourceNotFoundException("پیام یافت نشد"));
 
