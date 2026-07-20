@@ -5,10 +5,6 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 
-/**
- * کلاس پایه کنترلرها: دکمه‌های کنترل پنجره (کوچک/بزرگ/بستن)
- * برای همه صفحات، چون پنجره برنامه بدون فریم سیستم‌عامل است.
- */
 public abstract class BaseController {
 
     @FXML

@@ -356,11 +356,19 @@ public class ItemDetailController extends BaseController {
             if (result.isPresent() && result.get() == ButtonType.OK) {
                 int score = scoreComboBox.getValue();
                 String comment = commentArea.getText().trim();
-                RatingService.rateSeller(currentItem.getId(), score, comment);
-                showMessage("امتیاز با موفقیت ثبت شد", "success");
+
+                // 🟢 انتقال عملیات شبکه به ترد پس‌زمینه برای جلوگیری از فریز شدن UI
+                new Thread(() -> {
+                    try {
+                        RatingService.rateSeller(currentItem.getId(), score, comment);
+                        showMessage("امتیاز با موفقیت ثبت شد", "success");
+                    } catch (Exception e) {
+                        showMessage("خطا در ثبت امتیاز: " + e.getMessage(), "error");
+                    }
+                }).start();
             }
         } catch (Exception e) {
-            showMessage("خطا در ثبت امتیاز: " + e.getMessage(), "error");
+            showMessage("خطا در بارگذاری دیالوگ: " + e.getMessage(), "error");
         }
     }
 

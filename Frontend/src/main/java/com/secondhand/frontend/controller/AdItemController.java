@@ -10,7 +10,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 
-public class ItemAdController {
+public class AdItemController {
 
     @FXML private ImageView adImageView;
     @FXML private Label adTitleLabel;

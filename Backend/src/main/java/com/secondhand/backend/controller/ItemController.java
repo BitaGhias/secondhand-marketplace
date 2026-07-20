@@ -47,7 +47,7 @@ public class ItemController {
     public ResponseEntity<ItemResponse> createItem(
             @RequestParam("title") String title,
             @RequestParam("description") String description,
-            @RequestParam("price") Double price,
+            @RequestParam("price") Long price,
             @RequestParam("categoryId") Long categoryId,
             @RequestParam("cityId") Long cityId,
             @RequestParam(value = "images", required = false) List<MultipartFile> images) {

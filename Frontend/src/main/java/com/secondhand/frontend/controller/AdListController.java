@@ -35,19 +35,16 @@ public class AdListController extends BaseController implements FilterDialogueCo
     @FXML private VBox loadingContainer;
     @FXML private HBox titleBar;
 
-    // جست‌وجوی لحظه‌ای با تاخیر کوتاه (debounce) تا برای هر حرف درخواست نفرستیم
     private final PauseTransition searchDebounce = new PauseTransition(Duration.millis(400));
 
-    // فیلترهای فعال
     private Long filterCategoryId;
     private Long filterCityId;
-    private Integer filterMinPrice;
-    private Integer filterMaxPrice;
+    private Long filterMinPrice;
+    private Long filterMaxPrice;
 
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
-        // تنظیم نام کاربر از SessionManager
         User currentUser = SessionManager.getCurrentUser();
         if (currentUser != null && userMenuButton != null) {
             userMenuButton.setText("👤 " + currentUser.getFullName());
@@ -55,7 +52,6 @@ public class AdListController extends BaseController implements FilterDialogueCo
 
         setupMenuActions();
 
-        // دسترسی سریع ادمین به پنل مدیریت از داخل لیست آگهی‌ها
         if (SessionManager.isAdmin() && userMenuButton != null) {
             MenuItem adminPanelItem = new MenuItem("🛡️ پنل مدیریت");
             adminPanelItem.setOnAction(e -> goToAdminPanel());
@@ -64,7 +60,6 @@ public class AdListController extends BaseController implements FilterDialogueCo
 
         fetchAdsFromBackend();
 
-        // جستجوی لحظه‌ای
         if (searchField != null) {
             searchField.textProperty().addListener((observable, oldValue, newValue) -> {
                 searchDebounce.setOnFinished(e -> runFilteredSearch());
@@ -125,7 +120,6 @@ public class AdListController extends BaseController implements FilterDialogueCo
         if (items == null || items.isEmpty()) {
             Label emptyLabel = new Label("هیچ آگهی‌ای برای نمایش وجود ندارد");
             emptyLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: rgba(255,255,255,0.45);");
-            // نمایش پیام در مرکز صفحه
             StackPane emptyPane = new StackPane(emptyLabel);
             emptyPane.setAlignment(Pos.CENTER);
             emptyPane.prefWidthProperty().bind(adsFlowPane.widthProperty());
@@ -139,12 +133,11 @@ public class AdListController extends BaseController implements FilterDialogueCo
                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/item_ad.fxml"));
                 Parent card = loader.load();
 
-                ItemAdController controller = loader.getController();
+                // 🟢 هماهنگ‌سازی نام کلاس کنترلر و متد مقداردهی کارت
+                AdItemController controller = loader.getController();
                 controller.setItem(item);
 
-                // کلیک روی کارت -> رفتن به صفحه جزئیات
                 card.setOnMouseClicked(event -> goToItemDetail(item));
-
                 adsFlowPane.getChildren().add(card);
             } catch (Exception e) {
                 System.err.println("❌ خطا در رندر کارت آگهی:");
@@ -189,7 +182,6 @@ public class AdListController extends BaseController implements FilterDialogueCo
         }
     }
 
-    // باز کردن دیالوگ فیلترهای پیشرفته
     @FXML
     private void showFilterDialog() {
         try {
@@ -211,7 +203,7 @@ public class AdListController extends BaseController implements FilterDialogueCo
     }
 
     @Override
-    public void onFilterApplied(Long categoryId, Long cityId, Integer minPrice, Integer maxPrice) {
+    public void onFilterApplied(Long categoryId, Long cityId, Long minPrice, Long maxPrice) {
         this.filterCategoryId = categoryId;
         this.filterCityId = cityId;
         this.filterMinPrice = minPrice;
@@ -265,68 +257,13 @@ public class AdListController extends BaseController implements FilterDialogueCo
         }
     }
 
-    @FXML
-    private void goToMyAds() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/my_ads.fxml", "آگهی‌های من");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void goToFavorites() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/favorites.fxml", "علاقه‌مندی‌ها");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void goToChats() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/chats.fxml", "پیام‌ها");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void goToPurchases() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/purchases.fxml", "خریدها");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void goToCreateAd() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/create_ad.fxml", "ثبت آگهی جدید");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void goToAdminPanel() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    private void goToProfile() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/profile.fxml", "پروفایل من");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+    @FXML private void goToMyAds() { try { MainApplication.changeScene("/com/secondhand/frontend/my_ads.fxml", "آگهی‌های من"); } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToFavorites() { try { MainApplication.changeScene("/com/secondhand/frontend/favorites.fxml", "علاقه‌مندی‌ها"); } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToChats() { try { MainApplication.changeScene("/com/secondhand/frontend/chats.fxml", "پیام‌ها"); } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToPurchases() { try { MainApplication.changeScene("/com/secondhand/frontend/purchases.fxml", "خریدها"); } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToCreateAd() { try { MainApplication.changeScene("/com/secondhand/frontend/create_ad.fxml", "ثبت آگهی جدید"); } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToAdminPanel() { try { MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت"); } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToProfile() { try { MainApplication.changeScene("/com/secondhand/frontend/profile.fxml", "پروفایل من"); } catch (Exception e) { e.printStackTrace(); } }
 
     private void handleLogout() {
         SessionManager.logout();

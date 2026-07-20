@@ -36,7 +36,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             @Param("keyword") String keyword,
             @Param("categoryId") Long categoryId,
             @Param("cityId") Long cityId,
-            @Param("minPrice") Double minPrice,
-            @Param("maxPrice") Double maxPrice
+            @Param("minPrice") Long minPrice,
+            @Param("maxPrice") Long maxPrice
     );
 }

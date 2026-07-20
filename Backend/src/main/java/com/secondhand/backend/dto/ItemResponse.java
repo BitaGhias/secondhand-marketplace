@@ -6,7 +6,7 @@ public class ItemResponse {
     private Long id;
     private String title;
     private String description;
-    private double price;
+    private Long price;
     private String status;
     private String categoryName;
     private String parentCategoryName;
@@ -20,7 +20,7 @@ public class ItemResponse {
 
     public ItemResponse() {}
 
-    public ItemResponse(Long id, String title, String description, double price, String status,
+    public ItemResponse(Long id, String title, String description, Long price, String status,
                         String categoryName, String parentCategoryName, String cityName,
                         String ownerUsername, Long ownerId, List<ImageResponse> images,
                         String rejectionReason) {
@@ -41,7 +41,7 @@ public class ItemResponse {
     public Long getId() { return id; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
-    public double getPrice() { return price; }
+    public Long getPrice() { return price; }
     public String getStatus() { return status; }
     public String getCategoryName() { return categoryName; }
     public String getParentCategoryName() { return parentCategoryName; }
@@ -56,7 +56,7 @@ public class ItemResponse {
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
-    public void setPrice(double price) { this.price = price; }
+    public void setPrice(Long price) { this.price = price; }
     public void setStatus(String status) { this.status = status; }
     public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
     public void setParentCategoryName(String parentCategoryName) { this.parentCategoryName = parentCategoryName; }

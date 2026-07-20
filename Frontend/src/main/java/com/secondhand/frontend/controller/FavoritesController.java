@@ -42,7 +42,7 @@ public class FavoritesController extends BaseController {
                             try {
                                 FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/item_ad.fxml"));
                                 Parent card = loader.load();
-                                ItemAdController controller = loader.getController();
+                                AdItemController controller = loader.getController();
                                 controller.setItem(item);
                                 card.setOnMouseClicked(event -> goToItemDetail(item));
                                 favoritesFlowPane.getChildren().add(card);

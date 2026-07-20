@@ -4,14 +4,14 @@ public class ItemSearchRequest {
     private String keyword;      // کلمه کلیدی
     private Long categoryId;
     private Long cityId;
-    private Double minPrice;     // حداقل قیمت
-    private Double maxPrice;     // حداکثر قیمت
+    private Long minPrice;     // حداقل قیمت
+    private Long maxPrice;     // حداکثر قیمت
     private String sortBy;       // newest, oldest, price_asc, price_desc
 
     public ItemSearchRequest() {}
 
     public ItemSearchRequest(String keyword, Long categoryId, Long cityId,
-                             Double minPrice, Double maxPrice, String sortBy) {
+                             Long minPrice, Long maxPrice, String sortBy) {
         this.keyword = keyword;
         this.categoryId = categoryId;
         this.cityId = cityId;
@@ -23,15 +23,15 @@ public class ItemSearchRequest {
     public String getKeyword() { return keyword; }
     public Long getCategoryId() { return categoryId; }
     public Long getCityId() { return cityId; }
-    public Double getMinPrice() { return minPrice; }
-    public Double getMaxPrice() { return maxPrice; }
+    public Long getMinPrice() { return minPrice; }
+    public Long getMaxPrice() { return maxPrice; }
     public String getSortBy() { return sortBy; }
 
     public void setKeyword(String keyword) { this.keyword = keyword; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
     public void setCityId(Long cityId) { this.cityId = cityId; }
-    public void setMinPrice(Double minPrice) { this.minPrice = minPrice; }
-    public void setMaxPrice(Double maxPrice) { this.maxPrice = maxPrice; }
+    public void setMinPrice(Long minPrice) { this.minPrice = minPrice; }
+    public void setMaxPrice(Long maxPrice) { this.maxPrice = maxPrice; }
     public void setSortBy(String sortBy) { this.sortBy = sortBy; }
 
     public boolean hasKeyword() {
