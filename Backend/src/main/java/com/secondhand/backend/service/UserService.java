@@ -8,6 +8,7 @@ import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
+import com.secondhand.backend.exception.custom.UnauthorizedException;
 import com.secondhand.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -112,15 +113,27 @@ public class UserService {
 
 
     public UserResponse loginUser(String username, String password) {
+        if (username == null || username.trim().isEmpty()) {
+            throw new BadRequestException("نام کاربری الزامی است!");
+        }
+
+        if (password == null || password.trim().isEmpty()) {
+            throw new BadRequestException("رمز عبور الزامی است!");
+        }
+
         User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BadRequestException("نام کاربری یا رمز عبور اشتباه است"));
+                .orElseThrow(() -> new UnauthorizedException("نام کاربری یا رمز عبور اشتباه است"));
+
+        if (!user.isActive()) {
+            throw new ForbiddenException("حساب کاربری شما فعال نیست!");
+        }
 
         if (user.isBlocked()) {
             throw new ForbiddenException("حساب کاربری شما توسط ادمین مسدود شده است!");
         }
 
         if (!passwordEncoder.matches(password, user.getPassword())) {
-            throw new BadRequestException("نام کاربری یا رمز عبور اشتباه است");
+            throw new UnauthorizedException("نام کاربری یا رمز عبور اشتباه است");
         }
 
         return convertToResponse(user);
