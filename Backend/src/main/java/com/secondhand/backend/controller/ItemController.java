@@ -1,13 +1,15 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.dto.item.*;
+import com.secondhand.backend.dto.item.ImageResponse;
+import com.secondhand.backend.dto.item.ItemCreateRequest;
+import com.secondhand.backend.dto.item.ItemResponse;
+import com.secondhand.backend.dto.item.ItemSearchRequest;
+import com.secondhand.backend.dto.item.ItemUpdateRequest;
+import com.secondhand.backend.security.CurrentUserService;
 import com.secondhand.backend.service.ItemService;
-import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,14 +19,11 @@ import java.util.List;
 @RequestMapping("/api/items")
 public class ItemController {
 
-    @Autowired private ItemService itemService;
-    @Autowired private UserService userService;
+    @Autowired
+    private ItemService itemService;
 
-    private Long getCurrentUserId() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        return userService.getUserIdByUsername(userDetails.getUsername());
-    }
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @PostMapping(value = "/create", consumes = "multipart/form-data")
     public ResponseEntity<ItemResponse> createItem(
@@ -33,9 +32,8 @@ public class ItemController {
             @RequestParam("price") Long price,
             @RequestParam("categoryId") Long categoryId,
             @RequestParam("cityId") Long cityId,
-            @RequestParam(value = "images", required = false) List<MultipartFile> images) {
-
-        Long userId = getCurrentUserId();
+            @RequestParam(value = "images", required = false) List<MultipartFile> images
+    ) {
         ItemCreateRequest request = new ItemCreateRequest();
         request.setTitle(title);
         request.setDescription(description);
@@ -44,7 +42,9 @@ public class ItemController {
         request.setCityId(cityId);
         request.setImages(images);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(itemService.addItem(request, userId));
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(itemService.addItem(request, currentUserService.getCurrentUserId()));
     }
 
     @GetMapping("/approved")
@@ -54,15 +54,23 @@ public class ItemController {
 
     @GetMapping("/pending")
     public ResponseEntity<List<ItemResponse>> getPendingItems() {
-        return ResponseEntity.ok(itemService.getPendingItems(getCurrentUserId()));
+        return ResponseEntity.ok(itemService.getPendingItems(currentUserService.getCurrentUserId()));
     }
 
     @PutMapping("/{id}/status")
     public ResponseEntity<ItemResponse> updateItemStatus(
             @PathVariable Long id,
             @RequestParam String status,
-            @RequestParam(required = false) String rejectionReason) {
-        return ResponseEntity.ok(itemService.updateItemStatus(getCurrentUserId(), id, status, rejectionReason));
+            @RequestParam(required = false) String rejectionReason
+    ) {
+        return ResponseEntity.ok(
+                itemService.updateItemStatus(
+                        currentUserService.getCurrentUserId(),
+                        id,
+                        status,
+                        rejectionReason
+                )
+        );
     }
 
     @GetMapping("/category/{categoryId}")
@@ -72,18 +80,23 @@ public class ItemController {
 
     @GetMapping("/user")
     public ResponseEntity<List<ItemResponse>> getMyItems() {
-        return ResponseEntity.ok(itemService.getItemByUser(getCurrentUserId()));
+        return ResponseEntity.ok(itemService.getItemByUser(currentUserService.getCurrentUserId()));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteItem(@PathVariable Long id) {
-        itemService.deleteItem(id, getCurrentUserId());
+        itemService.deleteItem(id, currentUserService.getCurrentUserId());
         return ResponseEntity.ok("آگهی با موفقیت حذف شد.");
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ItemResponse> updateItem(@PathVariable Long id, @RequestBody ItemUpdateRequest request) {
-        return ResponseEntity.ok(itemService.updateItem(id, getCurrentUserId(), request));
+    public ResponseEntity<ItemResponse> updateItem(
+            @PathVariable Long id,
+            @RequestBody ItemUpdateRequest request
+    ) {
+        return ResponseEntity.ok(
+                itemService.updateItem(id, currentUserService.getCurrentUserId(), request)
+        );
     }
 
     @GetMapping("/search")
@@ -98,7 +111,9 @@ public class ItemController {
 
     @PutMapping("/{id}/sold")
     public ResponseEntity<ItemResponse> markAsSold(@PathVariable Long id) {
-        return ResponseEntity.ok(itemService.markAsSold(id, getCurrentUserId()));
+        return ResponseEntity.ok(
+                itemService.markAsSold(id, currentUserService.getCurrentUserId())
+        );
     }
 
     @GetMapping("/{id}")
@@ -108,7 +123,6 @@ public class ItemController {
 
     @GetMapping("/{id}/images")
     public ResponseEntity<List<ImageResponse>> getItemImages(@PathVariable Long id) {
-        // منطق دیتابیسی به سرویس منتقل شده است
         return ResponseEntity.ok(itemService.getItemImages(id));
     }
 
@@ -119,16 +133,25 @@ public class ItemController {
 
     @PutMapping("/{id}/purchase")
     public ResponseEntity<ItemResponse> purchaseItem(@PathVariable Long id) {
-        return ResponseEntity.ok(itemService.purchaseItem(id, getCurrentUserId()));
+        return ResponseEntity.ok(
+                itemService.purchaseItem(id, currentUserService.getCurrentUserId())
+        );
     }
 
     @GetMapping("/purchased")
     public ResponseEntity<List<ItemResponse>> getPurchasedItems() {
-        return ResponseEntity.ok(itemService.getPurchasedItems(getCurrentUserId()));
+        return ResponseEntity.ok(
+                itemService.getPurchasedItems(currentUserService.getCurrentUserId())
+        );
     }
 
     @GetMapping("/admin/user/{userId}")
     public ResponseEntity<List<ItemResponse>> getUserItemsForAdmin(@PathVariable Long userId) {
-        return ResponseEntity.ok(itemService.getItemsByUserForAdmin(getCurrentUserId(), userId));
+        return ResponseEntity.ok(
+                itemService.getItemsByUserForAdmin(
+                        currentUserService.getCurrentUserId(),
+                        userId
+                )
+        );
     }
 }

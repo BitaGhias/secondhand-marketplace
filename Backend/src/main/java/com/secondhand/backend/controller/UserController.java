@@ -1,15 +1,19 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.dto.user.*;
+import com.secondhand.backend.dto.user.LoginRequest;
+import com.secondhand.backend.dto.user.LoginResponse;
+import com.secondhand.backend.dto.user.UserRegisterRequest;
+import com.secondhand.backend.dto.user.UserResponse;
+import com.secondhand.backend.dto.user.UserUpdateRequest;
+import com.secondhand.backend.security.CurrentUserService;
 import com.secondhand.backend.service.UserService;
 import com.secondhand.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 
 @RestController
@@ -22,11 +26,8 @@ public class UserController {
     @Autowired
     private JwtUtil jwtUtil;
 
-    private Long getCurrentUserId() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        return userService.getUserIdByUsername(userDetails.getUsername());
-    }
+    @Autowired
+    private CurrentUserService currentUserService;
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(@RequestBody UserRegisterRequest request) {
@@ -36,7 +37,11 @@ public class UserController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequest request) {
         UserResponse userResponse = userService.loginUser(request.getUsername(), request.getPassword());
-        String token = jwtUtil.generateToken(userResponse.getUsername(), userResponse.getId(), userResponse.getRole().name());
+        String token = jwtUtil.generateToken(
+                userResponse.getUsername(),
+                userResponse.getId(),
+                userResponse.getRole().name()
+        );
         return ResponseEntity.ok(new LoginResponse(userResponse, token));
     }
 
@@ -47,42 +52,67 @@ public class UserController {
 
     @GetMapping("/profile")
     public ResponseEntity<UserResponse> getMyProfile() {
-        return ResponseEntity.ok(userService.getUserById(getCurrentUserId()));
+        return ResponseEntity.ok(userService.getUserById(currentUserService.getCurrentUserId()));
     }
 
     @PutMapping("/profile")
     public ResponseEntity<UserResponse> updateMyProfile(@RequestBody UserUpdateRequest request) {
-        return ResponseEntity.ok(userService.updateUserProfile(getCurrentUserId(), request));
+        return ResponseEntity.ok(
+                userService.updateUserProfile(currentUserService.getCurrentUserId(), request)
+        );
     }
 
     @PutMapping("/change-password")
-    public ResponseEntity<UserResponse> changePassword(@RequestParam String oldPassword, @RequestParam String newPassword) {
-        return ResponseEntity.ok(userService.changePassword(getCurrentUserId(), oldPassword, newPassword));
+    public ResponseEntity<UserResponse> changePassword(
+            @RequestParam String oldPassword,
+            @RequestParam String newPassword
+    ) {
+        return ResponseEntity.ok(
+                userService.changePassword(
+                        currentUserService.getCurrentUserId(),
+                        oldPassword,
+                        newPassword
+                )
+        );
     }
 
     @GetMapping("/admin/all")
     public ResponseEntity<List<UserResponse>> getAllUsers() {
-        return ResponseEntity.ok(userService.getAllUsers(getCurrentUserId()));
+        return ResponseEntity.ok(userService.getAllUsers(currentUserService.getCurrentUserId()));
     }
 
     @PostMapping("/admin/toggle-block")
-    public ResponseEntity<UserResponse> toggleBlock(@RequestParam Long userId, @RequestParam boolean block) {
-        return ResponseEntity.ok(userService.toggleUserBlockStatus(getCurrentUserId(), userId, block));
+    public ResponseEntity<UserResponse> toggleBlock(
+            @RequestParam Long userId,
+            @RequestParam boolean block
+    ) {
+        return ResponseEntity.ok(
+                userService.toggleUserBlockStatus(
+                        currentUserService.getCurrentUserId(),
+                        userId,
+                        block
+                )
+        );
     }
 
     @PostMapping("/admin/make-admin")
     public ResponseEntity<UserResponse> makeAdmin(@RequestParam Long userId) {
-        return ResponseEntity.ok(userService.makeAdmin(getCurrentUserId(), userId));
+        return ResponseEntity.ok(
+                userService.makeAdmin(currentUserService.getCurrentUserId(), userId)
+        );
     }
 
     @GetMapping("/admin/is-admin")
     public ResponseEntity<Boolean> isAdmin() {
-        // وابستگی به UserRepository حذف شد و از سرویس استفاده می‌شود
-        return ResponseEntity.ok(userService.isAdmin(getCurrentUserId()));
+        return ResponseEntity.ok(userService.isAdmin(currentUserService.getCurrentUserId()));
     }
 
     @PostMapping(value = "/profile/image", consumes = "multipart/form-data")
-    public ResponseEntity<UserResponse> uploadProfileImage(@RequestParam("image") MultipartFile image) {
-        return ResponseEntity.ok(userService.updateProfileImage(getCurrentUserId(), image));
+    public ResponseEntity<UserResponse> uploadProfileImage(
+            @RequestParam("image") MultipartFile image
+    ) {
+        return ResponseEntity.ok(
+                userService.updateProfileImage(currentUserService.getCurrentUserId(), image)
+        );
     }
 }

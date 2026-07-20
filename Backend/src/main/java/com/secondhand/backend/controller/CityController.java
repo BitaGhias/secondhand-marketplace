@@ -2,12 +2,11 @@ package com.secondhand.backend.controller;
 
 import com.secondhand.backend.dto.city.CityRequest;
 import com.secondhand.backend.dto.city.CityResponse;
+import com.secondhand.backend.security.CurrentUserService;
 import com.secondhand.backend.service.CityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -19,13 +18,7 @@ public class CityController {
     private CityService cityService;
 
     @Autowired
-    private com.secondhand.backend.service.UserService userService;
-
-    private Long getCurrentUserId() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        return userService.getUserIdByUsername(userDetails.getUsername());
-    }
+    private CurrentUserService currentUserService;
 
     @GetMapping
     public ResponseEntity<List<CityResponse>> getAllCities() {
@@ -34,7 +27,10 @@ public class CityController {
 
     @PostMapping("/add")
     public ResponseEntity<CityResponse> addCity(@RequestBody CityRequest request) {
-        CityResponse cityResponse = cityService.addCity(getCurrentUserId(), request);
+        CityResponse cityResponse = cityService.addCity(
+                currentUserService.getCurrentUserId(),
+                request
+        );
         return ResponseEntity.status(HttpStatus.CREATED).body(cityResponse);
     }
 }

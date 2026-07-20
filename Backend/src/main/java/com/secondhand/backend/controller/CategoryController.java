@@ -45,7 +45,8 @@ public class CategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<CategoryResponse> updateCategory(
             @PathVariable Long id,
-            @RequestBody CategoryRequest request) {
+            @RequestBody CategoryRequest request
+    ) {
         CategoryResponse updated = categoryService.updateCategory(id, request);
         return ResponseEntity.ok(updated);
     }
@@ -58,7 +59,8 @@ public class CategoryController {
 
     @GetMapping("/popular")
     public ResponseEntity<List<CategoryResponse>> getPopularCategories(
-            @RequestParam(defaultValue = "5") int limit) {
+            @RequestParam(defaultValue = "5") int limit
+    ) {
         return ResponseEntity.ok(categoryService.getPopularCategories(limit));
     }
 }
