@@ -2,8 +2,8 @@ package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.constant.Role;
-import com.secondhand.backend.dto.CommentCreateRequest;
-import com.secondhand.backend.dto.CommentResponse;
+import com.secondhand.backend.dto.comment.CommentCreateRequest;
+import com.secondhand.backend.dto.comment.CommentResponse;
 import com.secondhand.backend.entity.Comment;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.User;

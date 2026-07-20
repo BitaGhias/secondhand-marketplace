@@ -1,7 +1,7 @@
 package com.secondhand.backend.controller;
 
 import com.secondhand.backend.constant.ItemStatus;
-import com.secondhand.backend.dto.*;
+import com.secondhand.backend.dto.item.*;
 import com.secondhand.backend.entity.Image;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.exception.custom.BadRequestException;

@@ -1,4 +1,4 @@
-package com.secondhand.backend.dto;
+package com.secondhand.backend.dto.item;
 
 public class ItemSearchRequest {
     private String keyword;      // کلمه کلیدی

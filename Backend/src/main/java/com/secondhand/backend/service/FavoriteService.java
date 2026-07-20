@@ -1,8 +1,8 @@
 package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.ItemStatus;
-import com.secondhand.backend.dto.FavoriteRequest;
-import com.secondhand.backend.dto.FavoriteResponse;
+import com.secondhand.backend.dto.favorite.FavoriteRequest;
+import com.secondhand.backend.dto.favorite.FavoriteResponse;
 import com.secondhand.backend.entity.Favorite;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.User;

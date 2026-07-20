@@ -1,9 +1,8 @@
 package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.ItemStatus;
-import com.secondhand.backend.dto.RatingCreateRequest;
-import com.secondhand.backend.dto.RatingResponse;
-import com.secondhand.backend.entity.Conversation;
+import com.secondhand.backend.dto.rating.RatingCreateRequest;
+import com.secondhand.backend.dto.rating.RatingResponse;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.Rating;
 import com.secondhand.backend.entity.User;

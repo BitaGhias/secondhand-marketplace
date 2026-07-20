@@ -1,7 +1,7 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.dto.CommentCreateRequest;
-import com.secondhand.backend.dto.CommentResponse;
+import com.secondhand.backend.dto.comment.CommentCreateRequest;
+import com.secondhand.backend.dto.comment.CommentResponse;
 import com.secondhand.backend.service.CommentService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

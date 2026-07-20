@@ -1,4 +1,4 @@
-package com.secondhand.backend.dto;
+package com.secondhand.backend.dto.category;
 
 public class CategoryResponse {
     private Long id;

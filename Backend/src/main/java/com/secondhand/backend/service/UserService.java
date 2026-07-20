@@ -1,9 +1,9 @@
 package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.Role;
-import com.secondhand.backend.dto.UserRegisterRequest;
-import com.secondhand.backend.dto.UserResponse;
-import com.secondhand.backend.dto.UserUpdateRequest;
+import com.secondhand.backend.dto.user.UserRegisterRequest;
+import com.secondhand.backend.dto.user.UserResponse;
+import com.secondhand.backend.dto.user.UserUpdateRequest;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;

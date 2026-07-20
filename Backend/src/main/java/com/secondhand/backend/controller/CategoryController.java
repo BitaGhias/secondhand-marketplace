@@ -1,7 +1,7 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.dto.CategoryRequest;
-import com.secondhand.backend.dto.CategoryResponse;
+import com.secondhand.backend.dto.category.CategoryRequest;
+import com.secondhand.backend.dto.category.CategoryResponse;
 import com.secondhand.backend.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

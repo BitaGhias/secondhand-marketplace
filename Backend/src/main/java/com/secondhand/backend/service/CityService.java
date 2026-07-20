@@ -1,7 +1,7 @@
 package com.secondhand.backend.service;
 
-import com.secondhand.backend.dto.CityRequest;
-import com.secondhand.backend.dto.CityResponse;
+import com.secondhand.backend.dto.city.CityRequest;
+import com.secondhand.backend.dto.city.CityResponse;
 import com.secondhand.backend.entity.City;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.repository.CityRepository;

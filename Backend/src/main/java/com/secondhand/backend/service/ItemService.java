@@ -2,7 +2,7 @@ package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.constant.Role;
-import com.secondhand.backend.dto.*;
+import com.secondhand.backend.dto.item.*;
 import com.secondhand.backend.entity.*;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;

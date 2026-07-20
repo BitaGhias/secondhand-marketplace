@@ -1,4 +1,4 @@
-package com.secondhand.backend.dto;
+package com.secondhand.backend.dto.chat;
 
 public class ChatMessageRequest {
     private Long conversationId;

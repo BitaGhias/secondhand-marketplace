@@ -1,4 +1,4 @@
-package com.secondhand.backend.dto;
+package com.secondhand.backend.dto.city;
 
 public class CityRequest {
     private String name;
