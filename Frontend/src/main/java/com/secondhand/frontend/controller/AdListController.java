@@ -27,7 +27,7 @@ import javafx.util.Duration;
 
 import java.util.List;
 
-public class AdListController extends BaseController implements FilterDialogueController.FilterListener {
+public class AdListController extends BaseController implements FilterDialogController.FilterListener {
 
     @FXML private MenuButton userMenuButton;
     @FXML private TextField searchField;
@@ -188,7 +188,7 @@ public class AdListController extends BaseController implements FilterDialogueCo
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/filter_dialogue.fxml"));
             Parent root = loader.load();
 
-            FilterDialogueController controller = loader.getController();
+            FilterDialogController controller = loader.getController();
             controller.setListener(this);
 
             Stage dialog = new Stage();
