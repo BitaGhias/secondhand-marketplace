@@ -7,7 +7,7 @@
 <VBox prefHeight="800.0" prefWidth="1100.0" spacing="0"
       style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.secondhand.frontend.controller.AdminUserAdsController">
+      fx:controller="com.secondhand.frontend.controller.AdminUserAdListController">
 
     <!-- ===== Title Bar ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"

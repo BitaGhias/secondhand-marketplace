@@ -21,7 +21,7 @@ import java.util.Optional;
  * صفحه ادمین برای یک کاربر خاص:
  * همه آگهی‌های ثبت‌شده، فروخته‌شده و حذف‌شده کاربر + مسدود/فعال‌سازی
  */
-public class AdminUserAdsController extends BaseController {
+public class AdminUserAdListController extends BaseController {
     @FXML private HBox titleBar;
     @FXML private Label userTitleLabel;
     @FXML private Label userInfoLabel;

@@ -1,7 +1,6 @@
 package com.secondhand.frontend.util;
 
 import com.secondhand.frontend.model.User;
-import com.secondhand.frontend.service.ApiClient;
 
 public class SessionManager {
 

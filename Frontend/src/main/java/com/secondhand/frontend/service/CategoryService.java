@@ -3,6 +3,7 @@ package com.secondhand.frontend.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.Category;
+import com.secondhand.frontend.util.ApiClient;
 
 import java.net.http.HttpResponse;
 import java.util.List;

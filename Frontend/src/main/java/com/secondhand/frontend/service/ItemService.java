@@ -3,6 +3,7 @@ package com.secondhand.frontend.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.Item;
+import com.secondhand.frontend.util.ApiClient;
 
 import java.io.File;
 import java.net.URLEncoder;

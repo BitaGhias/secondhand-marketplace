@@ -20,4 +20,6 @@ module com.secondhand.frontend {
     // اجازه دادن به جکسون برای سریالایز کردن کلاس‌های Request داخل سرویس‌ها
     exports com.secondhand.frontend.service;
     opens com.secondhand.frontend.service to com.fasterxml.jackson.databind;
+    exports com.secondhand.frontend.util;
+    opens com.secondhand.frontend.util to com.fasterxml.jackson.databind;
 }

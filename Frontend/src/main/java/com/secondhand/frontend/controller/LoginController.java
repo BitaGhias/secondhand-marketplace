@@ -3,7 +3,7 @@ package com.secondhand.frontend.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.User;
-import com.secondhand.frontend.service.ApiClient;
+import com.secondhand.frontend.util.ApiClient;
 import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;

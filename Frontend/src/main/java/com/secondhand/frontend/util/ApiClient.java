@@ -1,4 +1,4 @@
-package com.secondhand.frontend.service;
+package com.secondhand.frontend.util;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
