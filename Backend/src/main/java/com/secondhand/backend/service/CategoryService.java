@@ -1,7 +1,7 @@
 package com.secondhand.backend.service;
 
-import com.secondhand.backend.dto.CategoryRequest;
-import com.secondhand.backend.dto.CategoryResponse;
+import com.secondhand.backend.dto.category.CategoryRequest;
+import com.secondhand.backend.dto.category.CategoryResponse;
 import com.secondhand.backend.entity.Category;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;

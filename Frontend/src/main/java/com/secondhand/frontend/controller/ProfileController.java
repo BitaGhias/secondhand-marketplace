@@ -4,6 +4,7 @@ import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.UserService;
 import com.secondhand.frontend.util.SessionManager;
+import com.secondhand.frontend.util.ValidationUtil;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -16,12 +17,6 @@ import javafx.stage.FileChooser;
 
 import java.io.File;
 
-/**
- * صفحه پروفایل کاربر:
- * - نمایش و تغییر عکس پروفایل
- * - ویرایش اطلاعات حساب (نام، ایمیل، تلفن)
- * - تغییر رمز عبور
- */
 public class ProfileController extends BaseController {
     @FXML private HBox titleBar;
     @FXML private ImageView avatarImageView;
@@ -38,28 +33,25 @@ public class ProfileController extends BaseController {
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
-        // عکس پروفایل دایره‌ای
         avatarImageView.setClip(new Circle(55, 55, 55));
         loadProfile();
     }
 
     private void loadProfile() {
-        // اول از کش سشن، بعد تازه‌سازی از سرور
         User cached = SessionManager.getCurrentUser();
         if (cached != null) {
             fillForm(cached);
         }
-        new Thread(() -> {
-            try {
-                User fresh = UserService.getCurrentUser();
-                Platform.runLater(() -> {
+
+        UserService.getCurrentUserAsync()
+                .thenAccept(fresh -> Platform.runLater(() -> {
                     SessionManager.setCurrentUser(fresh);
                     fillForm(fresh);
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showMessage("خطا در دریافت اطلاعات پروفایل: " + ex.getMessage(), false));
+                    return null;
                 });
-            } catch (Exception e) {
-                Platform.runLater(() -> showMessage("خطا در دریافت اطلاعات پروفایل: " + e.getMessage(), false));
-            }
-        }).start();
     }
 
     private void fillForm(User user) {
@@ -76,8 +68,7 @@ public class ProfileController extends BaseController {
             if (user.getProfileImageUrl() != null) {
                 avatarImageView.setImage(new Image(user.getProfileImageUrl(), 110, 110, false, true, true));
             } else {
-                avatarImageView.setImage(new Image(
-                        getClass().getResourceAsStream("/com/secondhand/frontend/images/default-item.png")));
+                avatarImageView.setImage(new Image(getClass().getResourceAsStream("/com/secondhand/frontend/images/default-item.png")));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -88,58 +79,65 @@ public class ProfileController extends BaseController {
     private void changeProfilePhoto() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("انتخاب عکس پروفایل");
-        fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp"));
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp"));
         File file = fileChooser.showOpenDialog(avatarImageView.getScene().getWindow());
         if (file == null) return;
 
-        new Thread(() -> {
-            try {
-                User updated = UserService.uploadProfileImage(file);
-                Platform.runLater(() -> {
+        UserService.uploadProfileImageAsync(file)
+                .thenAccept(updated -> Platform.runLater(() -> {
                     SessionManager.setCurrentUser(updated);
                     loadAvatar(updated);
                     showMessage("✅ عکس پروفایل با موفقیت به‌روزرسانی شد", true);
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showMessage("خطا در آپلود عکس: " + ex.getMessage(), false));
+                    return null;
                 });
-            } catch (Exception e) {
-                Platform.runLater(() -> showMessage("خطا در آپلود عکس: " + e.getMessage(), false));
-            }
-        }).start();
     }
 
     @FXML
     private void saveProfile() {
-        String fullName = fullNameField.getText() != null ? fullNameField.getText().trim() : "";
-        String email = emailField.getText() != null ? emailField.getText().trim() : "";
-        String phone = phoneField.getText() != null ? phoneField.getText().trim() : "";
+        String fullName = fullNameField.getText().trim();
+        String email = emailField.getText().trim();
+        String phone = phoneField.getText().trim();
 
         if (fullName.isEmpty()) {
             showMessage("نام و نام خانوادگی نمی‌تواند خالی باشد", false);
             return;
         }
+        if (!ValidationUtil.isValidEmail(email)) {
+            showMessage("لطفاً ایمیل معتبر وارد کنید", false);
+            return;
+        }
+        if (!ValidationUtil.isValidIranianPhone(phone)) {
+            showMessage("شماره تلفن معتبر نیست", false);
+            return;
+        }
 
-        new Thread(() -> {
-            try {
-                User updated = UserService.updateProfile(fullName, phone, email);
-                Platform.runLater(() -> {
+        UserService.updateProfileAsync(fullName, phone, email)
+                .thenAccept(updated -> Platform.runLater(() -> {
                     SessionManager.setCurrentUser(updated);
                     fillForm(updated);
                     showMessage("✅ اطلاعات پروفایل با موفقیت ذخیره شد", true);
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showMessage("خطا در ذخیره پروفایل: " + ex.getMessage(), false));
+                    return null;
                 });
-            } catch (Exception e) {
-                Platform.runLater(() -> showMessage("خطا در ذخیره پروفایل: " + e.getMessage(), false));
-            }
-        }).start();
     }
 
     @FXML
     private void changePassword() {
-        String oldPass = oldPasswordField.getText() != null ? oldPasswordField.getText() : "";
-        String newPass = newPasswordField.getText() != null ? newPasswordField.getText() : "";
-        String confirm = confirmPasswordField.getText() != null ? confirmPasswordField.getText() : "";
+        String oldPass = oldPasswordField.getText();
+        String newPass = newPasswordField.getText();
+        String confirm = confirmPasswordField.getText();
 
         if (oldPass.isBlank() || newPass.isBlank()) {
             showMessage("رمز فعلی و رمز جدید را وارد کنید", false);
+            return;
+        }
+        if (!ValidationUtil.isValidPassword(newPass, 6)) {
+            showMessage("رمز عبور جدید باید حداقل ۶ کاراکتر باشد", false);
             return;
         }
         if (!newPass.equals(confirm)) {
@@ -147,19 +145,17 @@ public class ProfileController extends BaseController {
             return;
         }
 
-        new Thread(() -> {
-            try {
-                UserService.changePassword(oldPass, newPass);
-                Platform.runLater(() -> {
+        UserService.changePasswordAsync(oldPass, newPass)
+                .thenRun(() -> Platform.runLater(() -> {
                     oldPasswordField.clear();
                     newPasswordField.clear();
                     confirmPasswordField.clear();
                     showMessage("✅ رمز عبور با موفقیت تغییر کرد", true);
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showMessage("خطا در تغییر رمز: " + ex.getMessage(), false));
+                    return null;
                 });
-            } catch (Exception e) {
-                Platform.runLater(() -> showMessage("خطا در تغییر رمز: " + e.getMessage(), false));
-            }
-        }).start();
     }
 
     private void showMessage(String text, boolean success) {

@@ -1,7 +1,7 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.dto.FavoriteRequest;
-import com.secondhand.backend.dto.FavoriteResponse;
+import com.secondhand.backend.dto.favorite.FavoriteRequest;
+import com.secondhand.backend.dto.favorite.FavoriteResponse;
 import com.secondhand.backend.service.FavoriteService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

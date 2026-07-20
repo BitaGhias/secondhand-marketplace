@@ -1,7 +1,7 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.dto.RatingCreateRequest;
-import com.secondhand.backend.dto.RatingResponse;
+import com.secondhand.backend.dto.rating.RatingCreateRequest;
+import com.secondhand.backend.dto.rating.RatingResponse;
 import com.secondhand.backend.service.RatingService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

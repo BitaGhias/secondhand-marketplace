@@ -1,6 +1,8 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.dto.*;
+import com.secondhand.backend.dto.chat.ChatMessageRequest;
+import com.secondhand.backend.dto.chat.ChatMessageResponse;
+import com.secondhand.backend.dto.chat.ConversationResponse;
 import com.secondhand.backend.service.ConversationService;
 import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;

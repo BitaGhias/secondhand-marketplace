@@ -15,10 +15,6 @@ import javafx.scene.layout.VBox;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * تاریخچه خریدها: آگهی‌هایی که کاربر جاری واقعاً خریده است
- * (از مسیر GET /api/items/purchased) + امکان امتیازدهی به فروشنده
- */
 public class PurchasesController extends BaseController {
     @FXML private TableView<Item> purchasesTable;
     @FXML private HBox titleBar;
@@ -47,12 +43,10 @@ public class PurchasesController extends BaseController {
         statusCol.setCellValueFactory(cell -> new ReadOnlyStringWrapper(cell.getValue().getPersianStatus()));
         statusCol.setPrefWidth(110);
 
-        // ⭐ ستون امتیازدهی به فروشنده (فقط خریدار مجاز است)
         TableColumn<Item, Void> rateCol = new TableColumn<>("امتیازدهی");
         rateCol.setPrefWidth(140);
         rateCol.setCellFactory(col -> new TableCell<>() {
             private final Button rateButton = new Button("⭐ ثبت امتیاز");
-
             {
                 rateButton.setStyle("-fx-background-color: linear-gradient(to right, #667eea, #764ba2);"
                         + " -fx-text-fill: white; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 12;");
@@ -73,23 +67,20 @@ public class PurchasesController extends BaseController {
     }
 
     private void loadPurchases() {
-        new Thread(() -> {
-            try {
-                // ✅ خریدهای واقعی کاربر از بک‌اند
-                List<Item> purchased = ItemService.getPurchasedItems();
-                Platform.runLater(() -> purchasesTable.getItems().setAll(purchased));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }).start();
+        // تبدیل هندلینگ سنتی ترد به قابلیت‌های Async جاوا
+        ItemService.getPurchasedItemsAsync()
+                .thenAccept(purchased -> Platform.runLater(() -> purchasesTable.getItems().setAll(purchased)))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showAlert("خطا در دریافت لیست خریدها: " + ex.getMessage(), Alert.AlertType.ERROR));
+                    return null;
+                });
     }
 
     private void showRatingDialog(Item item) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("امتیازدهی به فروشنده");
         dialog.setHeaderText("امتیاز شما به «" + item.getOwnerUsername() + "» برای خرید «" + item.getTitle() + "»");
-        dialog.getDialogPane().getStylesheets().add(
-                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+        dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
         dialog.getDialogPane().setStyle("-fx-background-color: #1a1936;");
 
         VBox content = new VBox(10);
@@ -116,17 +107,15 @@ public class PurchasesController extends BaseController {
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
-        final int score = scoreComboBox.getValue() != null ? scoreComboBox.getValue() : 5;
-        final String comment = commentArea.getText() != null ? commentArea.getText().trim() : "";
+        int score = scoreComboBox.getValue() != null ? scoreComboBox.getValue() : 5;
+        String comment = commentArea.getText() != null ? commentArea.getText().trim() : "";
 
-        new Thread(() -> {
-            try {
-                RatingService.rateSeller(item.getId(), score, comment);
-                Platform.runLater(() -> showAlert("✅ امتیاز شما با موفقیت ثبت شد", Alert.AlertType.INFORMATION));
-            } catch (Exception e) {
-                Platform.runLater(() -> showAlert("خطا در ثبت امتیاز: " + e.getMessage(), Alert.AlertType.ERROR));
-            }
-        }).start();
+        RatingService.rateSellerAsync(item.getId(), score, comment)
+                .thenRun(() -> Platform.runLater(() -> showAlert("✅ امتیاز شما با موفقیت ثبت شد", Alert.AlertType.INFORMATION)))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> showAlert("خطا در ثبت امتیاز: " + ex.getMessage(), Alert.AlertType.ERROR));
+                    return null;
+                });
     }
 
     private void showAlert(String message, Alert.AlertType type) {
@@ -134,8 +123,7 @@ public class PurchasesController extends BaseController {
         alert.setTitle(type == Alert.AlertType.ERROR ? "خطا" : "موفق");
         alert.setHeaderText(null);
         alert.setContentText(message);
-        alert.getDialogPane().getStylesheets().add(
-                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+        alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
         alert.getDialogPane().setStyle("-fx-background-color: #1a1936;");
         alert.showAndWait();
     }

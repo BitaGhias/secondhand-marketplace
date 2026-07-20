@@ -174,7 +174,7 @@ public class AdminController extends BaseController {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/admin_user_ads.fxml"));
             Parent root = loader.load();
-            AdminUserAdsController controller = loader.getController();
+            AdminUserAdListController controller = loader.getController();
             controller.setUser(user);
 
             Stage stage = (Stage) usersListView.getScene().getWindow();

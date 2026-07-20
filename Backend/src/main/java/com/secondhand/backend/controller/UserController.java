@@ -1,7 +1,7 @@
 package com.secondhand.backend.controller;
 
 import com.secondhand.backend.constant.Role;
-import com.secondhand.backend.dto.*;
+import com.secondhand.backend.dto.user.*;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.repository.UserRepository;

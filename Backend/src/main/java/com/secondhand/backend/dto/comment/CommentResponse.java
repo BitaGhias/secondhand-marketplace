@@ -1,4 +1,4 @@
-package com.secondhand.backend.dto;
+package com.secondhand.backend.dto.comment;
 
 import java.time.LocalDateTime;
 

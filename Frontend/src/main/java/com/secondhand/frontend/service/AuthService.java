@@ -2,45 +2,97 @@ package com.secondhand.frontend.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.User;
-import com.secondhand.frontend.service.ApiClient;
+import com.secondhand.frontend.util.ApiClient;
 
+import java.net.URI;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
 
 public class AuthService {
 
     private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
-    // ثبت‌نام
-    public static User register(String fullName, String username, String password,
-                                String phoneNumber, String email) throws Exception {
-        RegisterRequest request = new RegisterRequest(fullName, username, password, phoneNumber, email);
-        HttpResponse<String> response = ApiClient.post("/auth/register", request);
+    /**
+     * ثبت‌نام کاربر به صورت کاملاً ناهمگام (Async)
+     */
+    public static CompletableFuture<String> register(String fullName, String username, String email, String phone, String password) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+        try {
+            RegisterRequest requestObj = new RegisterRequest(fullName, username, password, phone, email);
+            String json = objectMapper.writeValueAsString(requestObj);
 
-        if (response.statusCode() == 200 || response.statusCode() == 201) {
-            return objectMapper.readValue(response.body(), User.class);
-        } else {
-            throw new Exception("خطا در ثبت‌نام: " + response.body());
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(ApiClient.getBaseUrl() + "/auth/register"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenAccept(response -> {
+                        int statusCode = response.statusCode();
+                        String responseBody = response.body();
+
+                        if (statusCode == 200 || statusCode == 201) {
+                            future.complete(responseBody);
+                        } else {
+                            future.completeExceptionally(new RuntimeException(responseBody));
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        future.completeExceptionally(new RuntimeException("عدم ارتباط با سرور: " + ex.getMessage()));
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            future.completeExceptionally(new RuntimeException("خطا در پردازش اطلاعات: " + e.getMessage()));
         }
+        return future;
     }
 
-    // ورود
-    public static LoginResponse login(String username, String password) throws Exception {
-        LoginRequest request = new LoginRequest(username, password);
-        HttpResponse<String> response = ApiClient.post("/auth/login", request);
+    /**
+     * ورود کاربر به صورت ناهمگام (Async)
+     */
+    public static CompletableFuture<LoginResponse> login(String username, String password) {
+        CompletableFuture<LoginResponse> future = new CompletableFuture<>();
+        try {
+            LoginRequest requestObj = new LoginRequest(username, password);
+            String json = objectMapper.writeValueAsString(requestObj);
 
-        if (response.statusCode() == 200) {
-            LoginResponse loginResponse = objectMapper.readValue(response.body(), LoginResponse.class);
-            ApiClient.setToken(loginResponse.getToken());
-            return loginResponse;
-        } else {
-            throw new Exception("خطا در ورود: " + response.body());
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(ApiClient.getBaseUrl() + "/auth/login"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
+
+            ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenAccept(response -> {
+                        try {
+                            if (response.statusCode() == 200) {
+                                LoginResponse loginResponse = objectMapper.readValue(response.body(), LoginResponse.class);
+                                ApiClient.setToken(loginResponse.getToken());
+                                future.complete(loginResponse);
+                            } else {
+                                future.completeExceptionally(new RuntimeException(response.body()));
+                            }
+                        } catch (Exception e) {
+                            future.completeExceptionally(new RuntimeException("خطا در تحلیل پاسخ سرور"));
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        future.completeExceptionally(new RuntimeException("عدم ارتباط با سرور: " + ex.getMessage()));
+                        return null;
+                    });
+
+        } catch (Exception e) {
+            future.completeExceptionally(new RuntimeException("خطا در پردازش اطلاعات: " + e.getMessage()));
         }
+        return future;
     }
 
     // دریافت پروفایل
     public static User getProfile() throws Exception {
         HttpResponse<String> response = ApiClient.get("/auth/profile");
-
         if (response.statusCode() == 200) {
             return objectMapper.readValue(response.body(), User.class);
         } else {
@@ -58,11 +110,10 @@ public class AuthService {
         return ApiClient.isAuthenticated();
     }
 
-    // کلاس‌های داخلی برای Request
+    // ===== کلاس‌های داخلی DTO =====
     public static class RegisterRequest {
         public String fullName, username, password, phoneNumber, email;
-        public RegisterRequest(String fullName, String username, String password,
-                               String phoneNumber, String email) {
+        public RegisterRequest(String fullName, String username, String password, String phoneNumber, String email) {
             this.fullName = fullName;
             this.username = username;
             this.password = password;

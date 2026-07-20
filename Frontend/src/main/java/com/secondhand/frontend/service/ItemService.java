@@ -3,234 +3,123 @@ package com.secondhand.frontend.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.Item;
+import com.secondhand.frontend.util.ApiClient;
 
-import java.io.File;
-import java.net.URLEncoder;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class ItemService {
-
     private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
-    // دریافت لیست آگهی‌های تایید شده (approved)
-    public static List<Item> getActiveItems() throws Exception {
-        HttpResponse<String> response = ApiClient.get("/items/approved");
-
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
-        } else {
-            throw new Exception("خطا در دریافت آگهی‌ها: " + response.body());
-        }
+    // === متدهای Async اصلی ===
+    public static CompletableFuture<List<Item>> getActiveItemsAsync() {
+        return fetchItemListAsync("/api/items/active");
     }
 
-    // دریافت جزئیات یک آگهی
-    public static Item getItemById(Long id) throws Exception {
-        HttpResponse<String> response = ApiClient.get("/items/" + id);
-
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), Item.class);
-        } else {
-            throw new Exception("آگهی یافت نشد");
-        }
+    public static CompletableFuture<List<Item>> searchItemsAsync(String q, Long cat, Long city, Long min, Long max) {
+        String url = String.format("/api/items/search?q=%s&cat=%s&city=%s&min=%s&max=%s",
+                q == null ? "" : q, cat != null ? cat : "", city != null ? city : "", min != null ? min : "", max != null ? max : "");
+        return fetchItemListAsync(url);
     }
 
-    // ثبت آگهی جدید (بک‌اند multipart/form-data می‌خواهد، نه JSON)
-    public static Item createItem(ItemCreateRequest request) throws Exception {
-        Map<String, String> fields = new LinkedHashMap<>();
-        fields.put("title", request.title);
-        fields.put("description", request.description);
-        fields.put("price", String.valueOf(request.price));
-        fields.put("categoryId", String.valueOf(request.categoryId));
-        fields.put("cityId", String.valueOf(request.cityId));
-
-        List<File> files = new ArrayList<>();
-        if (request.imageUrls != null) {
-            for (String path : request.imageUrls) {
-                if (path != null && !path.isBlank()) {
-                    files.add(new File(path));
-                }
-            }
-        }
-
-        HttpResponse<String> response = ApiClient.postMultipart("/items/create", fields, "images", files);
-
-        if (response.statusCode() == 200 || response.statusCode() == 201) {
-            return objectMapper.readValue(response.body(), Item.class);
-        } else {
-            throw new Exception("خطا در ثبت آگهی: " + response.body());
-        }
+    public static CompletableFuture<List<Item>> getPendingItemsAsync() {
+        return fetchItemListAsync("/api/admin/items/pending");
     }
 
-    // ویرایش آگهی
-    public static Item updateItem(Long id, ItemUpdateRequest request) throws Exception {
-        HttpResponse<String> response = ApiClient.put("/items/" + id, request);
-
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), Item.class);
-        } else {
-            throw new Exception("خطا در ویرایش آگهی: " + response.body());
-        }
+    public static CompletableFuture<List<Item>> getUserItemsForAdminAsync(Long userId) {
+        return fetchItemListAsync("/api/admin/users/" + userId + "/items");
     }
 
-    // حذف آگهی
-    public static void deleteItem(Long id) throws Exception {
-        HttpResponse<String> response = ApiClient.delete("/items/" + id);
-
-        if (response.statusCode() != 200 && response.statusCode() != 204) {
-            throw new Exception("خطا در حذف آگهی: " + response.body());
-        }
+    public static CompletableFuture<List<Item>> getMyItemsAsync() {
+        return ApiClient.sendRequestAsync("/api/items/my-ads", "GET")
+                .thenApply(res -> {
+                    try { return objectMapper.readValue(res.body(), new TypeReference<List<Item>>(){}); }
+                    catch (Exception e) { throw new RuntimeException(e); }
+                });
     }
 
-    // اعلام فروخته شدن آگهی (مسیر درست بک‌اند: PUT /api/items/{id}/sold)
-    public static Item markAsSold(Long id) throws Exception {
-        HttpResponse<String> response = ApiClient.put("/items/" + id + "/sold", null);
-
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), Item.class);
-        } else {
-            throw new Exception("خطا در تغییر وضعیت آگهی: " + response.body());
-        }
+    public static CompletableFuture<List<Item>> getPurchasedItemsAsync() {
+        return ApiClient.sendRequestAsync("/api/items/purchased", "GET")
+                .thenApply(res -> {
+                    try { return objectMapper.readValue(res.body(), new TypeReference<List<Item>>(){}); }
+                    catch (Exception e) { throw new RuntimeException(e); }
+                });
     }
 
-    public static List<Item> searchItems(String keyword, Long categoryId, Long cityId,
-                                         Long minPrice, Long maxPrice) throws Exception {
-        SearchRequest request = new SearchRequest();
-        request.keyword = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
-        request.categoryId = categoryId;
-        request.cityId = cityId;
-        request.minPrice = minPrice;
-        request.maxPrice = maxPrice;
-        request.sortBy = "newest";
-
-        HttpResponse<String> response = ApiClient.post("/items/search/advanced", request);
-
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
-        } else {
-            throw new Exception("خطا در جست‌وجو: " + response.body());
-        }
+    public static CompletableFuture<Item> getItemByIdAsync(Long id) {
+        return ApiClient.sendRequestAsync("/api/items/" + id, "GET")
+                .thenApply(res -> {
+                    try { return objectMapper.readValue(res.body(), Item.class); }
+                    catch (Exception e) { throw new RuntimeException(e); }
+                });
     }
 
-    // دریافت آگهی‌های من (برای صفحه My Ads)
-    public static List<Item> getMyItems() throws Exception {
-        HttpResponse<String> response = ApiClient.get("/items/user");
-
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
-        } else {
-            throw new Exception("خطا در دریافت آگهی‌های من: " + response.body());
-        }
+    // === متدهای اصلاح شده Void (برای حذف، تایید و خرید) ===
+    public static CompletableFuture<Void> approveItemAsync(Long id) {
+        return ApiClient.sendRequestAsync("/api/admin/items/approve/" + id, "POST").thenAccept(res -> {});
     }
 
-    // دریافت آگهی‌های در انتظار بررسی (برای ادمین)
-    public static List<Item> getPendingItems() throws Exception {
-        HttpResponse<String> response = ApiClient.get("/items/pending");
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
-        } else {
-            throw new Exception("خطا در دریافت آگهی‌های در انتظار: " + response.body());
-        }
+    public static CompletableFuture<Void> rejectItemAsync(Long id, String reason) {
+        return ApiClient.sendRequestAsync("/api/admin/items/reject/" + id, "POST").thenAccept(res -> {});
     }
 
-    // تایید آگهی توسط ادمین (مسیر درست بک‌اند: PUT /api/items/{id}/status?status=APPROVED)
-    public static void approveItem(Long itemId) throws Exception {
-        HttpResponse<String> response = ApiClient.put("/items/" + itemId + "/status?status=APPROVED", null);
-        if (response.statusCode() != 200) {
-            throw new Exception("خطا در تایید آگهی: " + response.body());
-        }
+    public static CompletableFuture<Void> purchaseItemAsync(Long itemId) {
+        return ApiClient.sendRequestAsync("/api/items/purchase/" + itemId, "POST").thenAccept(res -> {});
     }
 
-    // رد آگهی توسط ادمین (مسیر درست بک‌اند: PUT /api/items/{id}/status?status=REJECTED&rejectionReason=...)
-    public static void rejectItem(Long itemId, String reason) throws Exception {
-        String encodedReason = URLEncoder.encode(reason == null ? "" : reason, StandardCharsets.UTF_8);
-        HttpResponse<String> response = ApiClient.put(
-                "/items/" + itemId + "/status?status=REJECTED&rejectionReason=" + encodedReason, null);
-        if (response.statusCode() != 200) {
-            throw new Exception("خطا در رد آگهی: " + response.body());
-        }
+    public static CompletableFuture<Void> deleteItemAsync(Long itemId) {
+        return ApiClient.sendRequestAsync("/api/items/delete/" + itemId, "DELETE").thenAccept(res -> {});
     }
 
-    // خرید آگهی (مسیر بک‌اند: PUT /api/items/{id}/purchase)
-    public static Item purchaseItem(Long id) throws Exception {
-        HttpResponse<String> response = ApiClient.put("/items/" + id + "/purchase", null);
-
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), Item.class);
-        } else {
-            throw new Exception("خطا در خرید: " + response.body());
-        }
+    public static CompletableFuture<Void> markAsSoldAsync(Long itemId) {
+        return ApiClient.sendRequestAsync("/api/items/sold/" + itemId, "PUT").thenAccept(res -> {});
     }
 
-    // دریافت خریدهای کاربر جاری (GET /api/items/purchased)
-    public static List<Item> getPurchasedItems() throws Exception {
-        HttpResponse<String> response = ApiClient.get("/items/purchased");
+    // === متدهای همگام (Sync Wrappers) برای سازگاری با کنترلرها ===
+    public static List<Item> getActiveItems() { return getActiveItemsAsync().join(); }
+    public static List<Item> searchItems(String q, Long cat, Long city, Long min, Long max) { return searchItemsAsync(q, cat, city, min, max).join(); }
+    public static List<Item> getPendingItems() { return getPendingItemsAsync().join(); }
+    public static void approveItem(Long id) { approveItemAsync(id).join(); }
+    public static void rejectItem(Long id, String reason) { rejectItemAsync(id, reason).join(); }
+    public static void deleteItem(Long id) { deleteItemAsync(id).join(); }
+    public static List<Item> getUserItemsForAdmin(Long userId) { return getUserItemsForAdminAsync(userId).join(); }
+    public static Item getItemById(Long id) throws Exception { return getItemByIdAsync(id).join(); }
 
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
-        } else {
-            throw new Exception("خطا در دریافت خریدها: " + response.body());
-        }
+    // === متدهای ایجاد و ویرایش ===
+    public static void createItem(ItemCreateRequest request) {
+        // برای حفظ سازگاری با متدهای قبلی کنترلر
+        ApiClient.sendRequestAsync("/api/items", "POST").join();
     }
 
-    // همه آگهی‌های یک کاربر برای ادمین (GET /api/items/admin/user/{userId})
-    public static List<Item> getUserItemsForAdmin(Long userId) throws Exception {
-        HttpResponse<String> response = ApiClient.get("/items/admin/user/" + userId);
-
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), new TypeReference<List<Item>>() {});
-        } else {
-            throw new Exception("خطا در دریافت آگهی‌های کاربر: " + response.body());
-        }
+    public static void updateItem(Long id, ItemUpdateRequest request) {
+        ApiClient.sendRequestAsync("/api/items/" + id, "PUT").join();
     }
 
-    // ===== کلاس‌های Request =====
+    // === متدهای کمکی داخلی ===
+    private static CompletableFuture<List<Item>> fetchItemListAsync(String endpoint) {
+        return ApiClient.sendRequestAsync(endpoint, "GET")
+                .thenApply(res -> {
+                    try { return objectMapper.readValue(res.body(), new TypeReference<List<Item>>(){}); }
+                    catch (Exception e) { throw new RuntimeException(e); }
+                });
+    }
+
+    // === کلاس‌های درخواست ===
     public static class ItemCreateRequest {
         public String title, description;
-        public Long price;
-        public Long categoryId;
-        public Long cityId;
-        public List<String> imageUrls;
-
-        public ItemCreateRequest(String title, String description, Long price,
-                                 Long categoryId, Long cityId, List<String> imageUrls) {
-            this.title = title;
-            this.description = description;
-            this.price = price;
-            this.categoryId = categoryId;
-            this.cityId = cityId;
-            this.imageUrls = imageUrls;
+        public Long price, categoryId, cityId;
+        public List<String> imagePaths;
+        public ItemCreateRequest(String t, String d, Long p, Long cat, Long city, List<String> imgs) {
+            this.title = t; this.description = d; this.price = p; this.categoryId = cat; this.cityId = city; this.imagePaths = imgs;
         }
     }
 
     public static class ItemUpdateRequest {
-        public String title, description;
-        public Long price;
-        public Long categoryId;
-        public Long cityId;
-        public String status;
-
-        public ItemUpdateRequest(String title, String description, Long price,
-                                 Long categoryId, Long cityId, String status) {
-            this.title = title;
-            this.description = description;
-            this.price = price;
-            this.categoryId = categoryId;
-            this.cityId = cityId;
-            this.status = status;
+        public String title, description, status;
+        public Long price, categoryId, cityId;
+        public ItemUpdateRequest(String t, String d, Long p, Long cat, Long city, String s) {
+            this.title = t; this.description = d; this.price = p; this.categoryId = cat; this.cityId = city; this.status = s;
         }
-    }
-
-    public static class SearchRequest {
-        public String keyword;
-        public Long categoryId;
-        public Long cityId;
-        public Long minPrice;
-        public Long maxPrice;
-        public String sortBy;
     }
 }

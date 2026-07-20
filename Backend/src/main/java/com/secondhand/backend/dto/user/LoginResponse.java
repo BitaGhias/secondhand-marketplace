@@ -1,4 +1,4 @@
-package com.secondhand.backend.dto;
+package com.secondhand.backend.dto.user;
 
 public class LoginResponse {
     private UserResponse user;

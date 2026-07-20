@@ -1,4 +1,4 @@
-package com.secondhand.backend.dto;
+package com.secondhand.backend.dto.rating;
 
 public class RatingCreateRequest {
     private Long itemId;

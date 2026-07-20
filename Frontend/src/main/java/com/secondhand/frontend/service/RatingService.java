@@ -1,34 +1,35 @@
 package com.secondhand.frontend.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.secondhand.frontend.model.Rating;
-
+import com.secondhand.frontend.util.ApiClient;
+import java.net.URI;
+import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.concurrent.CompletableFuture;
 
 public class RatingService {
 
-    private static final ObjectMapper objectMapper = ApiClient.getMapper();
+    public static CompletableFuture<Void> rateSellerAsync(Long itemId, int score, String comment) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        try {
+            String json = String.format("{\"itemId\":%d,\"score\":%d,\"comment\":\"%s\"}", itemId, score, comment);
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(ApiClient.getBaseUrl() + "/api/ratings/rate"))
+                    .header("Content-Type", "application/json")
+                    .header("Authorization", "Bearer " + ApiClient.getToken())
+                    .POST(HttpRequest.BodyPublishers.ofString(json))
+                    .build();
 
-    // ثبت امتیاز (مسیر درست بک‌اند: POST /api/ratings/add)
-    public static Rating rateSeller(Long itemId, int score, String comment) throws Exception {
-        RatingRequest request = new RatingRequest(itemId, score, comment);
-        HttpResponse<String> response = ApiClient.post("/ratings/add", request);
-
-        if (response.statusCode() == 200 || response.statusCode() == 201) {
-            return objectMapper.readValue(response.body(), Rating.class);
-        } else {
-            throw new Exception("خطا در ثبت امتیاز: " + response.body());
+            ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                    .thenAccept(response -> {
+                        if (response.statusCode() == 200 || response.statusCode() == 201) {
+                            future.complete(null);
+                        } else {
+                            future.completeExceptionally(new RuntimeException(response.body()));
+                        }
+                    });
+        } catch (Exception e) {
+            future.completeExceptionally(e);
         }
-    }
-
-    public static class RatingRequest {
-        public Long itemId;
-        public int score;
-        public String comment;
-        public RatingRequest(Long itemId, int score, String comment) {
-            this.itemId = itemId;
-            this.score = score;
-            this.comment = comment;
-        }
+        return future;
     }
 }

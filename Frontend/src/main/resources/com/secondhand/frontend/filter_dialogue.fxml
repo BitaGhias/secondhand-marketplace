@@ -6,7 +6,7 @@
 <VBox prefWidth="400.0" spacing="15" style="-fx-background-color: #14142b;"
       alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.secondhand.frontend.controller.FilterDialogueController">
+      fx:controller="com.secondhand.frontend.controller.FilterDialogController">
     <padding>
         <Insets top="25" right="25" bottom="25" left="25"/>
     </padding>

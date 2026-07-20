@@ -1,7 +1,9 @@
 package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.ItemStatus;
-import com.secondhand.backend.dto.*;
+import com.secondhand.backend.dto.chat.ChatMessageRequest;
+import com.secondhand.backend.dto.chat.ChatMessageResponse;
+import com.secondhand.backend.dto.chat.ConversationResponse;
 import com.secondhand.backend.entity.*;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ForbiddenException;
@@ -14,7 +16,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class ConversationService {

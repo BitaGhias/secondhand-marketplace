@@ -10,6 +10,7 @@ import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.RatingService;
 import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.WindowUtil;
+import com.secondhand.frontend.util.ImageLoaderUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -53,9 +54,8 @@ public class ItemDetailController extends BaseController {
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
-        currentUserId = getCurrentUserId();
+        currentUserId = SessionManager.getCurrentUserId();
 
-        // دکمه‌های مخفی نباید فضای صفحه را اشغال کنند
         bindManaged(buyButton);
         bindManaged(chatButton);
         bindManaged(ratingButton);
@@ -68,11 +68,6 @@ public class ItemDetailController extends BaseController {
         if (button != null) {
             button.managedProperty().bind(button.visibleProperty());
         }
-    }
-
-    private Long getCurrentUserId() {
-        // ✅ شناسه کاربر جاری از SessionManager (بعد از لاگین پر می‌شود)
-        return SessionManager.getCurrentUserId();
     }
 
     public void setItem(Item item) {
@@ -101,8 +96,7 @@ public class ItemDetailController extends BaseController {
     private void loadImages() {
         List<Image> images = currentItem.getImages();
         if (images != null && !images.isEmpty()) {
-            String firstImageUrl = images.get(0).getFullUrl();
-            loadImage(mainImageView, firstImageUrl);
+            ImageLoaderUtil.loadImageWithDefault(mainImageView, images.get(0).getFullUrl());
 
             thumbnailContainer.getChildren().clear();
             for (int i = 1; i < Math.min(images.size(), 5); i++) {
@@ -113,46 +107,16 @@ public class ItemDetailController extends BaseController {
                 thumb.setStyle("-fx-cursor: hand; -fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 8;");
 
                 final String imageUrl = images.get(i).getFullUrl();
-                loadImage(thumb, imageUrl);
+                ImageLoaderUtil.loadImageWithDefault(thumb, imageUrl);
 
-                thumb.setOnMouseClicked(e -> loadImage(mainImageView, imageUrl));
+                thumb.setOnMouseClicked(e -> ImageLoaderUtil.loadImageWithDefault(mainImageView, imageUrl));
                 thumbnailContainer.getChildren().add(thumb);
             }
         } else {
-            loadDefaultImage(mainImageView);
+            ImageLoaderUtil.loadDefaultImage(mainImageView);
         }
     }
 
-    private void loadImage(javafx.scene.image.ImageView imageView, String url) {
-        try {
-            if (url != null && !url.isEmpty()) {
-                imageView.setImage(new javafx.scene.image.Image(url, true));
-            } else {
-                loadDefaultImage(imageView);
-            }
-        } catch (Exception e) {
-            loadDefaultImage(imageView);
-        }
-    }
-
-    private void loadDefaultImage(javafx.scene.image.ImageView imageView) {
-        try {
-            String defaultPath = "/com/secondhand/frontend/images/default-item.png";
-            var stream = getClass().getResourceAsStream(defaultPath);
-            if (stream != null) {
-                imageView.setImage(new javafx.scene.image.Image(stream));
-            }
-        } catch (Exception e) {
-            System.err.println("خطا در بارگذاری تصویر پیش‌فرض: " + e.getMessage());
-        }
-    }
-
-    /**
-     * تعیین دکمه‌های قابل نمایش بر اساس نقش کاربر و وضعیت آگهی:
-     * - مالک: دکمه‌های مدیریتی
-     * - غیرمالک: خرید و چت (فقط برای آگهی فعال)، علاقه‌مندی،
-     *   و امتیازدهی فقط اگر همین کالا را خریده باشد
-     */
     private void configureActions() {
         if (currentItem == null || currentUserId == null) return;
 
@@ -167,13 +131,11 @@ public class ItemDetailController extends BaseController {
             buyButton.setVisible(approved);
             chatButton.setVisible(approved);
             favoriteButton.setVisible(true);
-            // ⭐ امتیازدهی فقط بعد از خرید همین کالا مجاز است
             ratingButton.setVisible(iAmBuyer);
         }
     }
 
     private void checkFavoriteStatus() {
-        // فقط برای غیرمالک معنا دارد
         if (currentItem == null || currentUserId == null || currentItem.isOwner(currentUserId)) return;
         new Thread(() -> {
             try {
@@ -216,9 +178,6 @@ public class ItemDetailController extends BaseController {
         }
     }
 
-    /**
-     * 🛒 خرید کالا + امکان امتیازدهی همزمان به فروشنده (در حین خرید)
-     */
     @FXML
     private void buyItem() {
         if (currentItem == null) return;
@@ -269,44 +228,35 @@ public class ItemDetailController extends BaseController {
         final int score = scoreComboBox.getValue() != null ? scoreComboBox.getValue() : 5;
         final String comment = commentArea.getText() != null ? commentArea.getText().trim() : "";
 
-        new Thread(() -> {
-            try {
-                ItemService.purchaseItem(currentItem.getId());
-
-                String ratingMsg = "";
-                if (rateToo) {
-                    try {
-                        RatingService.rateSeller(currentItem.getId(), score, comment);
-                        ratingMsg = " و امتیاز شما ثبت شد";
-                    } catch (Exception ratingError) {
-                        ratingMsg = " (ثبت امتیاز ناموفق بود: " + ratingError.getMessage() + ")";
+        // استفاده از ساختار ناهمگام جدید ItemService که در مراحل قبلی ساخته شد
+        ItemService.purchaseItemAsync(currentItem.getId())
+                .thenCompose(v -> {
+                    if (rateToo) {
+                        return RatingService.rateSellerAsync(currentItem.getId(), score, comment)
+                                .thenApply(r -> " و امتیاز شما ثبت شد");
                     }
-                }
-
-                final String msg = "✅ خرید با موفقیت انجام شد" + ratingMsg + " — در بخش «خریدها» قابل مشاهده است";
-                Platform.runLater(() -> {
+                    return java.util.concurrent.CompletableFuture.completedFuture("");
+                })
+                .thenAccept(ratingMsg -> Platform.runLater(() -> {
                     currentItem.setStatus("SOLD");
                     currentItem.setBuyerId(currentUserId);
                     statusLabel.setText(currentItem.getPersianStatus());
                     statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
                     configureActions();
-                    showMessage(msg, "success");
+                    showMessage("✅ خرید با موفقیت انجام شد" + ratingMsg + " — در بخش «خریدها» قابل مشاهده است", "success");
+                }))
+                .exceptionally(ex -> {
+                    String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    showMessage("خطا در خرید: " + errorMsg, "error");
+                    return null;
                 });
-            } catch (Exception e) {
-                showMessage("خطا در خرید: " + e.getMessage(), "error");
-            }
-        }).start();
     }
 
-    /**
-     * 💬 شروع/باز کردن گفت‌وگو با فروشنده و رفتن مستقیم به صفحه چت
-     */
     @FXML
     private void startChat() {
         if (currentItem == null) return;
         new Thread(() -> {
             try {
-                // اگر گفت‌وگو از قبل وجود داشته باشد، بک‌اند همان را برمی‌گرداند
                 Conversation conversation = ChatService.startConversation(currentItem.getId(), null);
                 ChatsController.setInitialConversationId(conversation.getId());
                 Platform.runLater(() -> {
@@ -348,7 +298,6 @@ public class ItemDetailController extends BaseController {
             commentArea.setPrefHeight(80);
 
             content.getChildren().addAll(scoreLabel, scoreComboBox, commentLabel, commentArea);
-
             dialog.getDialogPane().setContent(content);
             dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -357,15 +306,13 @@ public class ItemDetailController extends BaseController {
                 int score = scoreComboBox.getValue();
                 String comment = commentArea.getText().trim();
 
-                // 🟢 انتقال عملیات شبکه به ترد پس‌زمینه برای جلوگیری از فریز شدن UI
-                new Thread(() -> {
-                    try {
-                        RatingService.rateSeller(currentItem.getId(), score, comment);
-                        showMessage("امتیاز با موفقیت ثبت شد", "success");
-                    } catch (Exception e) {
-                        showMessage("خطا در ثبت امتیاز: " + e.getMessage(), "error");
-                    }
-                }).start();
+                RatingService.rateSellerAsync(currentItem.getId(), score, comment)
+                        .thenAccept(v -> showMessage("امتیاز با موفقیت ثبت شد", "success"))
+                        .exceptionally(ex -> {
+                            String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                            showMessage("خطا در ثبت امتیاز: " + errorMsg, "error");
+                            return null;
+                        });
             }
         } catch (Exception e) {
             showMessage("خطا در بارگذاری دیالوگ: " + e.getMessage(), "error");
@@ -381,7 +328,6 @@ public class ItemDetailController extends BaseController {
     @FXML
     private void editItem() {
         try {
-            // ✅ لود صفحه ویرایش و پاس دادن آگهی جاری به آن (حالت ویرایش)
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/create_ad.fxml"));
             Parent root = loader.load();
             CreateAdController controller = loader.getController();
@@ -410,28 +356,33 @@ public class ItemDetailController extends BaseController {
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
-            try {
-                ItemService.deleteItem(currentItem.getId());
-                showMessage("آگهی با موفقیت حذف شد", "success");
-                goBack();
-            } catch (Exception e) {
-                showMessage("خطا در حذف آگهی: " + e.getMessage(), "error");
-            }
+            ItemService.deleteItemAsync(currentItem.getId())
+                    .thenAccept(v -> Platform.runLater(() -> {
+                        showMessage("آگهی با موفقیت حذف شد", "success");
+                        goBack();
+                    }))
+                    .exceptionally(ex -> {
+                        String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                        showMessage("خطا در حذف آگهی: " + errorMsg, "error");
+                        return null;
+                    });
         }
     }
 
     @FXML
     private void markAsSold() {
-        try {
-            // ✅ مسیر درست بک‌اند: PUT /api/items/{id}/sold
-            ItemService.markAsSold(currentItem.getId());
-            showMessage("وضعیت آگهی به فروخته شده تغییر کرد", "success");
-            currentItem.setStatus("SOLD");
-            statusLabel.setText(currentItem.getPersianStatus());
-            statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
-        } catch (Exception e) {
-            showMessage("خطا در تغییر وضعیت: " + e.getMessage(), "error");
-        }
+        ItemService.markAsSoldAsync(currentItem.getId())
+                .thenAccept(v -> Platform.runLater(() -> {
+                    showMessage("وضعیت آگهی به فروخته شده تغییر کرد", "success");
+                    currentItem.setStatus("SOLD");
+                    statusLabel.setText(currentItem.getPersianStatus());
+                    statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+                }))
+                .exceptionally(ex -> {
+                    String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    showMessage("خطا در تغییر وضعیت: " + errorMsg, "error");
+                    return null;
+                });
     }
 
     @FXML

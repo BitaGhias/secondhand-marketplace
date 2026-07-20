@@ -1,7 +1,7 @@
 package com.secondhand.backend.controller;
 
-import com.secondhand.backend.dto.CityRequest;
-import com.secondhand.backend.dto.CityResponse;
+import com.secondhand.backend.dto.city.CityRequest;
+import com.secondhand.backend.dto.city.CityResponse;
 import com.secondhand.backend.service.CityService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
