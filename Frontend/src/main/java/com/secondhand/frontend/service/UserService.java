@@ -1,5 +1,6 @@
 package com.secondhand.frontend.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.util.ApiClient;
@@ -8,6 +9,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class UserService {
@@ -107,5 +109,34 @@ public class UserService {
         // یک پیاده‌سازی موقت Async برای پر نشدن ارور ادیتور:
         future.completeExceptionally(new RuntimeException("متد آپلود مولتی‌پارت نیاز به ساختار فرم دارد."));
         return future;
+    }
+
+    public static CompletableFuture<List<User>> getAllUsersAsync() {
+        CompletableFuture<List<User>> future = new CompletableFuture<>();
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(ApiClient.getBaseUrl() + "/api/admin/users"))
+                .header("Authorization", "Bearer " + ApiClient.getToken())
+                .GET().build();
+
+        ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
+                .thenAccept(res -> {
+                    try {
+                        if (res.statusCode() == 200) {
+                            future.complete(ApiClient.getMapper().readValue(res.body(), new TypeReference<>(){}));
+                        } else {
+                            future.completeExceptionally(new RuntimeException(res.body()));
+                        }
+                    } catch (Exception e) {
+                        future.completeExceptionally(e);
+                    }
+                }).exceptionally(ex -> {
+                    future.completeExceptionally(ex);
+                    return null;
+                });
+        return future;
+    }
+
+    public static List<User> getAllUsers() {
+        return getAllUsersAsync().join();
     }
 }
