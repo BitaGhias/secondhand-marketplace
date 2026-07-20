@@ -5,6 +5,7 @@ import com.secondhand.backend.exception.custom.ForbiddenException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.exception.custom.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -73,13 +74,26 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request);
     }
 
-    // 409 Conflict
+    // 409 Conflict - برای خطاهای منطقی تکراری که دستی throw شده‌اند
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleConflict(
             IllegalStateException ex,
             HttpServletRequest request
     ) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request);
+    }
+
+    // 409 Conflict - برای خطاهای constraint دیتابیس
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "داده تکراری یا نامعتبر است و با محدودیت‌های پایگاه داده سازگار نیست.",
+                HttpStatus.CONFLICT,
+                request
+        );
     }
 
     // 400 - وقتی JSON خراب یا body نامعتبر ارسال شود
