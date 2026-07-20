@@ -16,21 +16,28 @@ import java.nio.file.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 public class ItemService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ItemService.class);
 
     @Autowired private ItemRepository itemRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private CityRepository cityRepository;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private ImageRepository imageRepository;
-    @Autowired private UserService userService;
-
-    // ===== Validation Methods =====
 
     private void validateItemPrice(Long price) {
-        if (price <= 0) throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
+        if (price == null) {
+            throw new BadRequestException("قیمت آگهی الزامی است!");
+        }
+
+        if (price <= 0) {
+            throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
+        }
     }
 
     private void validateItemTitleAndDescription(String title, String description) {
@@ -38,14 +45,14 @@ public class ItemService {
         if (description == null || description.trim().isEmpty()) throw new BadRequestException("توضیحات آگهی نمی‌تواند خالی باشد!");
     }
 
-    // ✅ اصلاح: متد با پارامتر User
+    //  اصلاح: متد با پارامتر User
     private void validateUserIsAdmin(User user) {
         if (user.getRole() != Role.ADMIN) {
             throw new ForbiddenException("شما دسترسی ادمین ندارید!");
         }
     }
 
-    // ✅ متد کمکی برای گرفتن User از userId و بررسی ادمین
+    //  متد کمکی برای گرفتن User از userId و بررسی ادمین
     private void validateUserIsAdmin(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -303,8 +310,7 @@ public class ItemService {
                     Files.delete(filePath);
                 }
             } catch (IOException e) {
-                System.out.println("⚠️ خطا در حذف تصویر: " + image.getImagePath() + " - " + e.getMessage());
-            }
+                logger.warn("خطا در حذف فایل تصویر: {} - {}", image.getImagePath(), e.getMessage());            }
         }
 
         imageRepository.deleteAll(images);

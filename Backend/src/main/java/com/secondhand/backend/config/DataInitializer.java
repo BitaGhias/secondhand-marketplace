@@ -7,6 +7,8 @@ import com.secondhand.backend.entity.User;
 import com.secondhand.backend.repository.CategoryRepository;
 import com.secondhand.backend.repository.CityRepository;
 import com.secondhand.backend.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -15,7 +17,9 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class DataInitializer implements CommandLineRunner { //با اولین ران، یه ادمین و کابر تست و داده‌های پایه میسازه
+public class DataInitializer implements CommandLineRunner {
+
+    private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -29,9 +33,15 @@ public class DataInitializer implements CommandLineRunner { //با اولین ر
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Override // اجرا پس از بالا اومدن کامل برنامه
-    public void run(String... args) throws Exception {
-        // بررسی وجود ادمین
+    @Override
+    public void run(String... args) {
+        createDefaultAdmin();
+        createDefaultTestUser();
+        createDefaultCities();
+        createDefaultCategories();
+    }
+
+    private void createDefaultAdmin() {
         if (!userRepository.existsByUsername("admin")) {
             User admin = new User();
             admin.setFullName("مدیر سیستم");
@@ -44,10 +54,12 @@ public class DataInitializer implements CommandLineRunner { //با اولین ر
             admin.setEmail("admin@example.com");
 
             userRepository.save(admin);
-            System.out.println("✅ ادمین پیش‌فرض ایجاد شد: username=admin, password=admin123, phone=09123456789");
-        }
 
-        // ایجاد کاربر تست
+            logger.info("ادمین پیش‌فرض ایجاد شد: username=admin");
+        }
+    }
+
+    private void createDefaultTestUser() {
         if (!userRepository.existsByUsername("testuser")) {
             User testUser = new User();
             testUser.setFullName("کاربر تست");
@@ -60,24 +72,29 @@ public class DataInitializer implements CommandLineRunner { //با اولین ر
             testUser.setEmail("test@example.com");
 
             userRepository.save(testUser);
-            System.out.println("✅ کاربر تست ایجاد شد: username=testuser, password=123456, phone=09123456788");
-        }
 
-        // ایجاد شهرهای پیش‌فرض
+            logger.info("کاربر تست ایجاد شد: username=testuser");
+        }
+    }
+
+    private void createDefaultCities() {
         if (cityRepository.count() == 0) {
             List<String> cityNames = List.of(
                     "تهران", "مشهد", "اصفهان", "شیراز", "تبریز",
                     "کرج", "اهواز", "قم", "رشت", "کرمانشاه"
             );
+
             for (String name : cityNames) {
                 City city = new City();
                 city.setName(name);
                 cityRepository.save(city);
             }
-            System.out.println("✅ شهرهای پیش‌فرض ایجاد شدند");
-        }
 
-        // ایجاد دسته‌بندی‌های پیش‌فرض (ریشه + زیردسته)
+            logger.info("شهرهای پیش‌فرض ایجاد شدند.");
+        }
+    }
+
+    private void createDefaultCategories() {
         if (categoryRepository.count() == 0) {
             Category electronics = createCategory("الکترونیک", null);
             createCategory("موبایل", electronics);
@@ -95,7 +112,7 @@ public class DataInitializer implements CommandLineRunner { //با اولین ر
             createCategory("ورزش و سرگرمی", null);
             createCategory("کتاب و لوازم تحریر", null);
 
-            System.out.println("✅ دسته‌بندی‌های پیش‌فرض ایجاد شدند");
+            logger.info("دسته‌بندی‌های پیش‌فرض ایجاد شدند.");
         }
     }
 
