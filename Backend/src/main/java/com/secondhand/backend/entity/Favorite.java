@@ -3,7 +3,11 @@ package com.secondhand.backend.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "favorites")
+@Table(name = "favorites",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"user_id", "item_id"})
+        }
+)
 public class Favorite {
 
     @Id
