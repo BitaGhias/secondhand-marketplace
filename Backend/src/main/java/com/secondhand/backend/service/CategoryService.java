@@ -9,7 +9,9 @@ import com.secondhand.backend.repository.CategoryRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CategoryService {
@@ -24,7 +26,7 @@ public class CategoryService {
     private CategoryResponse convertToResponseWithCount(Category category, Long itemCount) {
         Long parentId = category.getParent() != null ? category.getParent().getId() : null;
         String parentName = category.getParent() != null ? category.getParent().getName() : null;
-        boolean hasChildren = categoryRepository.findByParentId(category.getId()).size() > 0;
+        boolean hasChildren = !categoryRepository.findByParentId(category.getId()).isEmpty();
 
         return new CategoryResponse(
                 category.getId(),
@@ -37,7 +39,6 @@ public class CategoryService {
     }
 
     public CategoryResponse createCategory(CategoryRequest request) {
-
         categoryRepository.findByName(request.getName())
                 .ifPresent(c -> {
                     throw new BadRequestException("این دسته‌بندی از قبل وجود دارد");
@@ -57,17 +58,54 @@ public class CategoryService {
         return convertToResponse(saved);
     }
 
-    // دریافت همه دسته‌بندی‌ها با تعداد آگهی
+
     public List<CategoryResponse> getAllCategoriesWithCount() {
         List<Category> categories = categoryRepository.findAll();
+
+        // یک query برای همه count‌ها
+        Map<Long, Long> countMap = buildCountMap();
+        // یک query برای بررسی children
+        Map<Long, Boolean> hasChildrenMap = buildHasChildrenMap(categories);
+
         List<CategoryResponse> responses = new ArrayList<>();
-
         for (Category category : categories) {
-            Long count = categoryRepository.countApprovedItemsByCategoryId(category.getId());
-            responses.add(convertToResponseWithCount(category, count));
-        }
+            Long count = countMap.getOrDefault(category.getId(), 0L);
+            boolean hasChildren = hasChildrenMap.getOrDefault(category.getId(), false);
 
+            Long parentId = category.getParent() != null ? category.getParent().getId() : null;
+            String parentName = category.getParent() != null ? category.getParent().getName() : null;
+
+            responses.add(new CategoryResponse(
+                    category.getId(),
+                    category.getName(),
+                    parentId,
+                    parentName,
+                    count,
+                    hasChildren
+            ));
+        }
         return responses;
+    }
+
+    //  ساخت map از categoryId -> itemCount با یک query
+    private Map<Long, Long> buildCountMap() {
+        List<Object[]> results = categoryRepository.countItemsByCategory();
+        Map<Long, Long> map = new HashMap<>();
+        for (Object[] row : results) {
+            map.put((Long) row[0], (Long) row[1]);
+        }
+        return map;
+    }
+
+    //  ساخت map از parentId -> hasChildren با یک query (تمام categories)
+    private Map<Long, Boolean> buildHasChildrenMap(List<Category> categories) {
+        Map<Long, Boolean> map = new HashMap<>();
+        for (Category c : categories) {
+            if (c.getParent() != null) {
+                map.put(c.getParent().getId(), true);
+            }
+        }
+        return map;
     }
 
     public List<CategoryResponse> getAllCategories() {
@@ -79,28 +117,40 @@ public class CategoryService {
         return responses;
     }
 
-    //  دریافت دسته‌بندی‌های پدر
     public List<CategoryResponse> getRootCategories() {
         List<Category> roots = categoryRepository.findByParentIsNull();
+        Map<Long, Long> countMap = buildCountMap();
+
         List<CategoryResponse> responses = new ArrayList<>();
         for (Category category : roots) {
-            Long count = categoryRepository.countApprovedItemsByCategoryId(category.getId());
-            responses.add(convertToResponseWithCount(category, count));
+            Long count = countMap.getOrDefault(category.getId(), 0L);
+            responses.add(new CategoryResponse(
+                    category.getId(),
+                    category.getName(),
+                    null,
+                    null,
+                    count,
+                    !categoryRepository.findByParentId(category.getId()).isEmpty()
+            ));
         }
         return responses;
     }
 
-    //  دریافت زیردسته‌های یک دسته‌بندی
     public List<CategoryResponse> getSubcategories(Long parentId) {
         if (!categoryRepository.existsById(parentId)) {
             throw new ResourceNotFoundException("دسته‌بندی والد یافت نشد");
         }
 
         List<Category> subcategories = categoryRepository.findByParentId(parentId);
+        Map<Long, Long> countMap = buildCountMap();
+
         List<CategoryResponse> responses = new ArrayList<>();
         for (Category category : subcategories) {
-            Long count = categoryRepository.countApprovedItemsByCategoryId(category.getId());
-            responses.add(convertToResponseWithCount(category, count));
+            Long count = countMap.getOrDefault(category.getId(), 0L);
+            boolean hasChildren = !categoryRepository.findByParentId(category.getId()).isEmpty();
+            Long pId = category.getParent() != null ? category.getParent().getId() : null;
+            String pName = category.getParent() != null ? category.getParent().getName() : null;
+            responses.add(new CategoryResponse(category.getId(), category.getName(), pId, pName, count, hasChildren));
         }
         return responses;
     }
@@ -124,16 +174,14 @@ public class CategoryService {
         category.setName(request.getName());
 
         if (request.getParentId() != null) {
-            // جلوگیری از اینکه دسته‌بندی والد خودش باشه
             if (request.getParentId().equals(id)) {
                 throw new BadRequestException("یک دسته‌بندی نمی‌تواند والد خودش باشد!");
             }
-
             Category parent = categoryRepository.findById(request.getParentId())
                     .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی والد یافت نشد"));
             category.setParent(parent);
         } else {
-            category.setParent(null);  // تبدیل به دسته‌بندی ریشه
+            category.setParent(null);
         }
 
         Category updated = categoryRepository.save(category);
@@ -145,7 +193,6 @@ public class CategoryService {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی یافت نشد"));
 
-        // بررسی وجود زیردسته
         List<Category> subcategories = categoryRepository.findByParentId(id);
         if (!subcategories.isEmpty()) {
             throw new BadRequestException("این دسته‌بندی دارای زیردسته است. ابتدا زیردسته‌ها را حذف کنید!");
@@ -159,10 +206,8 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
-    public List<CategoryResponse> getPopularCategories(int limit) { // تعداد دسته بندی هایی که میخوایم برگردونیم3
+    public List<CategoryResponse> getPopularCategories(int limit) {
         List<Object[]> results = categoryRepository.countItemsByCategory();
-
-        // مرتب‌سازی بر اساس تعداد (نزولی)
         results.sort((a, b) -> Long.compare((Long) b[1], (Long) a[1]));
 
         List<CategoryResponse> responses = new ArrayList<>();
@@ -171,9 +216,9 @@ public class CategoryService {
             if (count >= limit) break;
             Long categoryId = (Long) result[0];
             Long itemCount = (Long) result[1];
-            categoryRepository.findById(categoryId).ifPresent(category -> {
-                responses.add(convertToResponseWithCount(category, itemCount));
-            });
+            categoryRepository.findById(categoryId).ifPresent(category ->
+                    responses.add(convertToResponseWithCount(category, itemCount))
+            );
             count++;
         }
         return responses;
