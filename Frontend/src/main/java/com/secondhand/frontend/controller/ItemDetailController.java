@@ -3,13 +3,14 @@ package com.secondhand.frontend.controller;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Conversation;
 import com.secondhand.frontend.model.Item;
-import com.secondhand.frontend.model.Image;
+import com.secondhand.frontend.model.Image; // در صورت تغییر نام به AdImage این خط را اصلاح کنید
 import com.secondhand.frontend.service.ChatService;
 import com.secondhand.frontend.service.FavoriteService;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.RatingService;
 import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.WindowUtil;
+import com.secondhand.frontend.util.ImageLoaderUtil; // 🟢 اضافه شد
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -53,9 +54,8 @@ public class ItemDetailController extends BaseController {
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
-        currentUserId = getCurrentUserId();
+        currentUserId = SessionManager.getCurrentUserId();
 
-        // دکمه‌های مخفی نباید فضای صفحه را اشغال کنند
         bindManaged(buyButton);
         bindManaged(chatButton);
         bindManaged(ratingButton);
@@ -68,11 +68,6 @@ public class ItemDetailController extends BaseController {
         if (button != null) {
             button.managedProperty().bind(button.visibleProperty());
         }
-    }
-
-    private Long getCurrentUserId() {
-        // ✅ شناسه کاربر جاری از SessionManager (بعد از لاگین پر می‌شود)
-        return SessionManager.getCurrentUserId();
     }
 
     public void setItem(Item item) {
@@ -101,8 +96,8 @@ public class ItemDetailController extends BaseController {
     private void loadImages() {
         List<Image> images = currentItem.getImages();
         if (images != null && !images.isEmpty()) {
-            String firstImageUrl = images.get(0).getFullUrl();
-            loadImage(mainImageView, firstImageUrl);
+            // 🟢 استفاده از ابزار جدید برای بارگذاری تصویر اصلی
+            ImageLoaderUtil.loadImageWithDefault(mainImageView, images.get(0).getFullUrl());
 
             thumbnailContainer.getChildren().clear();
             for (int i = 1; i < Math.min(images.size(), 5); i++) {
@@ -113,46 +108,18 @@ public class ItemDetailController extends BaseController {
                 thumb.setStyle("-fx-cursor: hand; -fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 8;");
 
                 final String imageUrl = images.get(i).getFullUrl();
-                loadImage(thumb, imageUrl);
+                // 🟢 بارگذاری تصاویر بندانگشتی (Thumbnail)
+                ImageLoaderUtil.loadImageWithDefault(thumb, imageUrl);
 
-                thumb.setOnMouseClicked(e -> loadImage(mainImageView, imageUrl));
+                thumb.setOnMouseClicked(e -> ImageLoaderUtil.loadImageWithDefault(mainImageView, imageUrl));
                 thumbnailContainer.getChildren().add(thumb);
             }
         } else {
-            loadDefaultImage(mainImageView);
+            // 🟢 لود تصویر پیش‌فرض در صورت نبود عکس
+            ImageLoaderUtil.loadDefaultImage(mainImageView);
         }
     }
 
-    private void loadImage(javafx.scene.image.ImageView imageView, String url) {
-        try {
-            if (url != null && !url.isEmpty()) {
-                imageView.setImage(new javafx.scene.image.Image(url, true));
-            } else {
-                loadDefaultImage(imageView);
-            }
-        } catch (Exception e) {
-            loadDefaultImage(imageView);
-        }
-    }
-
-    private void loadDefaultImage(javafx.scene.image.ImageView imageView) {
-        try {
-            String defaultPath = "/com/secondhand/frontend/images/default-item.png";
-            var stream = getClass().getResourceAsStream(defaultPath);
-            if (stream != null) {
-                imageView.setImage(new javafx.scene.image.Image(stream));
-            }
-        } catch (Exception e) {
-            System.err.println("خطا در بارگذاری تصویر پیش‌فرض: " + e.getMessage());
-        }
-    }
-
-    /**
-     * تعیین دکمه‌های قابل نمایش بر اساس نقش کاربر و وضعیت آگهی:
-     * - مالک: دکمه‌های مدیریتی
-     * - غیرمالک: خرید و چت (فقط برای آگهی فعال)، علاقه‌مندی،
-     *   و امتیازدهی فقط اگر همین کالا را خریده باشد
-     */
     private void configureActions() {
         if (currentItem == null || currentUserId == null) return;
 
@@ -167,13 +134,11 @@ public class ItemDetailController extends BaseController {
             buyButton.setVisible(approved);
             chatButton.setVisible(approved);
             favoriteButton.setVisible(true);
-            // ⭐ امتیازدهی فقط بعد از خرید همین کالا مجاز است
             ratingButton.setVisible(iAmBuyer);
         }
     }
 
     private void checkFavoriteStatus() {
-        // فقط برای غیرمالک معنا دارد
         if (currentItem == null || currentUserId == null || currentItem.isOwner(currentUserId)) return;
         new Thread(() -> {
             try {
@@ -216,9 +181,6 @@ public class ItemDetailController extends BaseController {
         }
     }
 
-    /**
-     * 🛒 خرید کالا + امکان امتیازدهی همزمان به فروشنده (در حین خرید)
-     */
     @FXML
     private void buyItem() {
         if (currentItem == null) return;
@@ -298,15 +260,11 @@ public class ItemDetailController extends BaseController {
         }).start();
     }
 
-    /**
-     * 💬 شروع/باز کردن گفت‌وگو با فروشنده و رفتن مستقیم به صفحه چت
-     */
     @FXML
     private void startChat() {
         if (currentItem == null) return;
         new Thread(() -> {
             try {
-                // اگر گفت‌وگو از قبل وجود داشته باشد، بک‌اند همان را برمی‌گرداند
                 Conversation conversation = ChatService.startConversation(currentItem.getId(), null);
                 ChatsController.setInitialConversationId(conversation.getId());
                 Platform.runLater(() -> {
@@ -348,7 +306,6 @@ public class ItemDetailController extends BaseController {
             commentArea.setPrefHeight(80);
 
             content.getChildren().addAll(scoreLabel, scoreComboBox, commentLabel, commentArea);
-
             dialog.getDialogPane().setContent(content);
             dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -357,7 +314,6 @@ public class ItemDetailController extends BaseController {
                 int score = scoreComboBox.getValue();
                 String comment = commentArea.getText().trim();
 
-                // 🟢 انتقال عملیات شبکه به ترد پس‌زمینه برای جلوگیری از فریز شدن UI
                 new Thread(() -> {
                     try {
                         RatingService.rateSeller(currentItem.getId(), score, comment);
@@ -381,7 +337,6 @@ public class ItemDetailController extends BaseController {
     @FXML
     private void editItem() {
         try {
-            // ✅ لود صفحه ویرایش و پاس دادن آگهی جاری به آن (حالت ویرایش)
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/create_ad.fxml"));
             Parent root = loader.load();
             CreateAdController controller = loader.getController();
@@ -423,7 +378,6 @@ public class ItemDetailController extends BaseController {
     @FXML
     private void markAsSold() {
         try {
-            // ✅ مسیر درست بک‌اند: PUT /api/items/{id}/sold
             ItemService.markAsSold(currentItem.getId());
             showMessage("وضعیت آگهی به فروخته شده تغییر کرد", "success");
             currentItem.setStatus("SOLD");
