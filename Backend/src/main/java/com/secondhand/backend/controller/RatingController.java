@@ -2,12 +2,11 @@ package com.secondhand.backend.controller;
 
 import com.secondhand.backend.dto.rating.RatingCreateRequest;
 import com.secondhand.backend.dto.rating.RatingResponse;
+import com.secondhand.backend.security.CurrentUserService;
 import com.secondhand.backend.service.RatingService;
-import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -19,20 +18,15 @@ public class RatingController {
     private RatingService ratingService;
 
     @Autowired
-    private UserService userService;
-
-    private Long getCurrentUserId() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-        return userService.getUserIdByUsername(username);
-    }
+    private CurrentUserService currentUserService;
 
     @PostMapping("/add")
     public ResponseEntity<RatingResponse> addRating(@RequestBody RatingCreateRequest request) {
-        Long raterId = getCurrentUserId();
-        RatingResponse response = ratingService.addRating(request, raterId);
-        return ResponseEntity.ok(response);
+        RatingResponse response = ratingService.addRating(
+                request,
+                currentUserService.getCurrentUserId()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/seller/{sellerId}/average")

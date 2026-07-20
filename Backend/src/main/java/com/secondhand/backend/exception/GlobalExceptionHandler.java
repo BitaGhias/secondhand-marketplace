@@ -1,86 +1,203 @@
 package com.secondhand.backend.exception;
 
-import com.secondhand.backend.exception.custom.*;
-import jakarta.servlet.http.HttpServletRequest; // برای گرفتن اطلاعات درخواست
-import org.springframework.http.HttpStatus; // شامل همه کدهای وضعیت
+import com.secondhand.backend.exception.custom.BadRequestException;
+import com.secondhand.backend.exception.custom.ForbiddenException;
+import com.secondhand.backend.exception.custom.ResourceNotFoundException;
+import com.secondhand.backend.exception.custom.UnauthorizedException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-//مدیریت کننده متمرکز خطاها
-//هر جا هر خطایی پرتاب شه ان را میگیره و به پیام کامل تری تبدیلش میکنه
+import java.util.stream.Collectors;
+
 @RestControllerAdvice
-public class GlobalExceptionHandler { // به Spring میگه این کلاس خطاهای همه کنترلرها رو مدیریت کنه
+public class GlobalExceptionHandler {
+
+    private ResponseEntity<ErrorResponse> buildErrorResponse(
+            String message,
+            HttpStatus status,
+            HttpServletRequest request
+    ) {
+        ErrorResponse error = new ErrorResponse(
+                message,
+                status.value(),
+                status.getReasonPhrase(),
+                request.getRequestURI()
+        );
+
+        return new ResponseEntity<>(error, status);
+    }
 
     // 400 Bad Request
-    @ExceptionHandler(BadRequestException.class) // اجرا هنگامی که این خطا پرتاب شه
-    public ResponseEntity<ErrorResponse> handleBadRequest(BadRequestException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                ex.getMessage(),
-                HttpStatus.BAD_REQUEST.value(), // Status Code
-                HttpStatus.BAD_REQUEST.getReasonPhrase(), //اسم خطای انگلیسی
-                request.getRequestURI() // برای دریفات مسیر خطا
-        );
-        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<ErrorResponse> handleBadRequest(
+            BadRequestException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.BAD_REQUEST, request);
     }
 
     // 401 Unauthorized
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<ErrorResponse> handleUnauthorized(UnauthorizedException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                ex.getMessage(),
-                HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<ErrorResponse> handleUnauthorized(
+            UnauthorizedException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request);
     }
 
-    //  403 Forbidden
+    // 403 Forbidden
     @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<ErrorResponse> handleForbidden(ForbiddenException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                ex.getMessage(),
-                HttpStatus.FORBIDDEN.value(),
-                HttpStatus.FORBIDDEN.getReasonPhrase(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
+    public ResponseEntity<ErrorResponse> handleForbidden(
+            ForbiddenException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.FORBIDDEN, request);
     }
 
-    //  404 Not Found
+    // 404 Not Found
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                ex.getMessage(),
-                HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, HttpStatus.NOT_FOUND);
+    public ResponseEntity<ErrorResponse> handleNotFound(
+            ResourceNotFoundException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.NOT_FOUND, request);
     }
 
-    //  409 Conflict (برای تکراری بودن)
+    // 409 Conflict - برای خطاهای منطقی تکراری که دستی throw شده‌اند
     @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ErrorResponse> handleConflict(IllegalStateException ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                ex.getMessage(),
-                HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
-                request.getRequestURI()
-        );
-        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    public ResponseEntity<ErrorResponse> handleConflict(
+            IllegalStateException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request);
     }
 
-    //  500 Internal Server Error (هر خطای دیگه‌ای)
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
-        ErrorResponse error = new ErrorResponse(
-                "خطای داخلی سرور: " + ex.getMessage(),
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase(),
-                request.getRequestURI()
+    // 409 Conflict - برای خطاهای constraint دیتابیس
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(
+            DataIntegrityViolationException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "داده تکراری یا نامعتبر است و با محدودیت‌های پایگاه داده سازگار نیست.",
+                HttpStatus.CONFLICT,
+                request
         );
-        return new ResponseEntity<>(error, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    // 400 - وقتی JSON خراب یا body نامعتبر ارسال شود
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleUnreadableMessage(
+            HttpMessageNotReadableException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "بدنه درخواست نامعتبر است یا قالب JSON درست نیست.",
+                HttpStatus.BAD_REQUEST,
+                request
+        );
+    }
+
+    // 400 - وقتی پارامتر اجباری ارسال نشده باشد
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<ErrorResponse> handleMissingRequestParameter(
+            MissingServletRequestParameterException ex,
+            HttpServletRequest request
+    ) {
+        String message = "پارامتر اجباری '" + ex.getParameterName() + "' ارسال نشده است.";
+        return buildErrorResponse(message, HttpStatus.BAD_REQUEST, request);
+    }
+
+    // 400 - وقتی نوع پارامتر اشتباه باشد، مثلا id باید عدد باشد ولی متن ارسال شده
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex,
+            HttpServletRequest request
+    ) {
+        String requiredType = ex.getRequiredType() != null
+                ? ex.getRequiredType().getSimpleName()
+                : "نوع معتبر";
+
+        String message = "مقدار پارامتر '" + ex.getName() + "' نامعتبر است. نوع مورد انتظار: " + requiredType;
+        return buildErrorResponse(message, HttpStatus.BAD_REQUEST, request);
+    }
+
+    // 400 - برای validationهای @Valid در DTOها
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationErrors(
+            MethodArgumentNotValidException ex,
+            HttpServletRequest request
+    ) {
+        String message = ex.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .collect(Collectors.joining(" | "));
+
+        if (message.isBlank()) {
+            message = "داده‌های ورودی معتبر نیستند.";
+        }
+
+        return buildErrorResponse(message, HttpStatus.BAD_REQUEST, request);
+    }
+
+    // 405 Method Not Allowed
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex,
+            HttpServletRequest request
+    ) {
+        String message = "متد HTTP '" + ex.getMethod() + "' برای این مسیر پشتیبانی نمی‌شود.";
+        return buildErrorResponse(message, HttpStatus.METHOD_NOT_ALLOWED, request);
+    }
+
+    // 415 Unsupported Media Type
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedMediaType(
+            HttpMediaTypeNotSupportedException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "نوع محتوای ارسال‌شده پشتیبانی نمی‌شود.",
+                HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                request
+        );
+    }
+
+    // 413 Payload Too Large
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUploadSizeExceeded(
+            MaxUploadSizeExceededException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "حجم فایل ارسال‌شده بیشتر از حد مجاز است.",
+                HttpStatus.PAYLOAD_TOO_LARGE,
+                request
+        );
+    }
+
+    // 500 Internal Server Error
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneric(
+            Exception ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "خطای داخلی سرور رخ داده است.",
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                request
+        );
     }
 }

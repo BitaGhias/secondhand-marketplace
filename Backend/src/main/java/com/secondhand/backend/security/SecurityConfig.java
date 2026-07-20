@@ -49,6 +49,7 @@ public class SecurityConfig { // بررسی درخواست ها قبل از رس
 
                         // --- مسیرهای عمومی (بدون نیاز به توکن) ---
                         .requestMatchers(HttpMethod.GET,
+                                "/api/health",
                                 "/api/items/approved",
                                 "/api/items/search",
                                 "/api/items/category/**",

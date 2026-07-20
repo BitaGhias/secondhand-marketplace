@@ -3,7 +3,12 @@ package com.secondhand.backend.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "ratings")
+@Table(
+        name = "ratings",
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"rater_id", "item_id"})
+        }
+)
 public class Rating {
 
     @Id

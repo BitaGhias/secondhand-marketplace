@@ -2,12 +2,11 @@ package com.secondhand.backend.controller;
 
 import com.secondhand.backend.dto.comment.CommentCreateRequest;
 import com.secondhand.backend.dto.comment.CommentResponse;
+import com.secondhand.backend.security.CurrentUserService;
 import com.secondhand.backend.service.CommentService;
-import com.secondhand.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -19,20 +18,15 @@ public class CommentController {
     private CommentService commentService;
 
     @Autowired
-    private UserService userService;
-
-    private Long getCurrentUserId() {
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext()
-                .getAuthentication().getPrincipal();
-        String username = userDetails.getUsername();
-        return userService.getUserIdByUsername(username);
-    }
+    private CurrentUserService currentUserService;
 
     @PostMapping("/add")
     public ResponseEntity<CommentResponse> addComment(@RequestBody CommentCreateRequest request) {
-        Long userId = getCurrentUserId();
-        CommentResponse response = commentService.addComment(request, userId);
-        return ResponseEntity.ok(response);
+        CommentResponse response = commentService.addComment(
+                request,
+                currentUserService.getCurrentUserId()
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/item/{itemId}")
@@ -43,16 +37,19 @@ public class CommentController {
     @PutMapping("/{id}")
     public ResponseEntity<CommentResponse> updateComment(
             @PathVariable Long id,
-            @RequestParam String text) {
-        Long userId = getCurrentUserId();
-        CommentResponse response = commentService.updateComment(id, userId, text);
+            @RequestParam String text
+    ) {
+        CommentResponse response = commentService.updateComment(
+                id,
+                currentUserService.getCurrentUserId(),
+                text
+        );
         return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteComment(@PathVariable Long id) {
-        Long adminId = getCurrentUserId();
-        commentService.deleteComment(id, adminId);
+        commentService.deleteComment(id, currentUserService.getCurrentUserId());
         return ResponseEntity.ok("کامنت با موفقیت حذف شد.");
     }
 }
