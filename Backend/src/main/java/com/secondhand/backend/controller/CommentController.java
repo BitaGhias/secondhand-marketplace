@@ -23,8 +23,7 @@ public class CommentController {
     @PostMapping("/add")
     public ResponseEntity<CommentResponse> addComment(@RequestBody CommentCreateRequest request) {
         CommentResponse response = commentService.addComment(
-                request,
-                currentUserService.getCurrentUserId()
+                request, currentUserService.getCurrentUserId()
         );
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -39,17 +38,15 @@ public class CommentController {
             @PathVariable Long id,
             @RequestParam String text
     ) {
-        CommentResponse response = commentService.updateComment(
-                id,
-                currentUserService.getCurrentUserId(),
-                text
+        return ResponseEntity.ok(
+                commentService.updateComment(id, currentUserService.getCurrentUserId(), text)
         );
-        return ResponseEntity.ok(response);
     }
 
+    // FIX: 200 OK -> 204 No Content
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteComment(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteComment(@PathVariable Long id) {
         commentService.deleteComment(id, currentUserService.getCurrentUserId());
-        return ResponseEntity.ok("کامنت با موفقیت حذف شد.");
+        return ResponseEntity.noContent().build();
     }
 }
