@@ -1,4 +1,4 @@
-package com.secondhand.backend.service;
+package com.secondhand.backend.security;
 
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.repository.UserRepository;
