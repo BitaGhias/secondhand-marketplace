@@ -15,6 +15,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class ApiClient {
 
@@ -161,5 +162,24 @@ public class ApiClient {
 
     public static <T> T parseResponse(String json, Class<T> clazz) throws Exception {
         return mapper.readValue(json, clazz);
+    }
+
+    public static CompletableFuture<HttpResponse<String>> sendRequestAsync(String endpoint, String method) {
+        HttpRequest.Builder builder = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + endpoint))
+                .header("Authorization", getAuthHeader());
+
+        HttpRequest request;
+        if ("GET".equals(method)) {
+            request = builder.GET().build();
+        } else if ("POST".equals(method)) {
+            request = builder.POST(HttpRequest.BodyPublishers.noBody()).build();
+        } else if ("DELETE".equals(method)) {
+            request = builder.DELETE().build();
+        } else {
+            request = builder.method(method, HttpRequest.BodyPublishers.noBody()).build();
+        }
+
+        return client.sendAsync(request, HttpResponse.BodyHandlers.ofString());
     }
 }
