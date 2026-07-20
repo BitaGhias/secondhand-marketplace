@@ -1,7 +1,8 @@
 package com.secondhand.frontend.controller;
 
 import com.secondhand.frontend.MainApplication;
-import com.secondhand.frontend.util.ApiClient;
+import com.secondhand.frontend.service.AuthService;
+import com.secondhand.frontend.util.ValidationUtil;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -9,11 +10,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
-import java.net.URI;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-
-public class RegisterController {
+public class RegisterController extends BaseController {
 
     // ===== FXML Fields =====
     @FXML private TextField fullNameField;
@@ -40,108 +37,61 @@ public class RegisterController {
         String username = usernameField.getText().trim();
         String email = emailField.getText().trim();
         String phone = phoneField.getText().trim();
-        String password = passwordField.getText().trim();
-        String confirmPassword = confirmPasswordField.getText().trim();
+        String password = passwordField.getText();
+        String confirmPassword = confirmPasswordField.getText();
 
-        // ===== اعتبارسنجی =====
-        if (fullName.isEmpty()) {
-            showError("لطفاً نام کامل را وارد کنید");
+        // ===== اعتبارسنجی متمرکز با استفاده از ValidationUtil =====
+        if (!validateForm(fullName, username, email, phone, password, confirmPassword)) {
             return;
         }
-        if (username.isEmpty()) {
-            showError("لطفاً نام کاربری را وارد کنید");
-            return;
+
+        // ===== وضعیت لودینگ UI =====
+        setLoadingState(true);
+
+        // انجام عملیات ناهمگام از طریق سرویس احراز هویت بدون پرتاب ارور چک‌شده
+        AuthService.register(fullName, username, email, phone, password)
+                .thenAccept(responseBody -> handleRegisterSuccess())
+                .exceptionally(ex -> {
+                    // استخراج ایمن پیام خطا از داخل زنجیره CompletableFuture
+                    String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    handleRegisterError(errorMsg);
+                    return null;
+                });
+    }
+
+    private boolean validateForm(String fullName, String username, String email, String phone, String password, String confirmPassword) {
+        if (fullName.isEmpty()) { return showValidationError("لطفاً نام کامل را وارد کنید"); }
+        if (username.isEmpty()) { return showValidationError("لطفاً نام کاربری را وارد کنید"); }
+
+        if (!ValidationUtil.isValidEmail(email)) {
+            return showValidationError("لطفاً ایمیل معتبر وارد کنید");
         }
-        if (email.isEmpty() || !email.contains("@") || !email.contains(".")) {
-            showError("لطفاً ایمیل معتبر وارد کنید");
-            return;
+        if (!ValidationUtil.isValidIranianPhone(phone)) {
+            return showValidationError("شماره تلفن باید با 09 شروع شود و 11 رقم باشد");
         }
-        if (phone.isEmpty() || !phone.matches("^09[0-9]{9}$")) {
-            showError("شماره تلفن باید با 09 شروع شود و 11 رقم باشد");
-            return;
-        }
-        if (password.isEmpty() || password.length() < 6) {
-            showError("رمز عبور باید حداقل ۶ کاراکتر باشد");
-            return;
+        if (!ValidationUtil.isValidPassword(password, 6)) {
+            return showValidationError("رمز عبور باید حداقل ۶ کاراکتر باشد");
         }
         if (!password.equals(confirmPassword)) {
-            showError("رمز عبور و تکرار آن مطابقت ندارند");
-            return;
+            return showValidationError("رمز عبور و تکرار آن مطابقت ندارند");
         }
+        return true;
+    }
 
-        // ===== نمایش لودینگ =====
-        if (loadingIndicator != null) {
-            loadingIndicator.setVisible(true);
-        }
-        if (registerButton != null) {
-            registerButton.setDisable(true);
-        }
-        if (errorLabel != null) {
-            errorLabel.setVisible(false);
-        }
-
-        try {
-            String json = String.format(
-                    "{\"fullName\":\"%s\",\"username\":\"%s\",\"password\":\"%s\",\"phoneNumber\":\"%s\",\"email\":\"%s\"}",
-                    fullName, username, password, phone, email
-            );
-
-            System.out.println("📤 Sending registration request: " + json);
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(ApiClient.getBaseUrl() + "/auth/register"))
-                    .header("Content-Type", "application/json")
-                    .POST(HttpRequest.BodyPublishers.ofString(json))
-                    .build();
-
-            ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenAccept(response -> {
-                        int statusCode = response.statusCode();
-                        String responseBody = response.body();
-
-                        System.out.println("📥 Response Status: " + statusCode);
-                        System.out.println("📥 Response Body: " + responseBody);
-
-                        if (statusCode == 201 || statusCode == 200) {
-                            handleRegisterSuccess();
-                        } else {
-                            handleRegisterError(responseBody);
-                        }
-                    })
-                    .exceptionally(e -> {
-                        Platform.runLater(() -> {
-                            showError("خطا در ارتباط با سرور: " + e.getMessage());
-                            if (loadingIndicator != null) loadingIndicator.setVisible(false);
-                            if (registerButton != null) registerButton.setDisable(false);
-                        });
-                        return null;
-                    });
-
-        } catch (Exception e) {
-            Platform.runLater(() -> {
-                showError("خطا: " + e.getMessage());
-                if (loadingIndicator != null) loadingIndicator.setVisible(false);
-                if (registerButton != null) registerButton.setDisable(false);
-            });
-        }
+    private boolean showValidationError(String message) {
+        showError(message);
+        return false;
     }
 
     private void handleRegisterSuccess() {
         Platform.runLater(() -> {
             showSuccess("✅ ثبت‌نام با موفقیت انجام شد! به صفحه ورود بروید.");
-            if (loadingIndicator != null) loadingIndicator.setVisible(false);
-            if (registerButton != null) registerButton.setDisable(false);
+            setLoadingState(false);
 
             new Thread(() -> {
                 try {
                     Thread.sleep(2000);
-                    Platform.runLater(() -> {
-                        try {
-                            MainApplication.changeScene("/com/secondhand/frontend/login.fxml", "ورود");
-                        } catch (Exception e) {
-                            showError("خطا در بارگذاری صفحه ورود");
-                        }
-                    });
+                    Platform.runLater(this::goToLogin);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -149,23 +99,26 @@ public class RegisterController {
         });
     }
 
-    private void handleRegisterError(String responseBody) {
+    private void handleRegisterError(String errorMessage) {
         Platform.runLater(() -> {
-            if (loadingIndicator != null) loadingIndicator.setVisible(false);
-            if (registerButton != null) registerButton.setDisable(false);
+            setLoadingState(false);
 
-            if (responseBody.contains("نام کاربری تکراری") || responseBody.contains("duplicate")) {
+            if (errorMessage.contains("نام کاربری تکراری") || errorMessage.contains("duplicate")) {
                 showError("این نام کاربری قبلاً ثبت شده است");
-            } else if (responseBody.contains("ایمیل تکراری") || responseBody.contains("Email already")) {
+            } else if (errorMessage.contains("ایمیل تکراری") || errorMessage.contains("Email already")) {
                 showError("این ایمیل قبلاً ثبت شده است");
-            } else if (responseBody.contains("شماره تلفن تکراری") || responseBody.contains("Phone already")) {
+            } else if (errorMessage.contains("شماره تلفن تکراری") || errorMessage.contains("Phone already")) {
                 showError("این شماره تلفن قبلاً ثبت شده است");
-            } else if (responseBody.contains("validation") || responseBody.contains("نامعتبر")) {
-                showError("اطلاعات وارد شده معتبر نیست");
             } else {
-                showError("خطا در ثبت‌نام: " + responseBody);
+                showError("خطا در ثبت‌نام: " + errorMessage);
             }
         });
+    }
+
+    private void setLoadingState(boolean isLoading) {
+        if (loadingIndicator != null) loadingIndicator.setVisible(isLoading);
+        if (registerButton != null) registerButton.setDisable(isLoading);
+        if (isLoading && errorLabel != null) errorLabel.setVisible(false);
     }
 
     private void showError(String message) {
@@ -175,15 +128,13 @@ public class RegisterController {
                 errorLabel.setStyle("-fx-text-fill: #ff4757;");
                 errorLabel.setVisible(true);
             }
-            if (loadingIndicator != null) loadingIndicator.setVisible(false);
-            if (registerButton != null) registerButton.setDisable(false);
         });
     }
 
     private void showSuccess(String message) {
         Platform.runLater(() -> {
             if (errorLabel != null) {
-                errorLabel.setText("✅ " + message);
+                errorLabel.setText(message);
                 errorLabel.setStyle("-fx-text-fill: #38ef7d;");
                 errorLabel.setVisible(true);
             }
