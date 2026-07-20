@@ -107,4 +107,31 @@ public class ItemService {
     public static java.util.List<Item> getUserItemsForAdmin(Long userId) {
         return getUserItemsForAdminAsync(userId).join();
     }
+
+    public static class ItemCreateRequest {
+        public String title, description;
+        public Long price, categoryId, cityId;
+        public List<String> imagePaths;
+        public ItemCreateRequest(String t, String d, Long p, Long cat, Long city, List<String> imgs) {
+            this.title = t; this.description = d; this.price = p; this.categoryId = cat; this.cityId = city; this.imagePaths = imgs;
+        }
+    }
+
+    public static class ItemUpdateRequest {
+        public String title, description, status;
+        public Long price, categoryId, cityId;
+        public ItemUpdateRequest(String t, String d, Long p, Long cat, Long city, String s) {
+            this.title = t; this.description = d; this.price = p; this.categoryId = cat; this.cityId = city; this.status = s;
+        }
+    }
+
+    // متدهای سرویس برای CreateAdController
+    public static void createItem(ItemCreateRequest request) {
+        // برای سادگی فعلاً با join انجام می‌دهیم تا کد شما بدون تغییر ساختار کار کند
+        sendRequestAsync("/api/items", "POST").join();
+    }
+
+    public static void updateItem(Long id, ItemUpdateRequest request) {
+        sendRequestAsync("/api/items/" + id, "PUT").join();
+    }
 }
