@@ -19,7 +19,7 @@
              -fx-cursor: hand;"
       onMouseClicked="#handleCardClick"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.secondhand.frontend.controller.ItemAdController">
+      fx:controller="com.secondhand.frontend.controller.AdItemController">
 
     <padding>
         <Insets top="12" right="12" bottom="12" left="12" />

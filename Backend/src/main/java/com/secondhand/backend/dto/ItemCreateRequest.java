@@ -6,14 +6,14 @@ import java.util.List;
 public class ItemCreateRequest {
     private String title;
     private String description;
-    private Double price;
+    private Long price;
     private Long categoryId;
     private Long cityId;
     private List<MultipartFile> images;
 
     public ItemCreateRequest() {}
 
-    public ItemCreateRequest(String title, String description, Double price,
+    public ItemCreateRequest(String title, String description, Long price,
                              Long categoryId, Long cityId, List<MultipartFile> images) {
         this.title = title;
         this.description = description;
@@ -25,14 +25,14 @@ public class ItemCreateRequest {
 
     public String getTitle() { return title; }
     public String getDescription() { return description; }
-    public Double getPrice() { return price; }
+    public Long getPrice() { return price; }
     public Long getCategoryId() { return categoryId; }
     public Long getCityId() { return cityId; }
     public List<MultipartFile> getImages() { return images; }
 
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
-    public void setPrice(Double price) { this.price = price; }
+    public void setPrice(Long price) { this.price = price; }
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
     public void setCityId(Long cityId) { this.cityId = cityId; }
     public void setImages(List<MultipartFile> images) { this.images = images; }

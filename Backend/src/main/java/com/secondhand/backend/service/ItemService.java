@@ -47,7 +47,7 @@ public class ItemService {
         }
     }
 
-    private void validateItemPrice(double price) {
+    private void validateItemPrice(Long price) {
         if (price <= 0) {
             throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
         }

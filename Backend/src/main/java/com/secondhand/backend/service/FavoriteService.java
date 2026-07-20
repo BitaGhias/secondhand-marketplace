@@ -44,7 +44,7 @@ public class FavoriteService {
                 favorite.getId(),
                 favorite.getItem() != null ? favorite.getItem().getId() : null,
                 favorite.getItem() != null ? favorite.getItem().getTitle() : "آگهی حذف شده",
-                favorite.getItem() != null ? favorite.getItem().getPrice() : 0.0,
+                favorite.getItem() != null ? favorite.getItem().getPrice() : 0,
                 favorite.getItem() != null ? favorite.getItem().getStatus().toString() : "UNKNOWN",
                 favorite.getUser() != null ? favorite.getUser().getId() : null
         );

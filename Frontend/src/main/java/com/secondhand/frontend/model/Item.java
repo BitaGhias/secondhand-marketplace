@@ -3,28 +3,29 @@ package com.secondhand.frontend.model;
 import java.util.List;
 
 public class Item {
-    private Long id;
-    private String title;
-    private String description;
-    private double price;
-    private String status;
-    private String categoryName;
-    private String parentCategoryName;
-    private String cityName;
-    private String ownerUsername;
-    private Long ownerId;
-    private List<Image> images;
-    private String rejectionReason;
-    private Double averageRating;
-    private Long categoryId;
-    private Long cityId;
-    private Long buyerId;
-    private String buyerUsername;
+
+    public Long id;
+    public String title;
+    public String description;
+    public Long price; // تغییر به Long برای پشتیبانی از مبالغ بزرگ
+    public String status;
+    public String categoryName;
+    public String parentCategoryName;
+    public String cityName;
+    public String ownerUsername;
+    public Long ownerId;
+    public List<Image> images;
+    public String rejectionReason;
+    public Double averageRating;
+    public Long categoryId;
+    public Long cityId;
+    public Long buyerId;
+    public String buyerUsername;
 
     // ===== Constructors =====
     public Item() {}
 
-    public Item(Long id, String title, String description, double price, String status,
+    public Item(Long id, String title, String description, Long price, String status,
                 String categoryName, String parentCategoryName, String cityName,
                 String ownerUsername, Long ownerId, List<Image> images,
                 String rejectionReason, Double averageRating) {
@@ -53,8 +54,8 @@ public class Item {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public double getPrice() { return price; }
-    public void setPrice(double price) { this.price = price; }
+    public Long getPrice() { return price; }
+    public void setPrice(Long price) { this.price = price; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
@@ -89,12 +90,19 @@ public class Item {
     public Long getCityId() { return cityId; }
     public void setCityId(Long cityId) { this.cityId = cityId; }
 
+    public Long getBuyerId() { return buyerId; }
+    public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }
+
+    public String getBuyerUsername() { return buyerUsername; }
+    public void setBuyerUsername(String buyerUsername) { this.buyerUsername = buyerUsername; }
+
     /**
      * قیمت را به صورت فرمت شده با کاما برمی‌گرداند
      * مثال: ۱,۸۰۰,۰۰۰ تومان
      */
     public String getFormattedPrice() {
-        return String.format("%,d تومان", (long) price);
+        if (price == null || price == 0) return "توافقی";
+        return String.format("%,d تومان", price);
     }
 
     /**
@@ -102,14 +110,17 @@ public class Item {
      * مثال: ۱.۸ میلیون تومان
      */
     public String getShortPrice() {
+        if (price == null || price == 0) return "توافقی";
+
+        // تقسیم بر double (مثلا 1000000.0) انجام شد تا خروجی اعشاری درست نمایش داده شود
         if (price >= 1_000_000_000) {
-            return String.format("%.1f میلیارد تومان", price / 1_000_000_000);
+            return String.format("%.1f میلیارد تومان", price / 1_000_000_000.0);
         } else if (price >= 1_000_000) {
-            return String.format("%.1f میلیون تومان", price / 1_000_000);
+            return String.format("%.1f میلیون تومان", price / 1_000_000.0);
         } else if (price >= 1_000) {
-            return String.format("%.1f هزار تومان", price / 1_000);
+            return String.format("%.1f هزار تومان", price / 1_000.0);
         } else {
-            return String.format("%.0f تومان", price);
+            return String.format("%d تومان", price);
         }
     }
 
@@ -120,7 +131,7 @@ public class Item {
         if (status == null) return "نامشخص";
         return switch (status.toUpperCase()) {
             case "PENDING" -> "در انتظار بررسی";
-            case "ACTIVE" -> "فعال";
+            case "ACTIVE", "APPROVED" -> "فعال";
             case "SOLD" -> "فروخته شده";
             case "DELETED" -> "حذف شده";
             case "REJECTED" -> "رد شده";
@@ -143,37 +154,22 @@ public class Item {
         };
     }
 
-    /**
-     * آیا آگهی فعال است؟
-     */
     public boolean isActive() {
         return "APPROVED".equalsIgnoreCase(status) || "ACTIVE".equalsIgnoreCase(status);
     }
 
-    /**
-     * آیا آگهی در انتظار بررسی است؟
-     */
     public boolean isPending() {
         return "PENDING".equalsIgnoreCase(status);
     }
 
-    /**
-     * آیا آگهی فروخته شده است؟
-     */
     public boolean isSold() {
         return "SOLD".equalsIgnoreCase(status);
     }
 
-    /**
-     * آیا آگهی متعلق به کاربر مشخصی است؟
-     */
     public boolean isOwner(Long userId) {
         return ownerId != null && ownerId.equals(userId);
     }
 
-    /**
-     * عنوان کامل با دسته‌بندی
-     */
     public String getFullTitle() {
         String category = categoryName != null ? categoryName : "";
         String parent = parentCategoryName != null ? parentCategoryName : "";
@@ -185,33 +181,21 @@ public class Item {
         return title;
     }
 
-    /**
-     * آیا آگهی تصویر دارد؟
-     */
     public boolean hasImages() {
         return images != null && !images.isEmpty();
     }
 
-    /**
-     * تعداد تصاویر آگهی
-     */
     public int getImageCount() {
         return images != null ? images.size() : 0;
     }
 
-    /**
-     * دریافت اولین تصویر (برای نمایش در لیست)
-     */
     public String getFirstImageUrl() {
         if (hasImages()) {
-            return images.get(0).getFullUrl();  // استفاده از getFullUrl()
+            return images.get(0).getFullUrl();
         }
         return null;
     }
 
-    /**
-     * دریافت امتیاز به صورت فرمت شده
-     */
     public String getFormattedRating() {
         if (averageRating == null) {
             return "بدون امتیاز";
@@ -219,9 +203,6 @@ public class Item {
         return String.format("⭐ %.1f", averageRating);
     }
 
-    /**
-     * دریافت امتیاز با تعداد رأی
-     */
     public String getRatingWithCount(int count) {
         if (averageRating == null || count == 0) {
             return "بدون امتیاز";
@@ -229,17 +210,10 @@ public class Item {
         return String.format("⭐ %.1f (%d رأی)", averageRating, count);
     }
 
-    /**
-     * آیا آگهی قابل ویرایش است؟
-     * (فقط آگهی‌های در انتظار بررسی و فعال قابل ویرایش هستند)
-     */
     public boolean isEditable() {
         return isPending() || isActive();
     }
 
-    /**
-     * آیا آگهی قابل حذف است؟
-     */
     public boolean isDeletable() {
         return isPending() || isActive();
     }
@@ -249,15 +223,6 @@ public class Item {
         return title + " - " + getFormattedPrice();
     }
 
-    public Long getBuyerId() { return buyerId; }
-    public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }
-
-    public String getBuyerUsername() { return buyerUsername; }
-    public void setBuyerUsername(String buyerUsername) { this.buyerUsername = buyerUsername; }
-
-    /**
-     * آیا این آگهی توسط کاربر مشخص خریداری شده است؟
-     */
     public boolean isPurchasedBy(Long userId) {
         return isSold() && buyerId != null && buyerId.equals(userId);
     }

@@ -14,8 +14,6 @@ public class FavoriteService {
     private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
     // دریافت لیست علاقه‌مندی‌ها
-    // بک‌اند لیست FavoriteResponse برمی‌گرداند (نه Item)؛ برای نمایش کارت‌ها،
-    // جزئیات کامل هر آگهی را جداگانه می‌گیریم و در صورت خطا به داده حداقلی بسنده می‌کنیم
     public static List<Item> getFavorites() throws Exception {
         HttpResponse<String> response = ApiClient.get("/favorites/user");
 
@@ -32,11 +30,12 @@ public class FavoriteService {
             try {
                 items.add(ItemService.getItemById(fav.itemId));
             } catch (Exception e) {
-                // اگر جزئیات کامل در دسترس نبود، از داده‌های خود FavoriteResponse استفاده کن
+                // در صورت بروز خطا، از داده‌های داخل FavoriteResponse به عنوان داده‌های حداقل استفاده می‌شود
                 Item item = new Item();
                 item.setId(fav.itemId);
                 item.setTitle(fav.itemTitle);
-                item.setPrice(fav.itemPrice != null ? fav.itemPrice : 0);
+                // 🟢 قیمت کماکان سازگار با Long مقداردهی می‌شود
+                item.setPrice(fav.itemPrice != null ? fav.itemPrice : 0L);
                 item.setStatus(fav.itemStatus);
                 items.add(item);
             }
@@ -83,7 +82,7 @@ public class FavoriteService {
         public Long id;
         public Long itemId;
         public String itemTitle;
-        public Double itemPrice;
+        public Long itemPrice;
         public String itemStatus;
         public Long userId;
     }

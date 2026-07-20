@@ -97,16 +97,14 @@ public class ItemService {
         }
     }
 
-    // جست‌وجوی آگهی با فیلترهای ترکیبی
-    // (مسیر درست بک‌اند: POST /api/items/search/advanced با body JSON)
     public static List<Item> searchItems(String keyword, Long categoryId, Long cityId,
-                                         Integer minPrice, Integer maxPrice) throws Exception {
+                                         Long minPrice, Long maxPrice) throws Exception {
         SearchRequest request = new SearchRequest();
         request.keyword = (keyword != null && !keyword.isBlank()) ? keyword.trim() : null;
         request.categoryId = categoryId;
         request.cityId = cityId;
-        request.minPrice = minPrice != null ? minPrice.doubleValue() : null;
-        request.maxPrice = maxPrice != null ? maxPrice.doubleValue() : null;
+        request.minPrice = minPrice;
+        request.maxPrice = maxPrice;
         request.sortBy = "newest";
 
         HttpResponse<String> response = ApiClient.post("/items/search/advanced", request);
@@ -196,7 +194,6 @@ public class ItemService {
         public Long price;
         public Long categoryId;
         public Long cityId;
-        // مسیر فایل‌های تصویر روی سیستم کاربر (برای آپلود multipart)
         public List<String> imageUrls;
 
         public ItemCreateRequest(String title, String description, Long price,
@@ -232,8 +229,8 @@ public class ItemService {
         public String keyword;
         public Long categoryId;
         public Long cityId;
-        public Double minPrice;
-        public Double maxPrice;
+        public Long minPrice;
+        public Long maxPrice;
         public String sortBy;
     }
 }
