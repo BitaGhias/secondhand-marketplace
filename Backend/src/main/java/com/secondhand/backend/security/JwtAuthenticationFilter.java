@@ -1,4 +1,4 @@
-package com.secondhand.backend.repository;
+package com.secondhand.backend.security;
 
 import com.secondhand.backend.util.JwtUtil;
 import jakarta.servlet.FilterChain;
