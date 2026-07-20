@@ -66,9 +66,7 @@ public class ItemController {
         return ResponseEntity.ok(
                 itemService.updateItemStatus(
                         currentUserService.getCurrentUserId(),
-                        id,
-                        status,
-                        rejectionReason
+                        id, status, rejectionReason
                 )
         );
     }
@@ -83,10 +81,11 @@ public class ItemController {
         return ResponseEntity.ok(itemService.getItemByUser(currentUserService.getCurrentUserId()));
     }
 
+    // FIX: 200 OK -> 204 No Content
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteItem(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteItem(@PathVariable Long id) {
         itemService.deleteItem(id, currentUserService.getCurrentUserId());
-        return ResponseEntity.ok("آگهی با موفقیت حذف شد.");
+        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
@@ -145,12 +144,21 @@ public class ItemController {
         );
     }
 
+    // FIX: endpoint جدید برای ادمین - دیدن هر آگهی با هر وضعیتی
+    @GetMapping("/admin/{id}")
+    public ResponseEntity<ItemResponse> getItemByIdForAdmin(@PathVariable Long id) {
+        return ResponseEntity.ok(
+                itemService.getItemByIdForAdmin(
+                        currentUserService.getCurrentUserId(), id
+                )
+        );
+    }
+
     @GetMapping("/admin/user/{userId}")
     public ResponseEntity<List<ItemResponse>> getUserItemsForAdmin(@PathVariable Long userId) {
         return ResponseEntity.ok(
                 itemService.getItemsByUserForAdmin(
-                        currentUserService.getCurrentUserId(),
-                        userId
+                        currentUserService.getCurrentUserId(), userId
                 )
         );
     }
