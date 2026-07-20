@@ -51,10 +51,11 @@ public class CategoryController {
         return ResponseEntity.ok(updated);
     }
 
+    // FIX: 200 OK با body -> 204 No Content
     @DeleteMapping("/{id}")
-    public ResponseEntity<String> deleteCategory(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long id) {
         categoryService.deleteCategory(id);
-        return ResponseEntity.ok("دسته‌بندی با موفقیت حذف شد.");
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/popular")

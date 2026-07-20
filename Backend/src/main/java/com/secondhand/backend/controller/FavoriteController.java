@@ -27,11 +27,15 @@ public class FavoriteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
+    // FIX: @RequestBody -> @RequestParam (HTTP spec)
+    // FIX: 200 OK -> 204 No Content
     @DeleteMapping("/remove")
-    public ResponseEntity<String> removeFavorite(@RequestBody FavoriteRequest request) {
+    public ResponseEntity<Void> removeFavorite(@RequestParam Long itemId) {
         Long userId = currentUserService.getCurrentUserId();
+        FavoriteRequest request = new FavoriteRequest();
+        request.setItemId(itemId);
         favoriteService.removeFavorite(request, userId);
-        return ResponseEntity.ok("آگهی با موفقیت از لیست علاقه‌مندی‌ها حذف شد.");
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/user")
@@ -43,7 +47,6 @@ public class FavoriteController {
     @GetMapping("/check")
     public ResponseEntity<Boolean> checkFavorite(@RequestParam Long itemId) {
         Long userId = currentUserService.getCurrentUserId();
-        boolean isFavorite = favoriteService.isFavorite(userId, itemId);
-        return ResponseEntity.ok(isFavorite);
+        return ResponseEntity.ok(favoriteService.isFavorite(userId, itemId));
     }
 }

@@ -44,9 +44,8 @@ public class RatingService {
     }
 
     public RatingResponse addRating(RatingCreateRequest request, Long raterId) {
-        if (request.getScore() < 1 || request.getScore() > 5) {
+        if (request.getScore() < 1 || request.getScore() > 5)
             throw new BadRequestException("امتیاز وارد شده باید عددی بین ۱ تا ۵ باشد!");
-        }
 
         User rater = userRepository.findById(raterId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر ثبت‌کننده امتیاز یافت نشد"));
@@ -55,28 +54,23 @@ public class RatingService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
-        if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD) {
+        if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD)
             throw new BadRequestException("این آگهی قابل امتیازدهی نیست!");
-        }
 
         User seller = item.getUser();
-        if (seller.getId().equals(raterId)) {
+        if (seller.getId().equals(raterId))
             throw new BadRequestException("شما نمی‌توانید به خودتان امتیاز بدهید!");
-        }
 
-        // فقط خریدار واقعی آگهی می‌تواند امتیاز دهد
         boolean isBuyer = item.getStatus() == ItemStatus.SOLD
                 && item.getBuyer() != null
                 && item.getBuyer().getId().equals(raterId);
 
-        if (!isBuyer) {
+        if (!isBuyer)
             throw new BadRequestException("امتیازدهی فقط پس از خرید این کالا امکان‌پذیر است!");
-        }
 
         Optional<Rating> existingRating = ratingRepository.findByRaterIdAndItemId(raterId, request.getItemId());
-        if (existingRating.isPresent()) {
+        if (existingRating.isPresent())
             throw new BadRequestException("شما قبلاً برای این آگهی امتیاز ثبت کرده‌اید!");
-        }
 
         Rating rating = new Rating();
         rating.setScore(request.getScore());
@@ -85,41 +79,27 @@ public class RatingService {
         rating.setRater(rater);
         rating.setSeller(seller);
 
-        Rating savedRating = ratingRepository.save(rating);
-        return convertToResponse(savedRating);
+        return convertToResponse(ratingRepository.save(rating));
     }
 
     public double getSellerAverageRating(Long sellerId) {
-        if (!userRepository.existsById(sellerId)) {
+        if (!userRepository.existsById(sellerId))
             throw new ResourceNotFoundException("فروشنده یافت نشد");
-        }
-
-        List<Rating> ratings = ratingRepository.findBySellerId(sellerId);
-        if (ratings.isEmpty()) {
-            return 0.0;
-        }
-
-        double sum = 0;
-        for (Rating r : ratings) {
-            sum += r.getScore();
-        }
-        return sum / ratings.size();
+        // FIX: AVG در سطح DB به جای بارگذاری همه رکوردها در حافظه
+        return ratingRepository.averageScoreBySellerId(sellerId);
     }
 
     public long getSellerRatingCount(Long sellerId) {
-        if (!userRepository.existsById(sellerId)) {
+        if (!userRepository.existsById(sellerId))
             throw new ResourceNotFoundException("فروشنده یافت نشد");
-        }
-        return ratingRepository.findBySellerId(sellerId).size();
+        // FIX: COUNT در سطح DB به جای بارگذاری همه رکوردها در حافظه
+        return ratingRepository.countBySellerId(sellerId);
     }
 
     public List<RatingResponse> getSellerRatings(Long sellerId) {
-        if (!userRepository.existsById(sellerId)) {
+        if (!userRepository.existsById(sellerId))
             throw new ResourceNotFoundException("فروشنده یافت نشد");
-        }
-
-        List<Rating> ratings = ratingRepository.findBySellerId(sellerId);
-        return ratings.stream()
+        return ratingRepository.findBySellerId(sellerId).stream()
                 .map(this::convertToResponse)
                 .toList();
     }
