@@ -37,6 +37,8 @@
             <VBox spacing="3" HBox.hgrow="ALWAYS">
                 <Label text="🛒 خریدهای من" style="-fx-text-fill: #0f172a; -fx-font-size: 22px; -fx-font-weight: bold;"/>
                 <Label text="تاریخچه خریدهای شما" style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                <Label text="💡 برای مشاهده جزئیات، روی هر ردیف دوبار کلیک کنید"
+                       style="-fx-text-fill: #94a3b8; -fx-font-size: 11px; -fx-font-style: italic;"/>
             </VBox>
             <Button text="→ بازگشت" onAction="#goBack"
                     style="-fx-background-color: #ffffff;
