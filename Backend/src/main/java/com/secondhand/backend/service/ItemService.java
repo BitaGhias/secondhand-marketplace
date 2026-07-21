@@ -115,6 +115,8 @@ public class ItemService {
             response.setBuyerId(item.getBuyer().getId());
             response.setBuyerUsername(item.getBuyer().getUsername());
         }
+
+        response.setCreatedAt(item.getCreatedAt());
         return response;
     }
 
