@@ -183,7 +183,7 @@ public class ItemService {
     }
 
     public List<ItemResponse> getApprovedItems() {
-        return convertToResponseList(itemRepository.findByStatus(ItemStatus.APPROVED.name()));
+        return convertToResponseList(itemRepository.findByStatus(ItemStatus.APPROVED));
     }
 
     public ItemResponse updateItemStatus(Long requesterAdminId, Long itemId, String newStatus, String rejectionReason) {
@@ -224,17 +224,17 @@ public class ItemService {
 
     public List<ItemResponse> getPendingItems(Long requesterAdminId) {
         validateUserIsAdmin(requesterAdminId);
-        return convertToResponseList(itemRepository.findByStatus(ItemStatus.PENDING.name()));
+        return convertToResponseList(itemRepository.findByStatus(ItemStatus.PENDING));
     }
 
     public List<ItemResponse> getApprovedItemsByCategory(Long categoryId) {
-        return convertToResponseList(itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED.name()));
+        return convertToResponseList(itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED));
     }
 
     public List<ItemResponse> getItemByUser(Long userId) {
         if (!userRepository.existsById(userId))
             throw new ResourceNotFoundException("کاربر یافت نشد");
-        return convertToResponseList(itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED.name()));
+        return convertToResponseList(itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED));
     }
 
     public void deleteItem(Long itemId, Long userId) {
@@ -267,7 +267,7 @@ public class ItemService {
             throw new BadRequestException("کلمه کلیدی جستجو نمی‌تواند خالی باشد!");
         return convertToResponseList(
                 itemRepository.findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
-                        ItemStatus.APPROVED.name(), keyword
+                        ItemStatus.APPROVED, keyword
                 )
         );
     }
@@ -275,7 +275,7 @@ public class ItemService {
     public List<ItemResponse> getItemsByCity(Long cityId) {
         if (!cityRepository.existsById(cityId))
             throw new ResourceNotFoundException("شهر یافت نشد");
-        return convertToResponseList(itemRepository.findByStatusAndCityId(ItemStatus.APPROVED.name(), cityId));
+        return convertToResponseList(itemRepository.findByStatusAndCityId(ItemStatus.APPROVED, cityId));
     }
 
     public ItemResponse markAsSold(Long itemId, Long userId) {

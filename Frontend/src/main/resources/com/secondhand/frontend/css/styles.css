@@ -1,295 +1,309 @@
-/* ============================================
-   بازار سفید — استایل سراسری برنامه (تم تیره)
-   ============================================ */
+/* =====================================================
+   بازار سفید — تم روشن پرمیوم (سفید + زمردی)
+   پالت:
+     پس‌زمینه:   #fbfcfe → #eef1f7
+     کارت:       #ffffff / بوردر #e3e8f0
+     متن اصلی:   #1f2937 / ثانویه #475569 / کم‌رنگ #94a3b8
+     اکسنت:      #0e9f6e (زمردی) — گرادیان #0ea371 → #0b7d59
+   ===================================================== */
 
 .root {
     -fx-font-family: "Segoe UI", "Vazirmatn", "Tahoma", sans-serif;
+    -fx-font-size: 13px;
 }
 
-/* ===== فیلدهای متنی: متن سفید و خوانا روی پس‌زمینه تیره ===== */
+/* ================= فیلدهای متنی ================= */
 .text-field, .password-field {
-    -fx-text-fill: white;
-    -fx-prompt-text-fill: rgba(255, 255, 255, 0.35);
-    -fx-highlight-fill: #667eea;
-    -fx-highlight-text-fill: white;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1f2937;
+    -fx-prompt-text-fill: #9aa7b8;
+    -fx-background-radius: 10;
+    -fx-border-color: #dbe2ec;
+    -fx-border-width: 1;
+    -fx-border-radius: 10;
+    -fx-padding: 9 12;
+    -fx-highlight-fill: #baf0dc;
+    -fx-highlight-text-fill: #064e3b;
 }
 
-/* ===== TextArea: متن سفید + پس‌زمینه تیره داخلی ===== */
+.text-field:focused, .password-field:focused {
+    -fx-border-color: #0e9f6e;
+    -fx-border-width: 1.5;
+    -fx-effect: dropshadow(gaussian, rgba(14,159,110,0.18), 8, 0, 0, 0);
+}
+
 .text-area {
-    -fx-text-fill: white;
-    -fx-prompt-text-fill: rgba(255, 255, 255, 0.35);
-    -fx-highlight-fill: #667eea;
-    -fx-highlight-text-fill: white;
-    -fx-background-color: transparent;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1f2937;
+    -fx-prompt-text-fill: #9aa7b8;
+    -fx-background-radius: 10;
+    -fx-border-color: #dbe2ec;
+    -fx-border-radius: 10;
+    -fx-highlight-fill: #baf0dc;
+    -fx-highlight-text-fill: #064e3b;
+}
+
+.text-area:focused {
+    -fx-border-color: #0e9f6e;
+    -fx-border-width: 1.5;
 }
 
 .text-area .content {
-    -fx-background-color: rgba(30, 28, 60, 0.9);
-    -fx-background-radius: 12;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
 }
 
-.text-area .scroll-pane,
-.text-area .scroll-pane .viewport {
+.text-area .scroll-pane, .text-area .viewport {
     -fx-background-color: transparent;
 }
 
-/* ===== منوهای کشویی (ComboBox / MenuButton / ContextMenu) ===== */
-.combo-box {
-    -fx-background-color: rgba(255, 255, 255, 0.06);
-    -fx-background-radius: 12;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-radius: 12;
+/* ================= دکمه‌ها ================= */
+.button {
+    -fx-cursor: hand;
+    -fx-background-radius: 10;
 }
 
-/* متن آیتم انتخاب‌شده داخل ComboBox */
+.button:hover {
+    -fx-opacity: 0.92;
+}
+
+.button:pressed {
+    -fx-opacity: 0.85;
+}
+
+/* ================= کامبوباکس ================= */
+.combo-box, .choice-box {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
+    -fx-border-color: #dbe2ec;
+    -fx-border-radius: 10;
+    -fx-mark-color: #0e9f6e;
+}
+
+.combo-box:focused, .choice-box:focused {
+    -fx-border-color: #0e9f6e;
+}
+
 .combo-box .list-cell {
-    -fx-text-fill: white;
     -fx-background-color: transparent;
+    -fx-text-fill: #1f2937;
+    -fx-padding: 7 12;
 }
 
 .combo-box .arrow {
-    -fx-background-color: white;
+    -fx-background-color: #0e9f6e;
 }
 
-/* لیست بازشونده‌ی ComboBox: پس‌زمینه تیره + متن سفید (رفع هم‌رنگی فونت با پس‌زمینه) */
 .combo-box-popup .list-view {
-    -fx-background-color: #201a46;
-    -fx-background-radius: 10;
-    -fx-border-color: rgba(255, 255, 255, 0.15);
-    -fx-border-radius: 10;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-color: #e3e8f0;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.14), 18, 0, 0, 6);
 }
 
 .combo-box-popup .list-view .list-cell {
-    -fx-background-color: #201a46;
-    -fx-text-fill: white;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1f2937;
     -fx-padding: 8 14;
 }
 
-.combo-box-popup .list-view .list-cell:hover,
-.combo-box-popup .list-view .list-cell:filled:selected {
-    -fx-background-color: linear-gradient(to right, #667eea, #764ba2);
-    -fx-text-fill: white;
+.combo-box-popup .list-view .list-cell:hover {
+    -fx-background-color: #e6f7f0;
+    -fx-text-fill: #065f46;
 }
 
-/* MenuButton (مثلاً انتخاب دسته‌بندی سلسله‌مراتبی) */
+.combo-box-popup .list-view .list-cell:filled:selected,
+.combo-box-popup .list-view .list-cell:filled:selected:hover {
+    -fx-background-color: #d1f0e2;
+    -fx-text-fill: #065f46;
+    -fx-font-weight: bold;
+}
+
+/* ================= منوها ================= */
 .menu-button {
-    -fx-background-color: rgba(255, 255, 255, 0.06);
-    -fx-background-radius: 12;
-    -fx-border-color: rgba(255, 255, 255, 0.1);
-    -fx-border-radius: 12;
-}
-
-.menu-button .label {
-    -fx-text-fill: white;
-}
-
-.menu-button .arrow {
-    -fx-background-color: white;
-}
-
-/* منوهای بازشونده (شامل زیرمنوهای دسته‌بندی) */
-.context-menu {
-    -fx-background-color: #201a46;
+    -fx-background-color: #ffffff;
     -fx-background-radius: 10;
-    -fx-border-color: rgba(255, 255, 255, 0.15);
+    -fx-border-color: #dbe2ec;
     -fx-border-radius: 10;
 }
 
-.menu-item .label {
-    -fx-text-fill: white;
+.menu-button .label {
+    -fx-text-fill: #1f2937;
 }
 
-.menu-item:focused,
-.menu-item:hover {
-    -fx-background-color: linear-gradient(to right, #667eea, #764ba2);
+.menu-button .arrow {
+    -fx-background-color: #0e9f6e;
 }
 
-.menu-item:focused .label,
-.menu-item:hover .label {
-    -fx-text-fill: white;
-}
-
-.menu .label {
-    -fx-text-fill: white;
-}
-
-.menu:hover, .menu:focused, .menu:showing {
-    -fx-background-color: linear-gradient(to right, #667eea, #764ba2);
-}
-
-.menu .right-container .arrow {
-    -fx-background-color: white;
-}
-
-/* ===== ListView ===== */
-.list-view {
-    -fx-background-color: rgba(255, 255, 255, 0.03);
+.context-menu {
+    -fx-background-color: #ffffff;
     -fx-background-radius: 12;
-    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-color: #e3e8f0;
     -fx-border-radius: 12;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.14), 18, 0, 0, 6);
+}
+
+.menu-item {
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 8 16;
+}
+
+.menu-item .label {
+    -fx-text-fill: #1f2937;
+    -fx-font-size: 13px;
+}
+
+.menu-item:focused, .menu-item:hover {
+    -fx-background-color: #e6f7f0;
+}
+
+.menu-item:focused .label, .menu-item:hover .label {
+    -fx-text-fill: #065f46;
+}
+
+/* ================= لیست‌ها ================= */
+.list-view {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
 }
 
 .list-view .list-cell {
-    -fx-background-color: transparent;
-    -fx-text-fill: white;
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #1f2937;
+    -fx-background-radius: 10;
+    -fx-padding: 8 12;
 }
 
-.list-view .list-cell:filled:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.06);
+.list-view .list-cell:empty {
+    -fx-background-color: transparent;
+}
+
+.list-view .list-cell:hover {
+    -fx-background-color: #f2f6fa;
 }
 
 .list-view .list-cell:filled:selected {
-    -fx-background-color: rgba(102, 126, 234, 0.35);
-    -fx-text-fill: white;
+    -fx-background-color: #d1f0e2;
+    -fx-text-fill: #065f46;
 }
 
-/* ===== TableView (مثلاً صفحه خریدها) ===== */
+/* ================= جدول‌ها ================= */
 .table-view {
-    -fx-background-color: rgba(255, 255, 255, 0.03);
+    -fx-background-color: #ffffff;
     -fx-background-radius: 12;
-    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-color: #e3e8f0;
     -fx-border-radius: 12;
 }
 
 .table-view .column-header-background {
-    -fx-background-color: #201a46;
+    -fx-background-color: #f4f7fa;
     -fx-background-radius: 12 12 0 0;
 }
 
-.table-view .column-header,
-.table-view .filler {
+.table-view .column-header, .table-view .filler {
     -fx-background-color: transparent;
-    -fx-border-color: transparent;
+    -fx-border-color: transparent transparent #e3e8f0 transparent;
 }
 
 .table-view .column-header .label {
-    -fx-text-fill: white;
+    -fx-text-fill: #475569;
     -fx-font-weight: bold;
-}
-
-.table-view .table-row-cell {
-    -fx-background-color: transparent;
-}
-
-.table-view .table-row-cell:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
-}
-
-.table-view .table-row-cell:selected {
-    -fx-background-color: rgba(102, 126, 234, 0.35);
 }
 
 .table-view .table-cell {
-    -fx-text-fill: white;
+    -fx-text-fill: #1f2937;
     -fx-border-color: transparent;
-    -fx-alignment: CENTER_RIGHT;
+    -fx-alignment: CENTER;
 }
 
-.table-view .placeholder .label {
-    -fx-text-fill: rgba(255, 255, 255, 0.4);
+.table-row-cell {
+    -fx-background-color: #ffffff;
 }
 
-/* ===== TabPane ===== */
-.tab-pane .tab-header-area .tab-header-background {
-    -fx-background-color: transparent;
+.table-row-cell:odd {
+    -fx-background-color: #fafcfe;
 }
 
-.tab-pane .tab {
-    -fx-background-color: rgba(255, 255, 255, 0.05);
-    -fx-background-radius: 10 10 0 0;
+.table-row-cell:hover {
+    -fx-background-color: #f0f6f3;
 }
 
-.tab-pane .tab .tab-label {
-    -fx-text-fill: rgba(255, 255, 255, 0.6);
-    -fx-font-weight: bold;
+.table-row-cell:selected {
+    -fx-background-color: #d1f0e2;
 }
 
-.tab-pane .tab:selected {
-    -fx-background-color: rgba(102, 126, 234, 0.35);
+.table-row-cell:selected .table-cell {
+    -fx-text-fill: #065f46;
 }
 
-.tab-pane .tab:selected .tab-label {
-    -fx-text-fill: white;
-}
-
-/* ===== Dialog / Alert: پس‌زمینه تیره + متن سفید ===== */
+/* ================= دیالوگ‌ها ================= */
 .dialog-pane {
-    -fx-background-color: #1a1936;
-}
-
-.dialog-pane .label {
-    -fx-text-fill: white;
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14;
+    -fx-border-color: #e3e8f0;
+    -fx-border-radius: 14;
 }
 
 .dialog-pane .header-panel {
-    -fx-background-color: #201a46;
+    -fx-background-color: #f4f9f6;
+    -fx-background-radius: 14 14 0 0;
 }
 
 .dialog-pane .header-panel .label {
-    -fx-text-fill: white;
+    -fx-text-fill: #1f2937;
+    -fx-font-size: 15px;
     -fx-font-weight: bold;
 }
 
-.dialog-pane .content {
-    -fx-background-color: transparent;
+.dialog-pane .label, .dialog-pane .content {
+    -fx-text-fill: #334155;
 }
 
 .dialog-pane .button {
-    -fx-background-color: linear-gradient(to right, #667eea, #764ba2);
+    -fx-background-color: linear-gradient(to right, #0ea371, #0b7d59);
     -fx-text-fill: white;
-    -fx-background-radius: 10;
     -fx-font-weight: bold;
+    -fx-background-radius: 10;
+    -fx-padding: 8 22;
     -fx-cursor: hand;
 }
 
-.dialog-pane .button:hover {
-    -fx-background-color: linear-gradient(to right, #764ba2, #667eea);
+.dialog-pane .button:cancel-button {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #475569;
+    -fx-border-color: #dbe2ec;
+    -fx-border-radius: 10;
 }
 
-/* ===== CheckBox ===== */
-.check-box {
-    -fx-text-fill: white;
+/* ================= چک‌باکس و رادیو ================= */
+.check-box, .radio-button {
+    -fx-text-fill: #334155;
 }
 
-.check-box .box {
-    -fx-background-color: rgba(255, 255, 255, 0.08);
-    -fx-border-color: rgba(255, 255, 255, 0.3);
+.check-box .box, .radio-button .radio {
+    -fx-background-color: #ffffff;
+    -fx-border-color: #cbd5e1;
     -fx-border-radius: 4;
     -fx-background-radius: 4;
+}
+
+.check-box:selected .box {
+    -fx-background-color: #0e9f6e;
+    -fx-border-color: #0e9f6e;
 }
 
 .check-box:selected .mark {
     -fx-background-color: white;
 }
 
-.check-box:selected .box {
-    -fx-background-color: #667eea;
+.radio-button:selected .radio .dot {
+    -fx-background-color: #0e9f6e;
 }
 
-/* ===== ScrollBar ===== */
-.scroll-bar {
-    -fx-background-color: transparent;
-}
-
-.scroll-bar .track {
-    -fx-background-color: rgba(255, 255, 255, 0.03);
-}
-
-.scroll-bar .thumb {
-    -fx-background-color: rgba(255, 255, 255, 0.2);
-    -fx-background-radius: 6;
-}
-
-.scroll-bar .thumb:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.35);
-}
-
-.scroll-bar .increment-button,
-.scroll-bar .decrement-button {
-    -fx-background-color: transparent;
-}
-
-/* ===== ScrollPane ===== */
+/* ================= اسکرول ================= */
 .scroll-pane {
     -fx-background-color: transparent;
 }
@@ -298,14 +312,74 @@
     -fx-background-color: transparent;
 }
 
-/* ===== Separator ===== */
-.separator .line {
-    -fx-border-color: rgba(255, 255, 255, 0.15);
+.scroll-bar {
+    -fx-background-color: transparent;
 }
 
-/* ===== Tooltip ===== */
-.tooltip {
-    -fx-background-color: #201a46;
-    -fx-text-fill: white;
+.scroll-bar .track {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: #cbd5e1;
     -fx-background-radius: 8;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: #94a3b8;
+}
+
+.scroll-bar .increment-button, .scroll-bar .decrement-button,
+.scroll-bar .increment-arrow, .scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-padding: 2;
+}
+
+/* ================= سایر ================= */
+.separator .line {
+    -fx-border-color: #e5eaf1;
+    -fx-border-width: 1 0 0 0;
+}
+
+.tooltip {
+    -fx-background-color: #1f2937;
+    -fx-text-fill: #f8fafc;
+    -fx-background-radius: 8;
+    -fx-font-size: 12px;
+    -fx-padding: 6 10;
+}
+
+.progress-indicator {
+    -fx-progress-color: #0e9f6e;
+}
+
+.hyperlink {
+    -fx-text-fill: #0e9f6e;
+    -fx-border-color: transparent;
+}
+
+.hyperlink:hover {
+    -fx-underline: true;
+}
+
+.tab-pane .tab-header-area .tab-header-background {
+    -fx-background-color: #f4f7fa;
+}
+
+.tab-pane .tab {
+    -fx-background-color: #eef2f7;
+    -fx-background-radius: 10 10 0 0;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: #ffffff;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: #64748b;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: #0e9f6e;
+    -fx-font-weight: bold;
 }

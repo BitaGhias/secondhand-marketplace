@@ -1,43 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="800.0" prefWidth="1000.0" spacing="0"
-      style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
+<VBox prefHeight="700.0" prefWidth="1000.0" spacing="0"
+      style="-fx-background-color: #f5f7fa;"
+      stylesheets="@css/styles.css"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.MyAdsController">
 
-    <!-- ===== Title Bar ===== -->
+    <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
-          style="-fx-background-color: rgba(0,0,0,0.25);
-                 -fx-padding: 10 15;
-                 -fx-border-color: rgba(255,255,255,0.05);
+          style="-fx-background-color: #ffffff;
+                 -fx-padding: 12 16;
+                 -fx-border-color: transparent transparent #e7ecf2 transparent;
                  -fx-border-width: 0 0 1 0;">
-        <children>
-            <Label text="🛒" style="-fx-text-fill: #667eea; -fx-font-size: 16px; -fx-font-weight: bold;"/>
-            <Label text="بازار سفید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-opacity: 0.9;"/>
-            <HBox HBox.hgrow="ALWAYS" />
-            <Button text="─" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#minimizeWindow"/>
-            <Button text="☐" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#maximizeWindow"/>
-            <Button text="✕" style="-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#closeWindow"/>
-        </children>
+        <Label text="بازار سفید — آگهی‌های من" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Button text="─" onAction="#minimizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="☐" onAction="#maximizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="✕" onAction="#closeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
     </HBox>
 
-    <VBox spacing="15" VBox.vgrow="ALWAYS">
-        <padding><Insets top="15" right="25" bottom="25" left="25"/></padding>
-        <HBox spacing="15" alignment="CENTER_RIGHT" nodeOrientation="RIGHT_TO_LEFT">
-            <Label text="📝 آگهی‌های من" style="-fx-text-fill: #38ef7d; -fx-font-size: 22px; -fx-font-weight: bold;"/>
-            <HBox HBox.hgrow="ALWAYS"/>
-            <Button text="⬅ بازگشت" onAction="#goBack"
-                    style="-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand;"/>
-        </HBox>
-        <Separator style="-fx-opacity: 0.1;" />
+    <!-- ===== محتوا ===== -->
+    <VBox spacing="14" VBox.vgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
+        <padding>
+            <Insets top="18" right="28" bottom="24" left="28"/>
+        </padding>
 
-        <!-- ✅ کارت‌های آگهی مثل صفحه adlist کنار هم در FlowPane -->
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-            <FlowPane fx:id="myAdsFlowPane" hgap="22" vgap="22" alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
-                      style="-fx-background-color: transparent; -fx-padding: 10;"/>
+        <!-- سربرگ -->
+        <HBox alignment="CENTER_LEFT" spacing="14">
+            <VBox spacing="3" HBox.hgrow="ALWAYS">
+                <Label text="📝 آگهی‌های من" style="-fx-text-fill: #0f172a; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+                <Label text="مدیریت آگهی‌های ثبت‌شده توسط شما" style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+            </VBox>
+            <Button text="→ بازگشت" onAction="#goBack"
+                    style="-fx-background-color: #ffffff;
+                           -fx-text-fill: #0e9f6e;
+                           -fx-border-color: #0e9f6e;
+                           -fx-border-width: 1.5;
+                           -fx-border-radius: 10;
+                           -fx-background-radius: 10;
+                           -fx-cursor: hand;
+                           -fx-font-size: 13px;
+                           -fx-font-weight: bold;
+                           -fx-padding: 8 18;"/>
+        </HBox>
+
+        <!-- گرید کارت‌ها -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+            <content>
+                <FlowPane fx:id="myAdsFlowPane" hgap="20" vgap="20"
+                          alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
+                          style="-fx-background-color: transparent;"/>
+            </content>
         </ScrollPane>
     </VBox>
 </VBox>

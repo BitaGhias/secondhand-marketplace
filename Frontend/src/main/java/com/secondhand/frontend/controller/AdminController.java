@@ -65,7 +65,7 @@ public class AdminController extends BaseController {
                     setText("📦 " + item.getTitle()
                             + "\n💰 " + item.getFormattedPrice()
                             + "   👤 " + item.getOwnerUsername());
-                    setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 10;");
+                    setStyle("-fx-background-color: transparent; -fx-text-fill: #1f2937; -fx-font-size: 13px; -fx-padding: 10;");
                 }
             }
         });
@@ -83,7 +83,7 @@ public class AdminController extends BaseController {
                     String blocked = user.isBlocked() ? "   🔒 مسدود" : "";
                     setText(user.getUsername() + "  (" + user.getFullName() + ")\n" + role + blocked);
                     setStyle("-fx-background-color: transparent; -fx-text-fill: "
-                            + (user.isBlocked() ? "#ff6b6b" : "white")
+                            + (user.isBlocked() ? "#dc2626" : "white")
                             + "; -fx-font-size: 13px; -fx-padding: 10;");
                 }
             }
@@ -117,7 +117,7 @@ public class AdminController extends BaseController {
         dialog.setHeaderText("📦 " + item.getTitle());
         dialog.getDialogPane().getStylesheets().add(
                 getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        dialog.getDialogPane().setStyle("-fx-background-color: #1a1936;");
+        dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
 
         VBox content = new VBox(10);
         content.setStyle("-fx-padding: 20;");
@@ -138,7 +138,7 @@ public class AdminController extends BaseController {
         Label descLabel = new Label(item.getDescription());
         descLabel.setWrapText(true);
         descLabel.setMaxWidth(460);
-        descLabel.setStyle("-fx-text-fill: rgba(255,255,255,0.75); -fx-font-size: 13px;");
+        descLabel.setStyle("-fx-text-fill: #475569; -fx-font-size: 13px;");
         content.getChildren().add(descLabel);
 
         // تصاویر آگهی
@@ -148,7 +148,7 @@ public class AdminController extends BaseController {
                 try {
                     ImageView imageView = new ImageView(
                             new javafx.scene.image.Image(item.getImages().get(i).getFullUrl(), 110, 110, true, true, true));
-                    imageView.setStyle("-fx-border-color: rgba(255,255,255,0.2);");
+                    imageView.setStyle("-fx-border-color: #cbd5e1;");
                     imagesBox.getChildren().add(imageView);
                 } catch (Exception ignored) {
                 }
@@ -163,7 +163,7 @@ public class AdminController extends BaseController {
 
     private Label infoLabel(String text) {
         Label label = new Label(text);
-        label.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
+        label.setStyle("-fx-text-fill: #1f2937; -fx-font-size: 14px;");
         return label;
     }
 
@@ -315,6 +315,6 @@ public class AdminController extends BaseController {
     private void styleAlert(Alert alert) {
         alert.getDialogPane().getStylesheets().add(
                 getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        alert.getDialogPane().setStyle("-fx-background-color: #1a1936;");
+        alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
     }
 }

@@ -48,7 +48,7 @@ public class PurchasesController extends BaseController {
         rateCol.setCellFactory(col -> new TableCell<>() {
             private final Button rateButton = new Button("⭐ ثبت امتیاز");
             {
-                rateButton.setStyle("-fx-background-color: linear-gradient(to right, #667eea, #764ba2);"
+                rateButton.setStyle("-fx-background-color: #0e9f6e;"
                         + " -fx-text-fill: white; -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 12;");
                 rateButton.setOnAction(e -> {
                     Item item = getTableView().getItems().get(getIndex());
@@ -81,20 +81,20 @@ public class PurchasesController extends BaseController {
         dialog.setTitle("امتیازدهی به فروشنده");
         dialog.setHeaderText("امتیاز شما به «" + item.getOwnerUsername() + "» برای خرید «" + item.getTitle() + "»");
         dialog.getDialogPane().getStylesheets().add(getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        dialog.getDialogPane().setStyle("-fx-background-color: #1a1936;");
+        dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
 
         VBox content = new VBox(10);
         content.setStyle("-fx-padding: 20;");
 
         Label scoreLabel = new Label("امتیاز (۱ تا ۵):");
-        scoreLabel.setStyle("-fx-text-fill: white;");
+        scoreLabel.setStyle("-fx-text-fill: #1f2937;");
 
         ComboBox<Integer> scoreComboBox = new ComboBox<>();
         scoreComboBox.getItems().addAll(1, 2, 3, 4, 5);
         scoreComboBox.setValue(5);
 
         Label commentLabel = new Label("نظر (اختیاری):");
-        commentLabel.setStyle("-fx-text-fill: white;");
+        commentLabel.setStyle("-fx-text-fill: #1f2937;");
 
         TextArea commentArea = new TextArea();
         commentArea.setPromptText("نظر خود را بنویسید...");
@@ -124,7 +124,7 @@ public class PurchasesController extends BaseController {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.getDialogPane().getStylesheets().add(getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        alert.getDialogPane().setStyle("-fx-background-color: #1a1936;");
+        alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
         alert.showAndWait();
     }
 

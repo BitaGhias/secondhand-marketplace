@@ -1,5 +1,6 @@
 package com.secondhand.backend.repository;
 
+import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -10,23 +11,28 @@ import java.util.List;
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
-    List<Item> findByStatus(String status);
+    // ✅ فقط ۱ پارامتر
+    List<Item> findByStatus(ItemStatus status);
+
     List<Item> findByUserId(Long userId);
 
-    List<Item> findByCategoryIdAndStatus(Long categoryId, String status);
-    List<Item> findByUserIdAndStatusNot(Long userId, String status); //برای لیست اگهی کاربر بدون DELETED
+    // ✅ فقط ۲ پارامتر
+    List<Item> findByCategoryIdAndStatus(Long categoryId, ItemStatus status);
 
-    //  جستجو با ۱ پارامتر + keyword
+    List<Item> findByUserIdAndStatusNot(Long userId, ItemStatus status);
+
+    // ✅ جستجو با ۱ پارامتر + keyword
     @Query("SELECT i FROM Item i WHERE i.status = :status AND (LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Item> findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
-            @Param("status") String status,
+            @Param("status") ItemStatus status,
             @Param("keyword") String keyword
     );
 
-    List<Item> findByStatusAndCityId(String status, Long cityId);
+    // ✅ فقط ۲ پارامتر - اصلاح شد
+    List<Item> findByStatusAndCityId(ItemStatus status, Long cityId);
 
-    //  جستجوی پیشرفته با ۵ پارامتر
-    @Query("SELECT i FROM Item i WHERE i.status = 'APPROVED' " +
+    // ✅ جستجوی پیشرفته با ۵ پارامتر
+    @Query("SELECT i FROM Item i WHERE i.status = com.secondhand.backend.constant.ItemStatus.APPROVED " +
             "AND (:keyword IS NULL OR LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
             "AND (:categoryId IS NULL OR i.category.id = :categoryId) " +
@@ -41,6 +47,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             @Param("maxPrice") Long maxPrice
     );
 
-    //  برای خرید
+    // ✅ برای خرید
     List<Item> findByBuyerId(Long buyerId);
 }

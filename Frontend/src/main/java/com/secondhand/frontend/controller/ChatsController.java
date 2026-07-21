@@ -55,7 +55,7 @@ public class ChatsController extends BaseController {
                 } else {
                     String other = conversation.getOtherPartyUsername(myId);
                     setText("📦 " + conversation.getItemTitle() + "\n👤 " + (other != null ? other : "کاربر"));
-                    setStyle("-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 13px; -fx-padding: 10;");
+                    setStyle("-fx-background-color: transparent; -fx-text-fill: #1f2937; -fx-font-size: 13px; -fx-padding: 10;");
                 }
             }
         });
@@ -113,7 +113,7 @@ public class ChatsController extends BaseController {
                 Platform.runLater(() -> {
                     messagesVBox.getChildren().clear();
                     Label errorLabel = new Label("خطا در دریافت پیام‌ها: " + e.getMessage());
-                    errorLabel.setStyle("-fx-text-fill: #ff4757;");
+                    errorLabel.setStyle("-fx-text-fill: #dc2626;");
                     messagesVBox.getChildren().add(errorLabel);
                 });
             }
@@ -131,9 +131,9 @@ public class ChatsController extends BaseController {
             bubble.setWrapText(true);
             bubble.setMaxWidth(380);
             if (mine) {
-                bubble.setStyle("-fx-background-color: #11998e; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 8 12;");
+                bubble.setStyle("-fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 8 12;");
             } else {
-                bubble.setStyle("-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 8 12;");
+                bubble.setStyle("-fx-background-color: #e7ecf2; -fx-text-fill: #1f2937; -fx-background-radius: 12; -fx-padding: 8 12;");
             }
 
             HBox row = new HBox(bubble);
@@ -162,7 +162,7 @@ public class ChatsController extends BaseController {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     Label errorLabel = new Label("خطا در ارسال پیام: " + e.getMessage());
-                    errorLabel.setStyle("-fx-text-fill: #ff4757;");
+                    errorLabel.setStyle("-fx-text-fill: #dc2626;");
                     messagesVBox.getChildren().add(errorLabel);
                 });
             }

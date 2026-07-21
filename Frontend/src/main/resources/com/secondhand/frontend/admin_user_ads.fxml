@@ -4,90 +4,126 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="800.0" prefWidth="1100.0" spacing="0"
-      style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
+<VBox prefHeight="790.0" prefWidth="1119.0" spacing="0"
+      style="-fx-background-color: #f5f7fa;"
+      stylesheets="@css/styles.css"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.AdminUserAdListController">
 
-    <!-- ===== Title Bar ===== -->
+    <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
-          style="-fx-background-color: rgba(0,0,0,0.25);
-                 -fx-padding: 10 15;
-                 -fx-border-color: rgba(255,255,255,0.05);
+          style="-fx-background-color: #ffffff;
+                 -fx-padding: 12 16;
+                 -fx-border-color: transparent transparent #e7ecf2 transparent;
                  -fx-border-width: 0 0 1 0;">
-        <children>
-            <Label text="🛒" style="-fx-text-fill: #667eea; -fx-font-size: 16px; -fx-font-weight: bold;"/>
-            <Label text="بازار سفید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-opacity: 0.9;"/>
-            <HBox HBox.hgrow="ALWAYS" />
-            <Button text="─" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#minimizeWindow"/>
-            <Button text="☐" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#maximizeWindow"/>
-            <Button text="✕" style="-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#closeWindow"/>
-        </children>
+        <Label text="بازار سفید — آگهی‌های کاربر" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Button text="─" onAction="#minimizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="☐" onAction="#maximizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="✕" onAction="#closeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
     </HBox>
 
-    <VBox spacing="15" VBox.vgrow="ALWAYS">
-        <padding><Insets top="15" right="25" bottom="25" left="25"/></padding>
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+        <content>
+            <VBox spacing="16" nodeOrientation="RIGHT_TO_LEFT">
+                <padding>
+                    <Insets top="18" right="28" bottom="28" left="28"/>
+                </padding>
 
-        <!-- هدر -->
-        <HBox alignment="CENTER_LEFT" spacing="15">
-            <Button text="← بازگشت به پنل مدیریت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
-            <HBox HBox.hgrow="ALWAYS"/>
-            <Label fx:id="userTitleLabel" text="👤" style="-fx-text-fill: #f093fb; -fx-font-size: 24px; -fx-font-weight: bold;"/>
-        </HBox>
-
-        <Separator style="-fx-opacity: 0.1;"/>
-
-        <!-- اطلاعات کاربر و عملیات -->
-        <HBox nodeOrientation="RIGHT_TO_LEFT" spacing="15" alignment="CENTER_LEFT"
-              style="-fx-background-color: rgba(255,255,255,0.03); -fx-background-radius: 15; -fx-padding: 15;">
-            <Label fx:id="userInfoLabel" style="-fx-text-fill: rgba(255,255,255,0.75); -fx-font-size: 13px;"/>
-            <Label fx:id="blockStatusLabel" style="-fx-text-fill: #38ef7d; -fx-font-size: 14px; -fx-font-weight: bold;"/>
-            <HBox HBox.hgrow="ALWAYS"/>
-            <Button fx:id="blockButton" text="🔒 مسدود کردن" onAction="#blockUser"
-                    style="-fx-background-color: #ff4757;
-                           -fx-text-fill: white;
-                           -fx-background-radius: 12;
-                           -fx-padding: 10 20;
-                           -fx-font-weight: bold;
-                           -fx-cursor: hand;"/>
-            <Button fx:id="unblockButton" text="🔓 فعال‌سازی" onAction="#unblockUser" visible="false"
-                    style="-fx-background-color: #2ed573;
-                           -fx-text-fill: white;
-                           -fx-background-radius: 12;
-                           -fx-padding: 10 20;
-                           -fx-font-weight: bold;
-                           -fx-cursor: hand;"/>
-        </HBox>
-
-        <Label fx:id="messageLabel" style="-fx-font-size: 13px;" visible="false"/>
-
-        <!-- سه بخش آگهی‌ها -->
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-            <VBox spacing="18" nodeOrientation="RIGHT_TO_LEFT" style="-fx-background-color: transparent; -fx-padding: 5;">
-
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="📌 آگهی‌های ثبت‌شده" style="-fx-text-fill: #667eea; -fx-font-size: 17px; -fx-font-weight: bold;"/>
-                    <Label fx:id="postedCountLabel" text="0 مورد" style="-fx-text-fill: rgba(255,255,255,0.45); -fx-font-size: 13px;"/>
+                <!-- سربرگ -->
+                <HBox alignment="CENTER_LEFT" spacing="14">
+                    <VBox spacing="3" HBox.hgrow="ALWAYS">
+                        <Label fx:id="userTitleLabel" text="آگهی‌های کاربر"
+                               style="-fx-text-fill: #0f172a; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+                        <Label fx:id="userInfoLabel" text=""
+                               style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                    </VBox>
+                    <Button text="→ بازگشت به پنل مدیریت" onAction="#goBack"
+                            style="-fx-background-color: #ffffff;
+                                   -fx-text-fill: #0e9f6e;
+                                   -fx-border-color: #0e9f6e;
+                                   -fx-border-width: 1.5;
+                                   -fx-border-radius: 10;
+                                   -fx-background-radius: 10;
+                                   -fx-cursor: hand;
+                                   -fx-font-size: 13px;
+                                   -fx-font-weight: bold;
+                                   -fx-padding: 8 18;"/>
                 </HBox>
-                <FlowPane fx:id="postedFlowPane" hgap="15" vgap="15" style="-fx-background-color: transparent;"/>
 
-                <Separator style="-fx-opacity: 0.08;"/>
-
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="✅ آگهی‌های فروخته‌شده" style="-fx-text-fill: #38ef7d; -fx-font-size: 17px; -fx-font-weight: bold;"/>
-                    <Label fx:id="soldCountLabel" text="0 مورد" style="-fx-text-fill: rgba(255,255,255,0.45); -fx-font-size: 13px;"/>
+                <!-- کارت وضعیت کاربر -->
+                <HBox alignment="CENTER_LEFT" spacing="12"
+                      style="-fx-background-color: #ffffff;
+                             -fx-background-radius: 16;
+                             -fx-border-color: #e7ecf2;
+                             -fx-border-radius: 16;
+                             -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 14, 0, 0, 4);
+                             -fx-padding: 14 18;">
+                    <Label fx:id="blockStatusLabel" text=""
+                           style="-fx-background-color: #f1f5f9;
+                                  -fx-background-radius: 20;
+                                  -fx-padding: 5 14;
+                                  -fx-font-size: 12px;
+                                  -fx-font-weight: bold;
+                                  -fx-text-fill: #475569;"/>
+                    <Label fx:id="messageLabel" text="" visible="false"
+                           style="-fx-font-size: 12px; -fx-font-weight: bold;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="blockButton" text="🔒 مسدود کردن کاربر" onAction="#blockUser"
+                            style="-fx-background-color: #ffffff;
+                                   -fx-text-fill: #dc2626;
+                                   -fx-border-color: #dc2626;
+                                   -fx-border-width: 1.5;
+                                   -fx-border-radius: 10;
+                                   -fx-background-radius: 10;
+                                   -fx-font-weight: bold;
+                                   -fx-font-size: 12px;
+                                   -fx-cursor: hand;
+                                   -fx-padding: 8 18;"/>
+                    <Button fx:id="unblockButton" text="🔓 رفع مسدودیت" onAction="#unblockUser" visible="false"
+                            style="-fx-background-color: #0e9f6e;
+                                   -fx-background-radius: 10;
+                                   -fx-text-fill: white;
+                                   -fx-font-weight: bold;
+                                   -fx-font-size: 12px;
+                                   -fx-cursor: hand;
+                                   -fx-padding: 8 18;"/>
                 </HBox>
-                <FlowPane fx:id="soldFlowPane" hgap="15" vgap="15" style="-fx-background-color: transparent;"/>
 
-                <Separator style="-fx-opacity: 0.08;"/>
-
-                <HBox spacing="10" alignment="CENTER_LEFT">
-                    <Label text="🗑️ آگهی‌های حذف‌شده" style="-fx-text-fill: #ff6b6b; -fx-font-size: 17px; -fx-font-weight: bold;"/>
-                    <Label fx:id="deletedCountLabel" text="0 مورد" style="-fx-text-fill: rgba(255,255,255,0.45); -fx-font-size: 13px;"/>
+                <!-- آگهی‌های ثبت‌شده -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Region minWidth="10" minHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #0e9f6e; -fx-background-radius: 50;"/>
+                    <Label text="آگهی‌های ثبت‌شده" style="-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+                    <Label fx:id="postedCountLabel" text="۰"
+                           style="-fx-background-color: #e6f7f0; -fx-background-radius: 20; -fx-padding: 2 10; -fx-text-fill: #0b7d59; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Region style="-fx-background-color: #e7ecf2; -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
                 </HBox>
-                <FlowPane fx:id="deletedFlowPane" hgap="15" vgap="15" style="-fx-background-color: transparent;"/>
+                <FlowPane fx:id="postedFlowPane" hgap="20" vgap="20" alignment="TOP_RIGHT" style="-fx-background-color: transparent;"/>
 
+                <!-- آگهی‌های فروخته‌شده -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Region minWidth="10" minHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #2563eb; -fx-background-radius: 50;"/>
+                    <Label text="آگهی‌های فروخته‌شده" style="-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+                    <Label fx:id="soldCountLabel" text="۰"
+                           style="-fx-background-color: #dbeafe; -fx-background-radius: 20; -fx-padding: 2 10; -fx-text-fill: #1d4ed8; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Region style="-fx-background-color: #e7ecf2; -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <FlowPane fx:id="soldFlowPane" hgap="20" vgap="20" alignment="TOP_RIGHT" style="-fx-background-color: transparent;"/>
+
+                <!-- آگهی‌های حذف‌شده -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Region minWidth="10" minHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #dc2626; -fx-background-radius: 50;"/>
+                    <Label text="آگهی‌های حذف‌شده" style="-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+                    <Label fx:id="deletedCountLabel" text="۰"
+                           style="-fx-background-color: #fee2e2; -fx-background-radius: 20; -fx-padding: 2 10; -fx-text-fill: #b91c1c; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Region style="-fx-background-color: #e7ecf2; -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <FlowPane fx:id="deletedFlowPane" hgap="20" vgap="20" alignment="TOP_RIGHT" style="-fx-background-color: transparent;"/>
             </VBox>
-        </ScrollPane>
-    </VBox>
+        </content>
+    </ScrollPane>
 </VBox>
