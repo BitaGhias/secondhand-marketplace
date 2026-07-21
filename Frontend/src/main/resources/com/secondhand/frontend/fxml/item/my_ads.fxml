@@ -4,11 +4,11 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="560.0" prefWidth="800.0" spacing="0"
+<VBox prefHeight="700.0" prefWidth="1000.0" spacing="0"
       style="-fx-background-color: #f5f7fa;"
-      stylesheets="@css/styles.css"
+      stylesheets="@../../css/styles.css"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.secondhand.frontend.controller.PurchasesController">
+      fx:controller="com.secondhand.frontend.controller.MyAdsController">
 
     <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
@@ -16,7 +16,7 @@
                  -fx-padding: 12 16;
                  -fx-border-color: transparent transparent #e7ecf2 transparent;
                  -fx-border-width: 0 0 1 0;">
-        <Label text="بازار سفید — خریدهای من" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+        <Label text="بازار سفید — آگهی‌های من" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;"/>
         <HBox HBox.hgrow="ALWAYS"/>
         <Button text="─" onAction="#minimizeWindow"
                 style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
@@ -35,8 +35,8 @@
         <!-- سربرگ -->
         <HBox alignment="CENTER_LEFT" spacing="14">
             <VBox spacing="3" HBox.hgrow="ALWAYS">
-                <Label text="🛒 خریدهای من" style="-fx-text-fill: #0f172a; -fx-font-size: 22px; -fx-font-weight: bold;"/>
-                <Label text="تاریخچه خریدهای شما" style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                <Label text="📝 آگهی‌های من" style="-fx-text-fill: #0f172a; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+                <Label text="مدیریت آگهی‌های ثبت‌شده توسط شما" style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
             </VBox>
             <Button text="→ بازگشت" onAction="#goBack"
                     style="-fx-background-color: #ffffff;
@@ -51,20 +51,14 @@
                            -fx-padding: 8 18;"/>
         </HBox>
 
-        <!-- کارت جدول -->
-        <VBox VBox.vgrow="ALWAYS"
-              style="-fx-background-color: #ffffff;
-                     -fx-background-radius: 16;
-                     -fx-border-color: #e7ecf2;
-                     -fx-border-radius: 16;
-                     -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 14, 0, 0, 4);
-                     -fx-padding: 14;">
-            <TableView fx:id="purchasesTable" VBox.vgrow="ALWAYS"
-                       style="-fx-background-color: transparent; -fx-border-color: transparent;">
-                <placeholder>
-                    <Label text="هیچ تاریخچه خریدی یافت نشد." style="-fx-text-fill: #94a3b8; -fx-font-size: 13px;"/>
-                </placeholder>
-            </TableView>
-        </VBox>
+        <!-- گرید کارت‌ها -->
+        <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                    style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+            <content>
+                <FlowPane fx:id="myAdsFlowPane" hgap="20" vgap="20"
+                          alignment="TOP_RIGHT" nodeOrientation="RIGHT_TO_LEFT"
+                          style="-fx-background-color: transparent;"/>
+            </content>
+        </ScrollPane>
     </VBox>
 </VBox>

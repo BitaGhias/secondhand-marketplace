@@ -62,15 +62,22 @@ public class ProfileController extends BaseController {
     /** Phase 5: دریافت میانگین امتیاز از API */
     private void loadSellerRating(Long userId) {
         if (ratingLabel == null) return;
-        RatingService.getSellerAverageAsync(userId).thenAccept(avg ->
-                Platform.runLater(() -> {
+        RatingService.getSellerAverageAsync(userId)
+                .thenAccept(avg -> Platform.runLater(() -> {
                     if (avg == null || avg == 0.0) {
                         ratingLabel.setText("★ امتیاز: بدون امتیاز");
                     } else {
                         ratingLabel.setText(String.format("★ امتیاز فروشندگی: %.1f / 5", avg));
                     }
                     ratingLabel.setVisible(true);
-                }));
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        ratingLabel.setText("★ امتیاز: نامشخص");
+                        ratingLabel.setVisible(true);
+                    });
+                    return null;
+                });
     }
 
     private void fillForm(User user) {
@@ -165,7 +172,7 @@ public class ProfileController extends BaseController {
 
     @FXML
     private void goBack() {
-        try { MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "لیست آگهی‌ها"); }
+        try { MainApplication.changeScene("/com/secondhand/frontend/fxml/item/adlist.fxml", "لیست آگهی‌ها"); }
         catch (Exception e) { e.printStackTrace(); }
     }
 }

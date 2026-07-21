@@ -5,6 +5,7 @@ import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.UserService;
+import com.secondhand.frontend.util.Routes;
 import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
@@ -22,30 +23,24 @@ import javafx.stage.Stage;
 import java.util.List;
 
 public class AdminController extends BaseController {
+
     @FXML private TabPane mainTabPane;
-    @FXML private HBox titleBar;
+    @FXML private HBox    titleBar;
 
-    // تب آگهی‌های در انتظار
     @FXML private ListView<Item> pendingItemsListView;
-    @FXML private Label pendingCountLabel;
-    @FXML private TextArea rejectionReasonArea;
-    @FXML private Button approveButton;
-    @FXML private Button rejectButton;
-    @FXML private Button deleteButton;
+    @FXML private Label          pendingCountLabel;
+    @FXML private TextArea       rejectionReasonArea;
+    @FXML private Button         approveButton;
+    @FXML private Button         rejectButton;
+    @FXML private Button         deleteButton;
 
-    // تب مدیریت کاربران
     @FXML private ListView<User> usersListView;
-    @FXML private Label usersCountLabel;
+    @FXML private Label          usersCountLabel;
 
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
-
-        if (!SessionManager.isAdmin()) {
-            showError("شما دسترسی ادمین ندارید!");
-            return;
-        }
-
+        if (!SessionManager.isAdmin()) { showError("شما دسترسی ادمین ندارید!"); return; }
         setupCellFactories();
         setupClickHandlers();
         loadPendingItems();
@@ -53,15 +48,11 @@ public class AdminController extends BaseController {
     }
 
     private void setupCellFactories() {
-        // نمایش خوانای آگهی‌های در انتظار
         pendingItemsListView.setCellFactory(listView -> new ListCell<>() {
-            @Override
-            protected void updateItem(Item item, boolean empty) {
+            @Override protected void updateItem(Item item, boolean empty) {
                 super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                    setStyle("-fx-background-color: transparent;");
-                } else {
+                if (empty || item == null) { setText(null); setStyle("-fx-background-color: transparent;"); }
+                else {
                     setText("📦 " + item.getTitle()
                             + "\n💰 " + item.getFormattedPrice()
                             + "   👤 " + item.getOwnerUsername());
@@ -70,16 +61,12 @@ public class AdminController extends BaseController {
             }
         });
 
-        // ✅ نمایش نام کاربری کاربر به جای آدرس آبجکت دیتابیس
         usersListView.setCellFactory(listView -> new ListCell<>() {
-            @Override
-            protected void updateItem(User user, boolean empty) {
+            @Override protected void updateItem(User user, boolean empty) {
                 super.updateItem(user, empty);
-                if (empty || user == null) {
-                    setText(null);
-                    setStyle("-fx-background-color: transparent;");
-                } else {
-                    String role = "ADMIN".equalsIgnoreCase(user.getRole()) ? "🛡️ ادمین" : "👤 کاربر";
+                if (empty || user == null) { setText(null); setStyle("-fx-background-color: transparent;"); }
+                else {
+                    String role    = "ADMIN".equalsIgnoreCase(user.getRole()) ? "🛡️ ادمین" : "👤 کاربر";
                     String blocked = user.isBlocked() ? "   🔒 مسدود" : "";
                     setText(user.getUsername() + "  (" + user.getFullName() + ")\n" + role + blocked);
                     setStyle("-fx-background-color: transparent; -fx-text-fill: "
@@ -91,32 +78,24 @@ public class AdminController extends BaseController {
     }
 
     private void setupClickHandlers() {
-        // ✅ کلیک روی آگهی در انتظار ← نمایش جزئیات کامل آن
         pendingItemsListView.setOnMouseClicked(event -> {
             Item selected = pendingItemsListView.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                showItemDetailsDialog(selected);
-            }
+            if (selected != null) showItemDetailsDialog(selected);
         });
-
-        // ✅ کلیک روی کاربر ← رفتن به صفحه آگهی‌ها و مدیریت همان کاربر
         usersListView.setOnMouseClicked(event -> {
             User selected = usersListView.getSelectionModel().getSelectedItem();
-            if (selected != null) {
-                goToUserAdsPage(selected);
-            }
+            if (selected != null) goToUserAdsPage(selected);
         });
     }
 
-    /**
-     * نمایش جزئیات کامل یک آگهی در انتظار تایید (با تصاویر)
-     */
     private void showItemDetailsDialog(Item item) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("جزئیات آگهی");
         dialog.setHeaderText("📦 " + item.getTitle());
-        dialog.getDialogPane().getStylesheets().add(
-                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+        try {
+            dialog.getDialogPane().getStylesheets().add(
+                    getClass().getResource(Routes.STYLESHEET).toExternalForm());
+        } catch (Exception ignored) {}
         dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
 
         VBox content = new VBox(10);
@@ -141,7 +120,6 @@ public class AdminController extends BaseController {
         descLabel.setStyle("-fx-text-fill: #475569; -fx-font-size: 13px;");
         content.getChildren().add(descLabel);
 
-        // تصاویر آگهی
         if (item.getImages() != null && !item.getImages().isEmpty()) {
             HBox imagesBox = new HBox(10);
             for (int i = 0; i < Math.min(item.getImages().size(), 4); i++) {
@@ -150,8 +128,7 @@ public class AdminController extends BaseController {
                             new javafx.scene.image.Image(item.getImages().get(i).getFullUrl(), 110, 110, true, true, true));
                     imageView.setStyle("-fx-border-color: #cbd5e1;");
                     imagesBox.getChildren().add(imageView);
-                } catch (Exception ignored) {
-                }
+                } catch (Exception ignored) {}
             }
             content.getChildren().addAll(new Separator(), infoLabel("🖼️ تصاویر:"), imagesBox);
         }
@@ -167,12 +144,9 @@ public class AdminController extends BaseController {
         return label;
     }
 
-    /**
-     * رفتن به صفحه آگهی‌های یک کاربر (ثبت‌شده / فروخته‌شده / حذف‌شده)
-     */
     private void goToUserAdsPage(User user) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/admin_user_ads.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(Routes.ADMIN_USER_ADS));
             Parent root = loader.load();
             AdminUserAdListController controller = loader.getController();
             controller.setUser(user);
@@ -180,7 +154,7 @@ public class AdminController extends BaseController {
             Stage stage = (Stage) usersListView.getScene().getWindow();
             Scene scene = new Scene(root, 1000, 1000);
             scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-            scene.getStylesheets().add(getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+            scene.getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm());
             stage.setScene(scene);
             stage.setTitle("آگهی‌های کاربر " + user.getUsername());
         } catch (Exception e) {
@@ -220,17 +194,11 @@ public class AdminController extends BaseController {
     @FXML
     private void approveItem() {
         Item selected = pendingItemsListView.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showError("لطفاً یک آگهی را انتخاب کنید");
-            return;
-        }
+        if (selected == null) { showError("لطفاً یک آگهی را انتخاب کنید"); return; }
         new Thread(() -> {
             try {
                 ItemService.approveItem(selected.getId());
-                Platform.runLater(() -> {
-                    showSuccess("✅ آگهی «" + selected.getTitle() + "» تایید شد");
-                    loadPendingItems();
-                });
+                Platform.runLater(() -> { showSuccess("✅ آگهی «" + selected.getTitle() + "» تایید شد"); loadPendingItems(); });
             } catch (Exception e) {
                 Platform.runLater(() -> showError("خطا در تایید آگهی: " + e.getMessage()));
             }
@@ -240,19 +208,12 @@ public class AdminController extends BaseController {
     @FXML
     private void rejectItem() {
         Item selected = pendingItemsListView.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showError("لطفاً یک آگهی را انتخاب کنید");
-            return;
-        }
+        if (selected == null) { showError("لطفاً یک آگهی را انتخاب کنید"); return; }
         String reason = rejectionReasonArea.getText() != null ? rejectionReasonArea.getText().trim() : "";
         new Thread(() -> {
             try {
                 ItemService.rejectItem(selected.getId(), reason);
-                Platform.runLater(() -> {
-                    rejectionReasonArea.clear();
-                    showSuccess("❌ آگهی «" + selected.getTitle() + "» رد شد");
-                    loadPendingItems();
-                });
+                Platform.runLater(() -> { rejectionReasonArea.clear(); showSuccess("❌ آگهی «" + selected.getTitle() + "» رد شد"); loadPendingItems(); });
             } catch (Exception e) {
                 Platform.runLater(() -> showError("خطا در رد آگهی: " + e.getMessage()));
             }
@@ -262,59 +223,22 @@ public class AdminController extends BaseController {
     @FXML
     private void deleteItemByAdmin() {
         Item selected = pendingItemsListView.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showError("لطفاً یک آگهی را انتخاب کنید");
-            return;
-        }
+        if (selected == null) { showError("لطفاً یک آگهی را انتخاب کنید"); return; }
         new Thread(() -> {
             try {
                 ItemService.deleteItem(selected.getId());
-                Platform.runLater(() -> {
-                    showSuccess("🗑️ آگهی «" + selected.getTitle() + "» حذف شد");
-                    loadPendingItems();
-                });
+                Platform.runLater(() -> { showSuccess("🗑️ آگهی «" + selected.getTitle() + "» حذف شد"); loadPendingItems(); });
             } catch (Exception e) {
                 Platform.runLater(() -> showError("خطا در حذف آگهی: " + e.getMessage()));
             }
         }).start();
     }
 
-    @FXML
-    private void refreshAll() {
-        loadPendingItems();
-        loadAllUsers();
-    }
+    @FXML private void refreshAll() { loadPendingItems(); loadAllUsers(); }
 
     @FXML
     private void goBack() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "لیست آگهی‌ها");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void showError(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("خطا");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        styleAlert(alert);
-        alert.showAndWait();
-    }
-
-    private void showSuccess(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("موفق");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        styleAlert(alert);
-        alert.showAndWait();
-    }
-
-    private void styleAlert(Alert alert) {
-        alert.getDialogPane().getStylesheets().add(
-                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
+        try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }
+        catch (Exception e) { e.printStackTrace(); }
     }
 }

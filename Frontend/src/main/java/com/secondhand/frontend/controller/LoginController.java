@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.util.ApiClient;
+import com.secondhand.frontend.util.Routes;
 import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
@@ -18,10 +18,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 
-/**
- * Phase 6: LoginController extends BaseController
- * (minimizeWindow / closeWindow از BaseController به ارث می‌رسند — تکرار حذف شد)
- */
 public class LoginController extends BaseController {
 
     @FXML private TextField         usernameField;
@@ -35,23 +31,13 @@ public class LoginController extends BaseController {
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
-
-        // اگر قبلاً وارد شده بود، مستقیم به صفحه اصلی بره
         if (SessionManager.isLoggedIn()) {
-            try {
-                navigateAfterLogin();
-            } catch (Exception e) { e.printStackTrace(); }
+            try { navigateAfterLogin(); } catch (Exception e) { e.printStackTrace(); }
             return;
         }
-
-        // فوکوس هوشمند با اینتر
         usernameField.setOnKeyPressed(e -> { if (e.getCode() == KeyCode.ENTER) passwordField.requestFocus(); });
         passwordField.setOnKeyPressed(e -> { if (e.getCode() == KeyCode.ENTER) handleLogin(); });
     }
-
-    // ─ window controls ─ BaseController پالیش کرده (ActionEvent)
-    // login.fxml از onAction="#minimizeWindow" / onAction="#closeWindow" استفاده می‌کند
-    // BaseController هر دو را دارد — هیچ overrideای لازم نیست
 
     @FXML
     private void handleLogin() {
@@ -59,7 +45,7 @@ public class LoginController extends BaseController {
         String password = passwordField.getText().trim();
 
         if (username.isEmpty() || password.isEmpty()) {
-            showError("لطفاً نام کاربری و رمز عبور را وارد کنید");
+            showErrorLabel("لطفاً نام کاربری و رمز عبور را وارد کنید");
             return;
         }
 
@@ -68,7 +54,8 @@ public class LoginController extends BaseController {
         errorLabel.setVisible(false);
 
         try {
-            String json = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", username, password);
+            String json = ApiClient.getMapper().writeValueAsString(
+                    Map.of("username", username, "password", password));
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(ApiClient.getBaseUrl() + "/auth/login"))
                     .header("Content-Type", "application/json")
@@ -77,18 +64,18 @@ public class LoginController extends BaseController {
             ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
                     .thenAccept(this::handleLoginResponse)
                     .exceptionally(e -> {
-                        showError("خطا در ارتباط با سرور: " + e.getMessage());
+                        showErrorLabel("خطا در ارتباط با سرور: " + e.getMessage());
                         return null;
                     });
         } catch (Exception e) {
-            showError("خطا: " + e.getMessage());
+            showErrorLabel("خطا: " + e.getMessage());
         }
     }
 
     private void handleLoginResponse(HttpResponse<String> response) {
         int status = response.statusCode();
-        if (status == 401 || status == 403) { showError("نام کاربری یا رمز عبور اشتباه است"); return; }
-        if (status != 200) { showError("خطای سرور: " + status); return; }
+        if (status == 401 || status == 403) { showErrorLabel("نام کاربری یا رمز عبور اشتباه است"); return; }
+        if (status != 200) { showErrorLabel("خطای سرور: " + status); return; }
 
         try {
             ObjectMapper mapper = ApiClient.getMapper();
@@ -114,22 +101,30 @@ public class LoginController extends BaseController {
             }
             Platform.runLater(() -> {
                 try { navigateAfterLogin(); }
-                catch (Exception e) { showError("خطا در بارگذاری صفحه"); }
+                catch (Exception e) { showErrorLabel("خطا در بارگذاری صفحه"); }
             });
         } catch (Exception e) {
-            showError("خطا در پردازش پاسخ سرور");
+            showErrorLabel("خطا در پردازش پاسخ سرور");
         }
     }
 
     private void navigateAfterLogin() throws Exception {
         User u = SessionManager.getCurrentUser();
         if (u != null && "ADMIN".equalsIgnoreCase(u.getRole()))
-            MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت");
+            MainApplication.changeScene(Routes.ADMIN_PANEL, "پنل مدیریت");
         else
-            MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید — لیست آگهی‌ها");
+            MainApplication.changeScene(Routes.AD_LIST, "بازار سفید — لیست آگهی‌ها");
     }
 
-    private void showError(String message) {
+    @FXML
+    private void goToRegister() {
+        try { MainApplication.changeScene(Routes.REGISTER, "ثبت‌نام"); }
+        catch (Exception e) { showErrorLabel("خطا در بارگذاری صفحه ثبت‌نام"); }
+    }
+
+    // ─── Label helper (≠ BaseController.showError که Alert باز می‌کنه) ───────
+
+    private void showErrorLabel(String message) {
         Platform.runLater(() -> {
             errorLabel.setText(message);
             errorLabel.setStyle("-fx-text-fill: #dc2626;");
@@ -137,11 +132,5 @@ public class LoginController extends BaseController {
             loadingIndicator.setVisible(false);
             loginButton.setDisable(false);
         });
-    }
-
-    @FXML
-    private void goToRegister() {
-        try { MainApplication.changeScene("/com/secondhand/frontend/register.fxml", "ثبت‌نام"); }
-        catch (Exception e) { showError("خطا در بارگذاری صفحه ثبت‌نام"); }
     }
 }
