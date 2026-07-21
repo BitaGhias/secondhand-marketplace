@@ -68,7 +68,9 @@ public class LoginController extends BaseController {
         errorLabel.setVisible(false);
 
         try {
-            String json = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", username, password);
+            // استفاده از ObjectMapper برای جلوگیری از JSON injection
+            String json = ApiClient.getMapper().writeValueAsString(
+                    java.util.Map.of("username", username, "password", password));
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(ApiClient.getBaseUrl() + "/auth/login"))
                     .header("Content-Type", "application/json")
