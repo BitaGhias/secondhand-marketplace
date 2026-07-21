@@ -14,36 +14,38 @@ import java.util.List;
 @RequestMapping("/api/ratings")
 public class RatingController {
 
-    @Autowired
-    private RatingService ratingService;
-
-    @Autowired
-    private CurrentUserService currentUserService;
+    @Autowired private RatingService ratingService;
+    @Autowired private CurrentUserService currentUserService;
 
     @PostMapping("/add")
     public ResponseEntity<RatingResponse> addRating(@RequestBody RatingCreateRequest request) {
-        RatingResponse response = ratingService.addRating(
-                request,
-                currentUserService.getCurrentUserId()
-        );
+        RatingResponse response = ratingService.addRating(request, currentUserService.getCurrentUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping("/seller/{sellerId}/average")
     public ResponseEntity<Double> getSellerAverage(@PathVariable Long sellerId) {
-        double average = ratingService.getSellerAverageRating(sellerId);
-        return ResponseEntity.ok(average);
+        return ResponseEntity.ok(ratingService.getSellerAverageRating(sellerId));
     }
 
     @GetMapping("/seller/{sellerId}/count")
     public ResponseEntity<Long> getSellerRatingCount(@PathVariable Long sellerId) {
-        long count = ratingService.getSellerRatingCount(sellerId);
-        return ResponseEntity.ok(count);
+        return ResponseEntity.ok(ratingService.getSellerRatingCount(sellerId));
     }
 
     @GetMapping("/seller/{sellerId}")
     public ResponseEntity<List<RatingResponse>> getSellerRatings(@PathVariable Long sellerId) {
-        List<RatingResponse> ratings = ratingService.getSellerRatings(sellerId);
-        return ResponseEntity.ok(ratings);
+        return ResponseEntity.ok(ratingService.getSellerRatings(sellerId));
+    }
+
+    /**
+     * بررسی اینکه کاربر جاری قبلاً به این آگهی امتیاز داده یا خیر
+     * GET /api/ratings/item/{itemId}/rated
+     */
+    @GetMapping("/item/{itemId}/rated")
+    public ResponseEntity<Boolean> hasRated(@PathVariable Long itemId) {
+        Long userId = currentUserService.getCurrentUserId();
+        boolean rated = ratingService.hasUserRatedItem(userId, itemId);
+        return ResponseEntity.ok(rated);
     }
 }
