@@ -160,7 +160,7 @@ public class ProfileController extends BaseController {
 
     private void showMessage(String text, boolean success) {
         messageLabel.setText(text);
-        messageLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (success ? "#38ef7d" : "#ff4757") + ";");
+        messageLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (success ? "#16a34a" : "#dc2626") + ";");
         messageLabel.setVisible(true);
     }
 

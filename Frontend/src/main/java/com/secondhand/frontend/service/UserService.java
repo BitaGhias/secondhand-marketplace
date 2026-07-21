@@ -1,166 +1,147 @@
 package com.secondhand.frontend.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.util.ApiClient;
 
 import java.io.File;
-import java.net.URI;
-import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
+/**
+ * سرویس کاربران — مسیرها دقیقاً مطابق UserController بک‌اند (/api/auth/**):
+ *   GET  /api/auth/profile               پروفایل من
+ *   PUT  /api/auth/profile               ویرایش پروفایل (fullName/phoneNumber/email)
+ *   PUT  /api/auth/change-password       تغییر رمز (oldPassword/newPassword)
+ *   POST /api/auth/profile/image         آپلود عکس پروفایل (multipart، فیلد image)
+ *   GET  /api/auth/admin/all             لیست کاربران (ادمین)
+ *   POST /api/auth/admin/toggle-block    مسدود/فعال‌سازی (پارامترهای userId و block)
+ */
 public class UserService {
     private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
     public static User getCurrentUser() throws Exception {
         HttpResponse<String> response = ApiClient.get("/auth/profile");
-        if (response.statusCode() == 200) {
-            return objectMapper.readValue(response.body(), User.class);
-        }
-        throw new Exception("خطا در دریافت پروفایل: " + response.body());
+        ensureSuccess(response, "خطا در دریافت پروفایل");
+        return objectMapper.readValue(response.body(), User.class);
     }
 
     public static CompletableFuture<User> getCurrentUserAsync() {
-        CompletableFuture<User> future = new CompletableFuture<>();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(ApiClient.getBaseUrl() + "/auth/profile"))
-                .header("Authorization", "Bearer " + ApiClient.getToken())
-                .GET()
-                .build();
-
-        ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(response -> {
-                    try {
-                        if (response.statusCode() == 200) {
-                            future.complete(objectMapper.readValue(response.body(), User.class));
-                        } else {
-                            future.completeExceptionally(new RuntimeException(response.body()));
-                        }
-                    } catch (Exception e) {
-                        future.completeExceptionally(new RuntimeException("خطا در تحلیل داده‌های کاربر"));
-                    }
-                }).exceptionally(ex -> {
-                    future.completeExceptionally(ex);
-                    return null;
-                });
-        return future;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return getCurrentUser();
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
     }
 
     public static CompletableFuture<User> updateProfileAsync(String fullName, String phone, String email) {
-        CompletableFuture<User> future = new CompletableFuture<>();
-        try {
-            String json = String.format("{\"fullName\":\"%s\",\"phoneNumber\":\"%s\",\"email\":\"%s\"}", fullName, phone, email);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(ApiClient.getBaseUrl() + "/user/update"))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + ApiClient.getToken())
-                    .PUT(HttpRequest.BodyPublishers.ofString(json))
-                    .build();
-
-            ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenAccept(response -> {
-                        try {
-                            if (response.statusCode() == 200) {
-                                future.complete(objectMapper.readValue(response.body(), User.class));
-                            } else {
-                                future.completeExceptionally(new RuntimeException(response.body()));
-                            }
-                        } catch (Exception e) {
-                            future.completeExceptionally(new RuntimeException("خطا در به‌روزرسانی پروفایل"));
-                        }
-                    });
-        } catch (Exception e) {
-            future.completeExceptionally(e);
-        }
-        return future;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                Map<String, String> body = new LinkedHashMap<>();
+                body.put("fullName", fullName);
+                body.put("phoneNumber", phone);
+                body.put("email", email);
+                HttpResponse<String> res = ApiClient.put("/auth/profile", body);
+                ensureSuccess(res, "خطا در به‌روزرسانی پروفایل");
+                return objectMapper.readValue(res.body(), User.class);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
     }
 
     public static CompletableFuture<Void> changePasswordAsync(String oldPass, String newPass) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        try {
-            String json = String.format("{\"oldPassword\":\"%s\",\"newPassword\":\"%s\"}", oldPass, newPass);
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(ApiClient.getBaseUrl() + "/user/change-password"))
-                    .header("Content-Type", "application/json")
-                    .header("Authorization", "Bearer " + ApiClient.getToken())
-                    .POST(HttpRequest.BodyPublishers.ofString(json))
-                    .build();
-
-            ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                    .thenAccept(response -> {
-                        if (response.statusCode() == 200) {
-                            future.complete(null);
-                        } else {
-                            future.completeExceptionally(new RuntimeException(response.body()));
-                        }
-                    });
-        } catch (Exception e) {
-            future.completeExceptionally(e);
-        }
-        return future;
+        return CompletableFuture.runAsync(() -> {
+            try {
+                Map<String, String> body = new LinkedHashMap<>();
+                body.put("oldPassword", oldPass);
+                body.put("newPassword", newPass);
+                HttpResponse<String> res = ApiClient.put("/auth/change-password", body);
+                ensureSuccess(res, "خطا در تغییر رمز عبور");
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
     }
 
+    /** آپلود عکس پروفایل به صورت multipart/form-data با فیلد "image" */
     public static CompletableFuture<User> uploadProfileImageAsync(File file) {
-        CompletableFuture<User> future = new CompletableFuture<>();
-        // فرض بر این است که آپلود عکس آواتار به صورت ساده یا Base64/Multipart هندل می‌شود
-        // یک پیاده‌سازی موقت Async برای پر نشدن ارور ادیتور:
-        future.completeExceptionally(new RuntimeException("متد آپلود مولتی‌پارت نیاز به ساختار فرم دارد."));
-        return future;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                HttpResponse<String> res = ApiClient.postMultipart(
+                        "/auth/profile/image", Map.of(), "image", List.of(file));
+                ensureSuccess(res, "خطا در آپلود عکس پروفایل");
+                return objectMapper.readValue(res.body(), User.class);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
     }
 
     public static CompletableFuture<List<User>> getAllUsersAsync() {
-        CompletableFuture<List<User>> future = new CompletableFuture<>();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(ApiClient.getBaseUrl() + "/api/admin/users"))
-                .header("Authorization", "Bearer " + ApiClient.getToken())
-                .GET().build();
-
-        ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(res -> {
-                    try {
-                        if (res.statusCode() == 200) {
-                            future.complete(ApiClient.getMapper().readValue(res.body(), new TypeReference<>(){}));
-                        } else {
-                            future.completeExceptionally(new RuntimeException(res.body()));
-                        }
-                    } catch (Exception e) {
-                        future.completeExceptionally(e);
-                    }
-                }).exceptionally(ex -> {
-                    future.completeExceptionally(ex);
-                    return null;
-                });
-        return future;
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                HttpResponse<String> res = ApiClient.get("/auth/admin/all");
+                ensureSuccess(res, "خطا در دریافت کاربران");
+                return objectMapper.readValue(res.body(), new TypeReference<List<User>>() {});
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
     }
 
-    public static List<User> getAllUsers() {
-        return getAllUsersAsync().join();
+    public static List<User> getAllUsers() throws Exception {
+        try {
+            return getAllUsersAsync().join();
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof Exception ex) throw ex;
+            throw e;
+        }
     }
 
-    // در کلاس UserService اضافه کنید:
-
-    public static CompletableFuture<Void> toggleBlockAsync(Long userId) {
-        CompletableFuture<Void> future = new CompletableFuture<>();
-        HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(ApiClient.getBaseUrl() + "/api/admin/users/toggle-block/" + userId))
-                .header("Authorization", "Bearer " + ApiClient.getToken())
-                .POST(HttpRequest.BodyPublishers.noBody()) // یا PUT بسته به API شما
-                .build();
-
-        ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(res -> {
-                    if (res.statusCode() >= 200 && res.statusCode() < 300) future.complete(null);
-                    else future.completeExceptionally(new RuntimeException("خطا در تغییر وضعیت کاربر"));
-                })
-                .exceptionally(ex -> { future.completeExceptionally(ex); return null; });
-        return future;
+    /** مسدود/فعال‌سازی کاربر — POST /auth/admin/toggle-block?userId=..&block=.. */
+    public static CompletableFuture<User> toggleBlockAsync(Long userId, boolean block) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                HttpResponse<String> res = ApiClient.post(
+                        "/auth/admin/toggle-block?userId=" + userId + "&block=" + block);
+                ensureSuccess(res, "خطا در تغییر وضعیت کاربر");
+                return objectMapper.readValue(res.body(), User.class);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        });
     }
 
-    // متد همگام (Wrapper) برای رفع خطای کامپایل کنترلر:
-    public static void toggleBlock(Long userId) {
-        toggleBlockAsync(userId).join();
+    public static User toggleBlock(Long userId, boolean block) throws Exception {
+        try {
+            return toggleBlockAsync(userId, block).join();
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof Exception ex) throw ex;
+            throw e;
+        }
+    }
+
+    private static void ensureSuccess(HttpResponse<String> res, String prefix) throws Exception {
+        if (res.statusCode() < 200 || res.statusCode() >= 300) {
+            throw new Exception(prefix + ": " + extractMessage(res.body()));
+        }
+    }
+
+    private static String extractMessage(String body) {
+        try {
+            JsonNode node = objectMapper.readTree(body);
+            if (node.has("message")) return node.get("message").asText();
+        } catch (Exception ignored) {
+        }
+        return body != null && !body.isBlank() ? body : "خطای ناشناخته";
     }
 }

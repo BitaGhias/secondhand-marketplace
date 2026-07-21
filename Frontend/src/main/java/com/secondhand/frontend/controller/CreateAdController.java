@@ -185,7 +185,7 @@ public class CreateAdController extends BaseController {
             imageView.setFitHeight(80);
             imageView.setFitWidth(80);
             imageView.setPreserveRatio(true);
-            imageView.setStyle("-fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 8; -fx-cursor: hand;");
+            imageView.setStyle("-fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-cursor: hand;");
 
             // حذف تصویر با کلیک
             imageView.setOnMouseClicked(e -> {
@@ -292,7 +292,7 @@ public class CreateAdController extends BaseController {
     private void showError(String message) {
         Platform.runLater(() -> {
             errorLabel.setText("❌ " + message);
-            errorLabel.setStyle("-fx-text-fill: #ff4757; -fx-font-size: 13px;");
+            errorLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 13px;");
             errorLabel.setVisible(true);
         });
     }
@@ -300,7 +300,7 @@ public class CreateAdController extends BaseController {
     private void showSuccess(String message) {
         Platform.runLater(() -> {
             errorLabel.setText("✅ " + message);
-            errorLabel.setStyle("-fx-text-fill: #38ef7d; -fx-font-size: 13px;");
+            errorLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 13px;");
             errorLabel.setVisible(true);
         });
     }

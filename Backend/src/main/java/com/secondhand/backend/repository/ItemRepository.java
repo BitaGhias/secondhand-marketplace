@@ -1,5 +1,6 @@
 package com.secondhand.backend.repository;
 
+import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.entity.Item;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,27 +12,27 @@ import java.util.List;
 public interface ItemRepository extends JpaRepository<Item, Long> {
 
     // ✅ فقط ۱ پارامتر
-    List<Item> findByStatus(String status);
+    List<Item> findByStatus(ItemStatus status);
 
     List<Item> findByUserId(Long userId);
 
     // ✅ فقط ۲ پارامتر
-    List<Item> findByCategoryIdAndStatus(Long categoryId, String status);
+    List<Item> findByCategoryIdAndStatus(Long categoryId, ItemStatus status);
 
-    List<Item> findByUserIdAndStatusNot(Long userId, String status);
+    List<Item> findByUserIdAndStatusNot(Long userId, ItemStatus status);
 
     // ✅ جستجو با ۱ پارامتر + keyword
     @Query("SELECT i FROM Item i WHERE i.status = :status AND (LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
     List<Item> findByStatusAndTitleContainingIgnoreCaseOrStatusAndDescriptionContainingIgnoreCase(
-            @Param("status") String status,
+            @Param("status") ItemStatus status,
             @Param("keyword") String keyword
     );
 
     // ✅ فقط ۲ پارامتر - اصلاح شد
-    List<Item> findByStatusAndCityId(String status, Long cityId);
+    List<Item> findByStatusAndCityId(ItemStatus status, Long cityId);
 
     // ✅ جستجوی پیشرفته با ۵ پارامتر
-    @Query("SELECT i FROM Item i WHERE i.status = 'APPROVED' " +
+    @Query("SELECT i FROM Item i WHERE i.status = com.secondhand.backend.constant.ItemStatus.APPROVED " +
             "AND (:keyword IS NULL OR LOWER(i.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
             "OR LOWER(i.description) LIKE LOWER(CONCAT('%', :keyword, '%'))) " +
             "AND (:categoryId IS NULL OR i.category.id = :categoryId) " +
