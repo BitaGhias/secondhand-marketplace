@@ -336,12 +336,12 @@ public class ItemDetailController extends BaseController {
                     }
                 });
             } catch (Exception e) {
-                showMessage("خطا در شروع گفت‌وگو: " + e.getMessage(), "error");
+                Platform.runLater(() -> showMessage("خطا در شروع گفت‌وگو: " + e.getMessage(), "error"));
             }
         }).start();
     }
 
-    // ─────────────────────────────────────────────
+    // ───────────────────�����─────────────────────────
     //  امتیازدهی
     // ─────────────────────────────────────────────
     @FXML
@@ -615,19 +615,5 @@ public class ItemDetailController extends BaseController {
         });
     }
 
-    // ─────────────────────────────────────────────
-    //  Window controls (از BaseController ارث نمی‌برند — inline)
-    // ─────────────────────────────────────────────
-    @FXML private void minimizeWindow() {
-        Stage stage = (Stage) titleLabel.getScene().getWindow();
-        stage.setIconified(true);
-    }
-    @FXML private void maximizeWindow() {
-        Stage stage = (Stage) titleLabel.getScene().getWindow();
-        stage.setMaximized(!stage.isMaximized());
-    }
-    @FXML private void closeWindow() {
-        Stage stage = (Stage) titleLabel.getScene().getWindow();
-        stage.close();
-    }
+    // Window controls — از BaseController به ارث می‌رسند
 }

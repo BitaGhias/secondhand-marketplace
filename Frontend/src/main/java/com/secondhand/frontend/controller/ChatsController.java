@@ -14,6 +14,7 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.event.ActionEvent;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
@@ -179,8 +180,9 @@ public class ChatsController extends BaseController {
                     : "-fx-background-color: #e7ecf2; -fx-text-fill: #1f2937;"
                     + " -fx-background-radius: 12; -fx-padding: 8 12;");
 
+            // RTL layout: پیام‌های خودم سمت راست، بقیه سمت چپ
             HBox row = new HBox(bubble);
-            row.setAlignment(mine ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
+            row.setAlignment(mine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
             messagesVBox.getChildren().add(row);
         }
     }
@@ -265,19 +267,13 @@ public class ChatsController extends BaseController {
     }
 
     // ─────────────────────
-    //  Window controls
+    //  Window controls — از BaseController به ارث می‌رسند
+    //  closeWindow را override می‌کنیم تا polling هم متوقف شود
     // ─────────────────────
-    @FXML private void minimizeWindow() {
-        Stage stage = (Stage) messageField.getScene().getWindow();
-        stage.setIconified(true);
-    }
-    @FXML private void maximizeWindow() {
-        Stage stage = (Stage) messageField.getScene().getWindow();
-        stage.setMaximized(!stage.isMaximized());
-    }
-    @FXML private void closeWindow() {
+    @Override
+    @FXML
+    public void closeWindow(javafx.event.ActionEvent event) {
         stopPolling();
-        Stage stage = (Stage) messageField.getScene().getWindow();
-        stage.close();
+        super.closeWindow(event);
     }
 }
