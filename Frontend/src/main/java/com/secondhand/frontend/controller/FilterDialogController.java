@@ -15,11 +15,13 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * کنترلر دیالوگ فیلتر جست‌وجو — مطابق filter_dialogue.fxml
- * (دسته‌بندی، شهر، محدوده قیمت). نتیجه از طریق FilterListener به AdListController برمی‌گردد
+ * (دسته‌بندی، شهر، محدوده قیمت و مرتب‌سازی). نتیجه از طریق FilterListener به AdListController برمی‌گردد
  * و جست‌وجو با POST /api/items/search/advanced انجام می‌شود.
  */
 public class FilterDialogController {
@@ -28,14 +30,25 @@ public class FilterDialogController {
     @FXML private ComboBox<City> filterCityComboBox;
     @FXML private TextField minPriceField;
     @FXML private TextField maxPriceField;
+    @FXML private ComboBox<String> sortComboBox;
     @FXML private Label filterErrorLabel;
     @FXML private Button applyFilterButton;
     @FXML private Button clearFilterButton;
 
     private FilterListener listener;
 
+    /** برچسب فارسی مرتب‌سازی ← کد مورد انتظار بک‌اند (ItemSearchRequest.sortBy) */
+    private static final Map<String, String> SORT_OPTIONS = new LinkedHashMap<>();
+    static {
+        SORT_OPTIONS.put("جدیدترین", "newest");
+        SORT_OPTIONS.put("قدیمی‌ترین", "oldest");
+        SORT_OPTIONS.put("ارزان‌ترین", "price_asc");
+        SORT_OPTIONS.put("گران‌ترین", "price_desc");
+    }
+    private static final String DEFAULT_SORT_LABEL = "جدیدترین";
+
     public interface FilterListener {
-        void onFilterApplied(Long categoryId, Long cityId, Long minPrice, Long maxPrice);
+        void onFilterApplied(Long categoryId, Long cityId, Long minPrice, Long maxPrice, String sortBy);
         void onFilterCleared();
     }
 
@@ -46,7 +59,14 @@ public class FilterDialogController {
     @FXML
     public void initialize() {
         setupCategoryComboDisplay();
+        setupSortComboBox();
         loadOptionsInBackground();
+    }
+
+    private void setupSortComboBox() {
+        if (sortComboBox == null) return;
+        sortComboBox.getItems().setAll(SORT_OPTIONS.keySet());
+        sortComboBox.setValue(DEFAULT_SORT_LABEL);
     }
 
     /** نمایش سلسله‌مراتبی دسته‌بندی‌ها (زیردسته‌ها با نام والد) */
@@ -132,13 +152,17 @@ public class FilterDialogController {
 
         Category selectedCategory = filterCategoryComboBox.getValue();
         City selectedCity = filterCityComboBox.getValue();
+        String sortBy = sortComboBox != null
+                ? SORT_OPTIONS.getOrDefault(sortComboBox.getValue(), "newest")
+                : "newest";
 
         if (listener != null) {
             listener.onFilterApplied(
                     selectedCategory != null ? selectedCategory.getId() : null,
                     selectedCity != null ? selectedCity.getId() : null,
                     minPrice,
-                    maxPrice
+                    maxPrice,
+                    sortBy
             );
         }
         close();
@@ -152,6 +176,7 @@ public class FilterDialogController {
         filterCityComboBox.setValue(null);
         minPriceField.clear();
         maxPriceField.clear();
+        if (sortComboBox != null) sortComboBox.setValue(DEFAULT_SORT_LABEL);
         hideError();
 
         if (listener != null) {

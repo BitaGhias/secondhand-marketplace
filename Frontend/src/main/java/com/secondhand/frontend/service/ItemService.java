@@ -42,7 +42,7 @@ public class ItemService {
         return fetchItemListAsync("/items/approved", "خطا در دریافت آگهی‌ها");
     }
 
-    public static CompletableFuture<List<Item>> searchItemsAsync(String keyword, Long categoryId, Long cityId, Long minPrice, Long maxPrice) {
+    public static CompletableFuture<List<Item>> searchItemsAsync(String keyword, Long categoryId, Long cityId, Long minPrice, Long maxPrice, String sortBy) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 Map<String, Object> body = new LinkedHashMap<>();
@@ -51,7 +51,7 @@ public class ItemService {
                 body.put("cityId", cityId);
                 body.put("minPrice", minPrice);
                 body.put("maxPrice", maxPrice);
-                body.put("sortBy", "newest");
+                body.put("sortBy", (sortBy == null || sortBy.isBlank()) ? "newest" : sortBy);
                 HttpResponse<String> res = ApiClient.post("/items/search/advanced", body);
                 ensureSuccess(res, "خطا در جست‌وجوی آگهی‌ها");
                 return objectMapper.readValue(res.body(), new TypeReference<List<Item>>() {});
@@ -128,7 +128,7 @@ public class ItemService {
     // ================= Sync wrappers =================
 
     public static List<Item> getActiveItems() throws Exception { return joinUnwrapped(getActiveItemsAsync()); }
-    public static List<Item> searchItems(String q, Long cat, Long city, Long min, Long max) throws Exception { return joinUnwrapped(searchItemsAsync(q, cat, city, min, max)); }
+    public static List<Item> searchItems(String q, Long cat, Long city, Long min, Long max, String sortBy) throws Exception { return joinUnwrapped(searchItemsAsync(q, cat, city, min, max, sortBy)); }
     public static List<Item> getPendingItems() throws Exception { return joinUnwrapped(getPendingItemsAsync()); }
     public static List<Item> getUserItemsForAdmin(Long userId) throws Exception { return joinUnwrapped(getUserItemsForAdminAsync(userId)); }
     public static List<Item> getMyItems() throws Exception { return joinUnwrapped(getMyItemsAsync()); }

@@ -42,6 +42,7 @@ public class AdListController extends BaseController implements FilterDialogCont
     private Long filterCityId;
     private Long filterMinPrice;
     private Long filterMaxPrice;
+    private String filterSortBy = "newest";
 
     @FXML
     public void initialize() {
@@ -87,7 +88,8 @@ public class AdListController extends BaseController implements FilterDialogCont
         String keyword = searchField != null ? searchField.getText() : null;
         return (keyword != null && !keyword.isBlank())
                 || filterCategoryId != null || filterCityId != null
-                || filterMinPrice != null || filterMaxPrice != null;
+                || filterMinPrice != null || filterMaxPrice != null
+                || (filterSortBy != null && !"newest".equals(filterSortBy));
     }
 
     private void runFilteredSearch() {
@@ -97,7 +99,7 @@ public class AdListController extends BaseController implements FilterDialogCont
         new Thread(() -> {
             try {
                 List<Item> items = ItemService.searchItems(
-                        keyword, filterCategoryId, filterCityId, filterMinPrice, filterMaxPrice);
+                        keyword, filterCategoryId, filterCityId, filterMinPrice, filterMaxPrice, filterSortBy);
                 Platform.runLater(() -> renderItems(items));
             } catch (Exception e) {
                 showLoadError(e);
@@ -172,11 +174,12 @@ public class AdListController extends BaseController implements FilterDialogCont
     }
 
     @Override
-    public void onFilterApplied(Long categoryId, Long cityId, Long minPrice, Long maxPrice) {
+    public void onFilterApplied(Long categoryId, Long cityId, Long minPrice, Long maxPrice, String sortBy) {
         this.filterCategoryId = categoryId;
         this.filterCityId     = cityId;
         this.filterMinPrice   = minPrice;
         this.filterMaxPrice   = maxPrice;
+        this.filterSortBy     = (sortBy == null || sortBy.isBlank()) ? "newest" : sortBy;
         runFilteredSearch();
     }
 
@@ -186,6 +189,7 @@ public class AdListController extends BaseController implements FilterDialogCont
         this.filterCityId     = null;
         this.filterMinPrice   = null;
         this.filterMaxPrice   = null;
+        this.filterSortBy     = "newest";
         runFilteredSearch();
     }
 
