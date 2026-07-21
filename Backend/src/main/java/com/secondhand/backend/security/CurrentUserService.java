@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CurrentUserService {
+public class CurrentUserService { // خارج کردن هویت کاربر از توکن
 
     private final UserService userService;
 
@@ -28,7 +28,7 @@ public class CurrentUserService {
             throw new UnauthorizedException("کاربر وارد سیستم نشده است.");
         }
 
-        Object principal = authentication.getPrincipal();
+        Object principal = authentication.getPrincipal(); // اطلاعات کاربر لاگین کرده
 
         if (principal instanceof UserDetails userDetails) {
             return userDetails.getUsername();

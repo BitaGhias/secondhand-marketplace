@@ -35,3 +35,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         );
     }
 }
+/*نقش کاربر رو (مثلاً ADMIN)
+ به فرمتی که Spring Security میفهمه (ROLE_ADMIN)
+  تبدیل کن و توی یه لیست بذار
+ */

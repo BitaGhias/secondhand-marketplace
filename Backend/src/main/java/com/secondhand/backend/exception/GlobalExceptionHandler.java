@@ -20,7 +20,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.stream.Collectors;
 
-@RestControllerAdvice
+@RestControllerAdvice // کلاس سراسری که روی همه ی کنترلر ها نظارت داره و برگردوندن ان به صورت JSON
 public class GlobalExceptionHandler {
 
     private ResponseEntity<ErrorResponse> buildErrorResponse(

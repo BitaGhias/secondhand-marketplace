@@ -13,13 +13,14 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
 
     List<Rating> findBySellerId(Long sellerId);
 
+    //بررسی امتیاز تکراری
     Optional<Rating> findByRaterIdAndItemId(Long raterId, Long itemId);
 
-    // FIX: COUNT در سطح دیتابیس به جای بارگذاری همه رکوردها
+    //  COUNT در سطح دیتابیس به جای بارگذاری همه رکوردها
     @Query("SELECT COUNT(r) FROM Rating r WHERE r.seller.id = :sellerId")
     long countBySellerId(@Param("sellerId") Long sellerId);
 
-    // FIX: AVG در سطح دیتابیس به جای محاسبه در جاوا
+    //  AVG در سطح دیتابیس به جای محاسبه در جاوا
     @Query("SELECT COALESCE(AVG(r.score), 0.0) FROM Rating r WHERE r.seller.id = :sellerId")
     double averageScoreBySellerId(@Param("sellerId") Long sellerId);
 }
