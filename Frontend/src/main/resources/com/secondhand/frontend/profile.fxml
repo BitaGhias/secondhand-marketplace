@@ -76,6 +76,9 @@
                                       -fx-font-size: 12px;
                                       -fx-font-weight: bold;
                                       -fx-text-fill: #475569;"/>
+
+                        <Label fx:id="ratingLabel" text="" visible="false"
+                               style="-fx-text-fill: #f59e0b; -fx-font-size: 13px; -fx-font-weight: bold;"/>
                         <Button text="📷 تغییر عکس پروفایل" onAction="#changeProfilePhoto"
                                 style="-fx-background-color: #ffffff;
                                        -fx-text-fill: #0e9f6e;
