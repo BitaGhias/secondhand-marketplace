@@ -46,6 +46,11 @@
         </VBox>
     </HBox>
 
+    <VBox spacing="6">
+        <Label text="مرتب‌سازی" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+        <ComboBox fx:id="sortComboBox" maxWidth="Infinity"/>
+    </VBox>
+
     <Label fx:id="filterErrorLabel" text="" visible="false" wrapText="true"
            style="-fx-text-fill: #dc2626; -fx-font-size: 12px; -fx-font-weight: bold;"/>
 
