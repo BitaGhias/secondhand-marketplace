@@ -165,7 +165,8 @@ public class PurchasesController extends BaseController {
         rateBtn.setDisable(true);
         RatingService.rateSellerAsync(item.getId(), score, comment)
                 .thenRun(() -> Platform.runLater(() -> {
-                    setGraphicInCell(rateBtn.getParent(), ratedLbl);
+                    // refresh کافیه — updateItem دوباره اجرا می‌شه و hasRatedAsync چک می‌کنه
+                    purchasesTable.refresh();
                     showAlert("✅ امتیاز با موفقیت ثبت شد", Alert.AlertType.INFORMATION);
                 }))
                 .exceptionally(ex -> {
@@ -175,12 +176,6 @@ public class PurchasesController extends BaseController {
                     });
                     return null;
                 });
-    }
-
-    /** جایگزینی graphic در cell (ButtonBar > Button یا Label) */
-    private void setGraphicInCell(javafx.scene.Parent parent, javafx.scene.Node newNode) {
-        // فقط cell را به‌روز می‌کنیم — refresh داده می‌شود
-        purchasesTable.refresh();
     }
 
     private void showAlert(String msg, Alert.AlertType type) {
