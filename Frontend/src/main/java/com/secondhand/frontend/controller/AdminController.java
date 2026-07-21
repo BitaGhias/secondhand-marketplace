@@ -1,8 +1,10 @@
 package com.secondhand.frontend.controller;
 
 import com.secondhand.frontend.MainApplication;
+import com.secondhand.frontend.model.Category;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.model.User;
+import com.secondhand.frontend.service.CategoryService;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.UserService;
 import com.secondhand.frontend.util.Routes;
@@ -20,7 +22,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class AdminController extends BaseController {
 
@@ -37,14 +41,26 @@ public class AdminController extends BaseController {
     @FXML private ListView<User> usersListView;
     @FXML private Label          usersCountLabel;
 
+    @FXML private ListView<Category> categoriesListView;
+    @FXML private Label              categoriesCountLabel;
+    @FXML private TextField          categoryNameField;
+    @FXML private ComboBox<Category> parentCategoryComboBox;
+    @FXML private Button             addCategoryButton;
+    @FXML private Button             deleteCategoryButton;
+    @FXML private Button             cancelCategoryEditButton;
+
+    private Category selectedCategoryForEdit;
+
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         if (!SessionManager.isAdmin()) { showError("شما دسترسی ادمین ندارید!"); return; }
         setupCellFactories();
         setupClickHandlers();
+        setupCategoriesTab();
         loadPendingItems();
         loadAllUsers();
+        loadCategories();
     }
 
     private void setupCellFactories() {
@@ -86,6 +102,133 @@ public class AdminController extends BaseController {
             User selected = usersListView.getSelectionModel().getSelectedItem();
             if (selected != null) goToUserAdsPage(selected);
         });
+    }
+
+    // ===================== مدیریت دسته‌بندی‌ها =====================
+
+    private void setupCategoriesTab() {
+        if (categoriesListView == null) return;
+
+        categoriesListView.setCellFactory(listView -> new ListCell<>() {
+            @Override protected void updateItem(Category c, boolean empty) {
+                super.updateItem(c, empty);
+                if (empty || c == null) { setText(null); setStyle("-fx-background-color: transparent;"); }
+                else {
+                    String parentInfo = (c.getParentName() != null && !c.getParentName().isBlank())
+                            ? "   ← زیرشاخهٔ «" + c.getParentName() + "»" : "   (دستهٔ اصلی)";
+                    long count = c.getItemCount() != null ? c.getItemCount() : 0;
+                    setText("📂 " + c.getName() + parentInfo + "\n🗃 " + count + " آگهی");
+                    setStyle("-fx-background-color: transparent; -fx-text-fill: #1f2937; -fx-font-size: 13px; -fx-padding: 10;");
+                }
+            }
+        });
+
+        parentCategoryComboBox.setCellFactory(cb -> new ListCell<>() {
+            @Override protected void updateItem(Category c, boolean empty) {
+                super.updateItem(c, empty);
+                setText(empty || c == null ? null : c.getName());
+            }
+        });
+        parentCategoryComboBox.setButtonCell(new ListCell<>() {
+            @Override protected void updateItem(Category c, boolean empty) {
+                super.updateItem(c, empty);
+                setText(empty || c == null ? "بدون والد (دستهٔ اصلی)" : c.getName());
+            }
+        });
+
+        categoriesListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, selected) -> {
+            selectedCategoryForEdit = selected;
+            if (selected == null) { resetCategoryForm(); return; }
+            categoryNameField.setText(selected.getName());
+            Category parentMatch = null;
+            for (Category c : parentCategoryComboBox.getItems()) {
+                if (selected.getParentId() != null && selected.getParentId().equals(c.getId())) { parentMatch = c; break; }
+            }
+            parentCategoryComboBox.setValue(parentMatch);
+            addCategoryButton.setText("💾 ذخیره تغییرات");
+            deleteCategoryButton.setDisable(false);
+        });
+
+        deleteCategoryButton.setDisable(true);
+    }
+
+    private void loadCategories() {
+        if (categoriesListView == null) return;
+        new Thread(() -> {
+            try {
+                List<Category> categories = CategoryService.getAllCategories();
+                Platform.runLater(() -> {
+                    Category previouslySelected = selectedCategoryForEdit;
+                    categoriesListView.getItems().setAll(categories);
+                    categoriesCountLabel.setText("📂 " + categories.size() + " دسته‌بندی");
+
+                    List<Category> roots = new ArrayList<>();
+                    for (Category c : categories) {
+                        if (c.isRoot() && (previouslySelected == null || !previouslySelected.getId().equals(c.getId()))) {
+                            roots.add(c);
+                        }
+                    }
+                    parentCategoryComboBox.getItems().setAll(roots);
+                });
+            } catch (Exception e) {
+                Platform.runLater(() -> showError("خطا در دریافت دسته‌بندی‌ها: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    @FXML
+    private void addOrUpdateCategory() {
+        String name = categoryNameField.getText() != null ? categoryNameField.getText().trim() : "";
+        if (name.isEmpty()) { showError("نام دسته‌بندی را وارد کنید"); return; }
+        Category parent = parentCategoryComboBox.getValue();
+        Long parentId = parent != null ? parent.getId() : null;
+        Category editing = selectedCategoryForEdit;
+
+        new Thread(() -> {
+            try {
+                if (editing != null) {
+                    CategoryService.updateCategory(editing.getId(), name, parentId);
+                    Platform.runLater(() -> { showSuccess("✅ دسته‌بندی «" + name + "» ویرایش شد"); resetCategoryForm(); loadCategories(); });
+                } else {
+                    CategoryService.createCategory(name, parentId);
+                    Platform.runLater(() -> { showSuccess("✅ دسته‌بندی «" + name + "» اضافه شد"); resetCategoryForm(); loadCategories(); });
+                }
+            } catch (Exception e) {
+                Platform.runLater(() -> showError(rootMessage(e)));
+            }
+        }).start();
+    }
+
+    @FXML
+    private void deleteCategory() {
+        Category selected = selectedCategoryForEdit;
+        if (selected == null) { showError("لطفاً یک دسته‌بندی را انتخاب کنید"); return; }
+        new Thread(() -> {
+            try {
+                CategoryService.deleteCategory(selected.getId());
+                Platform.runLater(() -> { showSuccess("🗑️ دسته‌بندی حذف شد"); resetCategoryForm(); loadCategories(); });
+            } catch (Exception e) {
+                Platform.runLater(() -> showError(rootMessage(e)));
+            }
+        }).start();
+    }
+
+    @FXML
+    private void cancelCategoryEdit() {
+        categoriesListView.getSelectionModel().clearSelection();
+        resetCategoryForm();
+    }
+
+    private void resetCategoryForm() {
+        selectedCategoryForEdit = null;
+        categoryNameField.clear();
+        parentCategoryComboBox.setValue(null);
+        addCategoryButton.setText("➕ افزودن دسته‌بندی");
+        deleteCategoryButton.setDisable(true);
+    }
+
+    private String rootMessage(Throwable e) {
+        return e.getMessage() != null ? e.getMessage() : "خطای ناشناخته";
     }
 
     private void showItemDetailsDialog(Item item) {
@@ -234,7 +377,7 @@ public class AdminController extends BaseController {
         }).start();
     }
 
-    @FXML private void refreshAll() { loadPendingItems(); loadAllUsers(); }
+    @FXML private void refreshAll() { loadPendingItems(); loadAllUsers(); loadCategories(); }
 
     @FXML
     private void goBack() {

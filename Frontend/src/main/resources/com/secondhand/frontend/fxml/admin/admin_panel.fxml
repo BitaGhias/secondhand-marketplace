@@ -179,6 +179,94 @@
                     </VBox>
                 </content>
             </Tab>
+
+            <!-- تب مدیریت دسته‌بندی‌ها -->
+            <Tab text="مدیریت دسته‌بندی‌ها">
+                <content>
+                    <HBox spacing="16" style="-fx-background-color: transparent; -fx-padding: 16 0 0 0;">
+
+                        <!-- لیست دسته‌بندی‌ها -->
+                        <VBox spacing="12" HBox.hgrow="ALWAYS"
+                              style="-fx-background-color: #ffffff;
+                                     -fx-background-radius: 16;
+                                     -fx-border-color: #e7ecf2;
+                                     -fx-border-radius: 16;
+                                     -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 14, 0, 0, 4);
+                                     -fx-padding: 18;">
+                            <HBox alignment="CENTER_LEFT" spacing="10">
+                                <Label fx:id="categoriesCountLabel" text="📂 ۰ دسته‌بندی"
+                                       style="-fx-background-color: #e6f0ff;
+                                              -fx-background-radius: 20;
+                                              -fx-padding: 5 14;
+                                              -fx-text-fill: #1d4ed8;
+                                              -fx-font-size: 12px;
+                                              -fx-font-weight: bold;"/>
+                                <Label text="برای ویرایش یا حذف، روی یک دسته‌بندی کلیک کنید"
+                                       style="-fx-text-fill: #64748b; -fx-font-size: 11px;"/>
+                            </HBox>
+                            <ListView fx:id="categoriesListView" VBox.vgrow="ALWAYS"
+                                      style="-fx-background-color: transparent; -fx-border-color: transparent;"/>
+                        </VBox>
+
+                        <!-- فرم افزودن/ویرایش -->
+                        <VBox spacing="12" prefWidth="300" minWidth="300"
+                              style="-fx-background-color: #ffffff;
+                                     -fx-background-radius: 16;
+                                     -fx-border-color: #e7ecf2;
+                                     -fx-border-radius: 16;
+                                     -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 14, 0, 0, 4);
+                                     -fx-padding: 18;">
+                            <Label text="افزودن / ویرایش دسته‌بندی" style="-fx-text-fill: #0f172a; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+
+                            <VBox spacing="6">
+                                <Label text="نام دسته‌بندی" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                                <TextField fx:id="categoryNameField" promptText="مثلاً موبایل"/>
+                            </VBox>
+
+                            <VBox spacing="6">
+                                <Label text="دسته والد (اختیاری)" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                                <ComboBox fx:id="parentCategoryComboBox" promptText="بدون والد (دستهٔ اصلی)" maxWidth="Infinity"/>
+                            </VBox>
+
+                            <Button fx:id="addCategoryButton" text="➕ افزودن دسته‌بندی" maxWidth="Infinity" onAction="#addOrUpdateCategory"
+                                    style="-fx-background-color: #0e9f6e;
+                                           -fx-background-radius: 12;
+                                           -fx-text-fill: white;
+                                           -fx-font-weight: bold;
+                                           -fx-font-size: 13px;
+                                           -fx-cursor: hand;
+                                           -fx-padding: 11 0;
+                                           -fx-effect: dropshadow(gaussian, rgba(14,159,110,0.30), 10, 0, 0, 3);"/>
+
+                            <Button fx:id="cancelCategoryEditButton" text="انصراف / فرم تازه" maxWidth="Infinity" onAction="#cancelCategoryEdit"
+                                    style="-fx-background-color: #ffffff;
+                                           -fx-text-fill: #475569;
+                                           -fx-border-color: #cbd5e1;
+                                           -fx-border-width: 1.5;
+                                           -fx-border-radius: 12;
+                                           -fx-background-radius: 12;
+                                           -fx-font-weight: bold;
+                                           -fx-font-size: 13px;
+                                           -fx-cursor: hand;
+                                           -fx-padding: 10 0;"/>
+
+                            <Region VBox.vgrow="ALWAYS"/>
+
+                            <Button fx:id="deleteCategoryButton" text="🗑 حذف دسته‌بندی" maxWidth="Infinity" onAction="#deleteCategory"
+                                    style="-fx-background-color: #ffffff;
+                                           -fx-text-fill: #dc2626;
+                                           -fx-border-color: #dc2626;
+                                           -fx-border-width: 1.5;
+                                           -fx-border-radius: 12;
+                                           -fx-background-radius: 12;
+                                           -fx-font-weight: bold;
+                                           -fx-font-size: 13px;
+                                           -fx-cursor: hand;
+                                           -fx-padding: 10 0;"/>
+                        </VBox>
+                    </HBox>
+                </content>
+            </Tab>
         </TabPane>
     </VBox>
 </VBox>
