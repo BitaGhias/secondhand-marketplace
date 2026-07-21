@@ -86,7 +86,7 @@ public class AdminController extends BaseController {
                     String blocked = user.isBlocked() ? "   🔒 مسدود" : "";
                     setText(user.getUsername() + "  (" + user.getFullName() + ")\n" + role + blocked);
                     setStyle("-fx-background-color: transparent; -fx-text-fill: "
-                            + (user.isBlocked() ? "#dc2626" : "white")
+                            + (user.isBlocked() ? "#dc2626" : "#1f2937")
                             + "; -fx-font-size: 13px; -fx-padding: 10;");
                 }
             }
