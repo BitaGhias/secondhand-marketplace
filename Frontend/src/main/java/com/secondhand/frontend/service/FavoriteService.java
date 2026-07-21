@@ -54,10 +54,9 @@ public class FavoriteService {
         }
     }
 
-    // حذف از علاقه‌مندی‌ها
+    // حذف از علاقه‌مندی‌ها (مطابق بک‌اند: DELETE /favorites/remove?itemId=X با @RequestParam)
     public static void removeFavorite(Long itemId) throws Exception {
-        FavoriteRequest request = new FavoriteRequest(itemId);
-        HttpResponse<String> response = ApiClient.delete("/favorites/remove", request);
+        HttpResponse<String> response = ApiClient.delete("/favorites/remove?itemId=" + itemId);
 
         if (response.statusCode() != 200 && response.statusCode() != 204) {
             throw new Exception("خطا در حذف از علاقه‌مندی‌ها: " + response.body());

@@ -62,7 +62,7 @@ public class MyAdsController extends BaseController {
     private void showEmptyMessage(String text) {
         myAdsFlowPane.getChildren().clear();
         Label emptyLabel = new Label(text);
-        emptyLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: rgba(255,255,255,0.45);");
+        emptyLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #94a3b8;");
 
         StackPane emptyPane = new StackPane(emptyLabel);
         emptyPane.setAlignment(Pos.CENTER);

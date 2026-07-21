@@ -10,7 +10,8 @@ import java.util.List;
 
 public class CityService {
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    // استفاده از مپر مشترک (FAIL_ON_UNKNOWN_PROPERTIES غیرفعال) تا فیلد اضافی پاسخ سرور باعث خطا نشود
+    private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
     // دریافت همه شهرها
     public static List<City> getAllCities() throws Exception {

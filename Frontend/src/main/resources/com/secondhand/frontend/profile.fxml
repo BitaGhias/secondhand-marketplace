@@ -5,114 +5,174 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="800.0" prefWidth="1000.0" spacing="0"
-      style="-fx-background-color: linear-gradient(to bottom right, #0f0c29, #201a46, #14142b);"
+<VBox prefHeight="790.0" prefWidth="1119.0" spacing="0"
+      style="-fx-background-color: #f5f7fa;"
+      stylesheets="@css/styles.css"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.ProfileController">
 
-    <!-- ===== Title Bar ===== -->
+    <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
-          style="-fx-background-color: rgba(0,0,0,0.25);
-                 -fx-padding: 10 15;
-                 -fx-border-color: rgba(255,255,255,0.05);
+          style="-fx-background-color: #ffffff;
+                 -fx-padding: 12 16;
+                 -fx-border-color: transparent transparent #e7ecf2 transparent;
                  -fx-border-width: 0 0 1 0;">
-        <children>
-            <Label text="🛒" style="-fx-text-fill: #667eea; -fx-font-size: 16px; -fx-font-weight: bold;"/>
-            <Label text="بازار سفید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-opacity: 0.9;"/>
-            <HBox HBox.hgrow="ALWAYS" />
-            <Button text="─" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#minimizeWindow"/>
-            <Button text="☐" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#maximizeWindow"/>
-            <Button text="✕" style="-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#closeWindow"/>
-        </children>
+        <Label text="بازار سفید — پروفایل" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Button text="─" onAction="#minimizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="☐" onAction="#maximizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="✕" onAction="#closeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
     </HBox>
 
-    <VBox spacing="15" VBox.vgrow="ALWAYS">
-        <padding><Insets top="15" right="25" bottom="25" left="25"/></padding>
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+        <content>
+            <VBox spacing="16" nodeOrientation="RIGHT_TO_LEFT" alignment="TOP_CENTER">
+                <padding>
+                    <Insets top="18" right="28" bottom="32" left="28"/>
+                </padding>
 
-        <!-- هدر -->
-        <HBox alignment="CENTER_LEFT" spacing="15">
-            <Button text="← بازگشت" style="-fx-background-color: transparent; -fx-text-fill: #667eea; -fx-font-weight: bold; -fx-cursor: hand;" onAction="#goBack"/>
-            <HBox HBox.hgrow="ALWAYS"/>
-            <Label text="👤 پروفایل من" style="-fx-text-fill: #f093fb; -fx-font-size: 24px; -fx-font-weight: bold;"/>
-        </HBox>
+                <!-- سربرگ -->
+                <HBox alignment="CENTER_LEFT" spacing="14" maxWidth="680">
+                    <VBox spacing="3" HBox.hgrow="ALWAYS">
+                        <Label text="پروفایل کاربری" style="-fx-text-fill: #0f172a; -fx-font-size: 22px; -fx-font-weight: bold;"/>
+                        <Label text="مدیریت اطلاعات حساب و رمز عبور" style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
+                    </VBox>
+                    <Button text="→ بازگشت" onAction="#goBack"
+                            style="-fx-background-color: #ffffff;
+                                   -fx-text-fill: #0e9f6e;
+                                   -fx-border-color: #0e9f6e;
+                                   -fx-border-width: 1.5;
+                                   -fx-border-radius: 10;
+                                   -fx-background-radius: 10;
+                                   -fx-cursor: hand;
+                                   -fx-font-size: 13px;
+                                   -fx-font-weight: bold;
+                                   -fx-padding: 8 18;"/>
+                </HBox>
 
-        <Separator style="-fx-opacity: 0.1;"/>
-
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;" VBox.vgrow="ALWAYS">
-            <VBox spacing="20" nodeOrientation="RIGHT_TO_LEFT" maxWidth="640" style="-fx-background-color: transparent; -fx-padding: 10;">
-
-                <!-- کارت عکس پروفایل -->
-                <HBox spacing="25" alignment="CENTER_LEFT"
-                      style="-fx-background-color: rgba(255,255,255,0.04); -fx-background-radius: 18; -fx-padding: 25;">
-                    <ImageView fx:id="avatarImageView" fitWidth="110" fitHeight="110"/>
-                    <VBox spacing="10" alignment="CENTER_RIGHT">
-                        <Label fx:id="usernameLabel" text="👤" style="-fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"/>
-                        <Label fx:id="roleLabel" style="-fx-text-fill: rgba(255,255,255,0.55); -fx-font-size: 13px;"/>
+                <!-- کارت هویت -->
+                <HBox alignment="CENTER_LEFT" spacing="20" maxWidth="680"
+                      style="-fx-background-color: #ffffff;
+                             -fx-background-radius: 18;
+                             -fx-border-color: #e7ecf2;
+                             -fx-border-radius: 18;
+                             -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 16, 0, 0, 5);
+                             -fx-padding: 22 26;">
+                    <StackPane>
+                        <Region minWidth="116" minHeight="116" maxWidth="116" maxHeight="116"
+                                style="-fx-background-color: #e6f7f0; -fx-background-radius: 58; -fx-border-color: #0e9f6e; -fx-border-radius: 58; -fx-border-width: 2;"/>
+                        <ImageView fx:id="avatarImageView" fitWidth="110.0" fitHeight="110.0" pickOnBounds="true" preserveRatio="true"/>
+                    </StackPane>
+                    <VBox spacing="8" HBox.hgrow="ALWAYS">
+                        <Label fx:id="usernameLabel" text="نام کاربری" style="-fx-text-fill: #0f172a; -fx-font-size: 20px; -fx-font-weight: bold;"/>
+                        <Label fx:id="roleLabel" text="کاربر"
+                               style="-fx-background-color: #f1f5f9;
+                                      -fx-background-radius: 20;
+                                      -fx-padding: 4 14;
+                                      -fx-font-size: 12px;
+                                      -fx-font-weight: bold;
+                                      -fx-text-fill: #475569;"/>
                         <Button text="📷 تغییر عکس پروفایل" onAction="#changeProfilePhoto"
-                                style="-fx-background-color: linear-gradient(to right, #667eea, #764ba2);
-                                       -fx-text-fill: white;
-                                       -fx-background-radius: 12;
-                                       -fx-padding: 10 18;
+                                style="-fx-background-color: #ffffff;
+                                       -fx-text-fill: #0e9f6e;
+                                       -fx-border-color: #0e9f6e;
+                                       -fx-border-width: 1.5;
+                                       -fx-border-radius: 10;
+                                       -fx-background-radius: 10;
+                                       -fx-cursor: hand;
+                                       -fx-font-size: 12px;
                                        -fx-font-weight: bold;
-                                       -fx-cursor: hand;"/>
+                                       -fx-padding: 7 16;"/>
                     </VBox>
                 </HBox>
 
-                <Label fx:id="messageLabel" style="-fx-font-size: 13px;" visible="false"/>
+                <Label fx:id="messageLabel" text="" visible="false" wrapText="true" maxWidth="680"
+                       style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
 
-                <!-- اطلاعات حساب -->
-                <VBox spacing="12" style="-fx-background-color: rgba(255,255,255,0.04); -fx-background-radius: 18; -fx-padding: 25;">
-                    <Label text="📝 اطلاعات حساب" style="-fx-text-fill: #38ef7d; -fx-font-size: 17px; -fx-font-weight: bold;"/>
+                <!-- کارت اطلاعات حساب -->
+                <VBox spacing="14" maxWidth="680"
+                      style="-fx-background-color: #ffffff;
+                             -fx-background-radius: 18;
+                             -fx-border-color: #e7ecf2;
+                             -fx-border-radius: 18;
+                             -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 16, 0, 0, 5);
+                             -fx-padding: 24 26;">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="اطلاعات حساب" style="-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+                        <Region style="-fx-background-color: #eef2f6; -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
+                    </HBox>
 
-                    <Label text="نام و نام خانوادگی" style="-fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 12px;"/>
-                    <TextField fx:id="fullNameField" promptText="نام کامل شما"
-                               style="-fx-background-color: rgba(255,255,255,0.06); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 12; -fx-padding: 10;"/>
-
-                    <Label text="ایمیل" style="-fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 12px;"/>
-                    <TextField fx:id="emailField" promptText="example@mail.com"
-                               style="-fx-background-color: rgba(255,255,255,0.06); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 12; -fx-padding: 10;"/>
-
-                    <Label text="شماره تلفن" style="-fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 12px;"/>
-                    <TextField fx:id="phoneField" promptText="09xxxxxxxxx"
-                               style="-fx-background-color: rgba(255,255,255,0.06); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 12; -fx-padding: 10;"/>
+                    <VBox spacing="6">
+                        <Label text="نام کامل" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                        <TextField fx:id="fullNameField" promptText="نام و نام خانوادگی"/>
+                    </VBox>
+                    <HBox spacing="14">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="ایمیل" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                            <TextField fx:id="emailField" promptText="example@email.com"/>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="شماره تلفن" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                            <TextField fx:id="phoneField" promptText="09XXXXXXXXX"/>
+                        </VBox>
+                    </HBox>
 
                     <Button text="💾 ذخیره تغییرات" onAction="#saveProfile"
-                            style="-fx-background-color: linear-gradient(to right, #11998e, #38ef7d);
-                                   -fx-text-fill: white;
+                            style="-fx-background-color: #0e9f6e;
                                    -fx-background-radius: 12;
-                                   -fx-padding: 12 20;
+                                   -fx-text-fill: white;
                                    -fx-font-weight: bold;
-                                   -fx-cursor: hand;"
-                            maxWidth="Infinity"/>
+                                   -fx-font-size: 14px;
+                                   -fx-cursor: hand;
+                                   -fx-padding: 11 26;
+                                   -fx-effect: dropshadow(gaussian, rgba(14,159,110,0.30), 10, 0, 0, 3);"/>
                 </VBox>
 
-                <!-- تغییر رمز عبور -->
-                <VBox spacing="12" style="-fx-background-color: rgba(255,255,255,0.04); -fx-background-radius: 18; -fx-padding: 25;">
-                    <Label text="🔐 تغییر رمز عبور" style="-fx-text-fill: #f5576c; -fx-font-size: 17px; -fx-font-weight: bold;"/>
+                <!-- کارت تغییر رمز عبور -->
+                <VBox spacing="14" maxWidth="680"
+                      style="-fx-background-color: #ffffff;
+                             -fx-background-radius: 18;
+                             -fx-border-color: #e7ecf2;
+                             -fx-border-radius: 18;
+                             -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 16, 0, 0, 5);
+                             -fx-padding: 24 26;">
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="تغییر رمز عبور" style="-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+                        <Region style="-fx-background-color: #eef2f6; -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
+                    </HBox>
 
-                    <Label text="رمز عبور فعلی" style="-fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 12px;"/>
-                    <PasswordField fx:id="oldPasswordField" promptText="رمز فعلی"
-                                   style="-fx-background-color: rgba(255,255,255,0.06); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 12; -fx-padding: 10;"/>
+                    <VBox spacing="6">
+                        <Label text="رمز عبور فعلی" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                        <PasswordField fx:id="oldPasswordField" promptText="رمز عبور فعلی خود را وارد کنید"/>
+                    </VBox>
+                    <HBox spacing="14">
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="رمز عبور جدید" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                            <PasswordField fx:id="newPasswordField" promptText="حداقل ۶ کاراکتر"/>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <Label text="تکرار رمز عبور جدید" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                            <PasswordField fx:id="confirmPasswordField" promptText="رمز جدید را دوباره وارد کنید"/>
+                        </VBox>
+                    </HBox>
 
-                    <Label text="رمز عبور جدید" style="-fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 12px;"/>
-                    <PasswordField fx:id="newPasswordField" promptText="رمز جدید"
-                                   style="-fx-background-color: rgba(255,255,255,0.06); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 12; -fx-padding: 10;"/>
-
-                    <Label text="تکرار رمز جدید" style="-fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 12px;"/>
-                    <PasswordField fx:id="confirmPasswordField" promptText="تکرار رمز جدید"
-                                   style="-fx-background-color: rgba(255,255,255,0.06); -fx-text-fill: white; -fx-prompt-text-fill: rgba(255,255,255,0.3); -fx-background-radius: 12; -fx-border-color: rgba(255,255,255,0.1); -fx-border-radius: 12; -fx-padding: 10;"/>
-
-                    <Button text="🔑 تغییر رمز" onAction="#changePassword"
-                            style="-fx-background-color: linear-gradient(to right, #f093fb, #f5576c);
-                                   -fx-text-fill: white;
+                    <Button text="🔑 تغییر رمز عبور" onAction="#changePassword"
+                            style="-fx-background-color: #ffffff;
+                                   -fx-text-fill: #475569;
+                                   -fx-border-color: #cbd5e1;
+                                   -fx-border-width: 1.5;
+                                   -fx-border-radius: 12;
                                    -fx-background-radius: 12;
-                                   -fx-padding: 12 20;
                                    -fx-font-weight: bold;
-                                   -fx-cursor: hand;"
-                            maxWidth="Infinity"/>
+                                   -fx-font-size: 13px;
+                                   -fx-cursor: hand;
+                                   -fx-padding: 10 24;"/>
                 </VBox>
-
             </VBox>
-        </ScrollPane>
-    </VBox>
+        </content>
+    </ScrollPane>
 </VBox>

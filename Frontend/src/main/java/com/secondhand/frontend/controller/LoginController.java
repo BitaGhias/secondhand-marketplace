@@ -170,7 +170,7 @@ public class LoginController {
     private void showError(String message) {
         Platform.runLater(() -> {
             errorLabel.setText(message);
-            errorLabel.setStyle("-fx-text-fill: #ff576c;");
+            errorLabel.setStyle("-fx-text-fill: #dc2626;");
             errorLabel.setVisible(true);
             loadingIndicator.setVisible(false);
             loginButton.setDisable(false);

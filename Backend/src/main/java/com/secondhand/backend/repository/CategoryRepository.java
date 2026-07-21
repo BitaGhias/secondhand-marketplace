@@ -23,10 +23,10 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findByNameAndIdNot(String name, Long id);
 
     // پیدا کردن تعداد آگهی‌های فعال هر دسته‌بندی
-    @Query("SELECT c.id, COUNT(i) FROM Category c LEFT JOIN Item i ON i.category = c AND i.status = 'APPROVED' GROUP BY c.id")
+    @Query("SELECT c.id, COUNT(i) FROM Category c LEFT JOIN Item i ON i.category = c AND i.status = com.secondhand.backend.constant.ItemStatus.APPROVED GROUP BY c.id")
     List<Object[]> countItemsByCategory();
 
     // پیدا کردن تعداد آگهی‌های یک دسته‌بندی خاص
-    @Query("SELECT COUNT(i) FROM Item i WHERE i.category.id = :categoryId AND i.status = 'APPROVED'")
+    @Query("SELECT COUNT(i) FROM Item i WHERE i.category.id = :categoryId AND i.status = com.secondhand.backend.constant.ItemStatus.APPROVED")
     Long countApprovedItemsByCategoryId(@Param("categoryId") Long categoryId);
 }

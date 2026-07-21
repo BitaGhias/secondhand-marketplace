@@ -104,7 +104,7 @@ public class ItemDetailController extends BaseController {
                 thumb.setFitHeight(60);
                 thumb.setFitWidth(60);
                 thumb.setPreserveRatio(true);
-                thumb.setStyle("-fx-cursor: hand; -fx-border-color: rgba(255,255,255,0.2); -fx-border-radius: 8;");
+                thumb.setStyle("-fx-cursor: hand; -fx-border-color: #cbd5e1; -fx-border-radius: 8;");
 
                 final String imageUrl = images.get(i).getFullUrl();
                 ImageLoaderUtil.loadImageWithDefault(thumb, imageUrl);
@@ -153,10 +153,10 @@ public class ItemDetailController extends BaseController {
     private void updateFavoriteButton() {
         if (isFavorite) {
             favoriteButton.setText("❤️");
-            favoriteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #ff4757; -fx-font-size: 24px; -fx-cursor: hand;");
+            favoriteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-size: 24px; -fx-cursor: hand;");
         } else {
             favoriteButton.setText("🤍");
-            favoriteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 24px; -fx-cursor: hand;");
+            favoriteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 24px; -fx-cursor: hand;");
         }
     }
 
@@ -193,15 +193,15 @@ public class ItemDetailController extends BaseController {
         Label info = new Label("💰 قیمت: " + currentItem.getFormattedPrice()
                 + "\n👤 فروشنده: " + currentItem.getOwnerUsername()
                 + "\n\nآیا از خرید این کالا اطمینان دارید؟");
-        info.setStyle("-fx-text-fill: white; -fx-font-size: 14px;");
+        info.setStyle("-fx-text-fill: #1f2937; -fx-font-size: 14px;");
         info.setWrapText(true);
 
         CheckBox rateCheck = new CheckBox("همزمان با خرید، به فروشنده امتیاز می‌دهم");
         rateCheck.setSelected(true);
-        rateCheck.setStyle("-fx-text-fill: white;");
+        rateCheck.setStyle("-fx-text-fill: #1f2937;");
 
         Label scoreLabel = new Label("امتیاز (۱ تا ۵):");
-        scoreLabel.setStyle("-fx-text-fill: white;");
+        scoreLabel.setStyle("-fx-text-fill: #1f2937;");
 
         ComboBox<Integer> scoreComboBox = new ComboBox<>();
         scoreComboBox.getItems().addAll(1, 2, 3, 4, 5);
@@ -284,14 +284,14 @@ public class ItemDetailController extends BaseController {
             content.setStyle("-fx-padding: 20;");
 
             Label scoreLabel = new Label("امتیاز (1 تا 5):");
-            scoreLabel.setStyle("-fx-text-fill: white;");
+            scoreLabel.setStyle("-fx-text-fill: #1f2937;");
 
             ComboBox<Integer> scoreComboBox = new ComboBox<>();
             scoreComboBox.getItems().addAll(1, 2, 3, 4, 5);
             scoreComboBox.setValue(5);
 
             Label commentLabel = new Label("نظر (اختیاری):");
-            commentLabel.setStyle("-fx-text-fill: white;");
+            commentLabel.setStyle("-fx-text-fill: #1f2937;");
 
             TextArea commentArea = new TextArea();
             commentArea.setPromptText("نظر خود را بنویسید...");
@@ -322,7 +322,7 @@ public class ItemDetailController extends BaseController {
     private void styleDialog(Dialog<?> dialog) {
         dialog.getDialogPane().getStylesheets().add(
                 getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        dialog.getDialogPane().setStyle("-fx-background-color: #1a1936;");
+        dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
     }
 
     @FXML
@@ -352,7 +352,7 @@ public class ItemDetailController extends BaseController {
         confirm.setContentText("این عمل قابل بازگشت نیست!");
         confirm.getDialogPane().getStylesheets().add(
                 getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        confirm.getDialogPane().setStyle("-fx-background-color: #1a1936;");
+        confirm.getDialogPane().setStyle("-fx-background-color: #ffffff;");
 
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -400,9 +400,9 @@ public class ItemDetailController extends BaseController {
                 errorLabel.setText(message);
                 errorLabel.setVisible(true);
                 if ("success".equals(type)) {
-                    errorLabel.setStyle("-fx-text-fill: #38ef7d; -fx-font-size: 13px;");
+                    errorLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 13px;");
                 } else {
-                    errorLabel.setStyle("-fx-text-fill: #ff4757; -fx-font-size: 13px;");
+                    errorLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 13px;");
                 }
             }
         });

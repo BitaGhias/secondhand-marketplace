@@ -1,60 +1,103 @@
 <?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
 
-<VBox prefHeight="600.0" prefWidth="850.0" spacing="0"
-      style="-fx-background-color: #14142b;"
+<VBox prefHeight="620.0" prefWidth="900.0" spacing="0"
+      style="-fx-background-color: #f5f7fa;"
+      stylesheets="@css/styles.css"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.ChatsController">
 
-    <!-- ===== Title Bar ===== -->
+    <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
-          style="-fx-background-color: rgba(0,0,0,0.25);
-                 -fx-padding: 10 15;
-                 -fx-border-color: rgba(255,255,255,0.05);
+          style="-fx-background-color: #ffffff;
+                 -fx-padding: 12 16;
+                 -fx-border-color: transparent transparent #e7ecf2 transparent;
                  -fx-border-width: 0 0 1 0;">
-        <children>
-            <Label text="🛒" style="-fx-text-fill: #667eea; -fx-font-size: 16px; -fx-font-weight: bold;"/>
-            <Label text="بازار سفید" style="-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-opacity: 0.9;"/>
-            <HBox HBox.hgrow="ALWAYS" />
-            <Button text="─" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 18px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#minimizeWindow"/>
-            <Button text="☐" style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.6); -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#maximizeWindow"/>
-            <Button text="✕" style="-fx-background-color: transparent; -fx-text-fill: #ff6b6b; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" onAction="#closeWindow"/>
-        </children>
+        <Label text="بازار سفید — گفت‌وگوها" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Button text="─" onAction="#minimizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="☐" onAction="#maximizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="✕" onAction="#closeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
     </HBox>
 
-    <HBox nodeOrientation="RIGHT_TO_LEFT" VBox.vgrow="ALWAYS">
-        <!-- ستون سمت راست: لیست چت‌ها -->
-        <VBox prefWidth="250.0" style="-fx-background-color: rgba(255,255,255,0.02); -fx-border-color: rgba(255,255,255,0.05); -fx-border-width: 0 1 0 0;">
-            <padding><Insets top="20" right="15" bottom="20" left="15"/></padding>
-            <HBox spacing="10">
-                <Label text="💬 گفت‌وگوها" style="-fx-text-fill: white; -fx-font-size: 18px; -fx-font-weight: bold;"/>
-                <Button text="⬅ بازگشت" onAction="#goBack"
-                        style="-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: white; -fx-background-radius: 8; -fx-cursor: hand;"/>
+    <!-- ===== بدنه ===== -->
+    <HBox spacing="16" VBox.vgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
+        <padding>
+            <Insets top="16" right="18" bottom="18" left="18"/>
+        </padding>
+
+        <!-- سایدبار گفت‌وگوها -->
+        <VBox spacing="12" prefWidth="260" minWidth="260"
+              style="-fx-background-color: #ffffff;
+                     -fx-background-radius: 16;
+                     -fx-border-color: #e7ecf2;
+                     -fx-border-radius: 16;
+                     -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 14, 0, 0, 4);
+                     -fx-padding: 16;">
+            <HBox alignment="CENTER_LEFT" spacing="8">
+                <Label text="💬 گفت‌وگوها" style="-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
             </HBox>
-            <Region prefHeight="15.0"/>
-            <ListView fx:id="chatUsersListView" style="-fx-background-color: transparent; -fx-control-inner-background: transparent;" VBox.vgrow="ALWAYS"/>
+            <ListView fx:id="chatUsersListView" VBox.vgrow="ALWAYS"
+                      style="-fx-background-color: transparent; -fx-border-color: transparent;"/>
+            <Button text="→ بازگشت" onAction="#goBack" maxWidth="Infinity"
+                    style="-fx-background-color: #ffffff;
+                           -fx-text-fill: #0e9f6e;
+                           -fx-border-color: #0e9f6e;
+                           -fx-border-width: 1.5;
+                           -fx-border-radius: 10;
+                           -fx-background-radius: 10;
+                           -fx-cursor: hand;
+                           -fx-font-size: 13px;
+                           -fx-font-weight: bold;
+                           -fx-padding: 8 18;"/>
         </VBox>
 
-        <!-- ستون سمت چپ: باکس پیام جاری -->
-        <VBox HBox.hgrow="ALWAYS" spacing="15">
-            <padding><Insets top="20" right="20" bottom="20" left="20"/></padding>
+        <!-- محیط پیام -->
+        <VBox spacing="0" HBox.hgrow="ALWAYS"
+              style="-fx-background-color: #ffffff;
+                     -fx-background-radius: 16;
+                     -fx-border-color: #e7ecf2;
+                     -fx-border-radius: 16;
+                     -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 14, 0, 0, 4);">
 
-            <!-- هدر چت جاری -->
-            <Label fx:id="currentChatUserLabel" text="هیچ چتی انتخاب نشده است" style="-fx-text-fill: #11998e; -fx-font-size: 16px; -fx-font-weight: bold;"/>
-            <Separator style="-fx-opacity: 0.05;"/>
+            <!-- هدر مخاطب -->
+            <HBox alignment="CENTER_LEFT" spacing="10"
+                  style="-fx-padding: 14 18;
+                         -fx-border-color: transparent transparent #eef2f6 transparent;
+                         -fx-border-width: 0 0 1 0;">
+                <Label text="👤" style="-fx-background-color: #d1f0e2; -fx-background-radius: 50; -fx-padding: 6 9; -fx-font-size: 13px;"/>
+                <Label fx:id="currentChatUserLabel" text="یک گفت‌وگو را انتخاب کنید"
+                       style="-fx-text-fill: #0f172a; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+            </HBox>
 
-            <!-- لیست پیام‌ها -->
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent;" VBox.vgrow="ALWAYS">
-                <VBox fx:id="messagesVBox" spacing="10" style="-fx-background-color: transparent;"/>
+            <!-- پیام‌ها -->
+            <ScrollPane fx:id="messagesScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS"
+                        style="-fx-background-color: #f8fafd; -fx-background: #f8fafd; -fx-border-color: transparent;">
+                <content>
+                    <VBox fx:id="messagesVBox" spacing="8" style="-fx-padding: 16; -fx-background-color: #f8fafd;"/>
+                </content>
             </ScrollPane>
 
-            <!-- باکس ارسال پیام -->
-            <HBox spacing="10" alignment="CENTER">
-                <TextField fx:id="messageField" promptText="پیام خود را بنویسید..." HBox.hgrow="ALWAYS" onAction="#sendMessage"
-                           style="-fx-background-color: rgba(255,255,255,0.05); -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10;"/>
-                <Button text="ارسال" onAction="#sendMessage" style="-fx-background-color: #11998e; -fx-text-fill: white; -fx-background-radius: 20; -fx-padding: 10 20; -fx-cursor: hand;"/>
+            <!-- نوار ارسال -->
+            <HBox spacing="10" alignment="CENTER"
+                  style="-fx-padding: 12 16;
+                         -fx-border-color: #eef2f6 transparent transparent transparent;
+                         -fx-border-width: 1 0 0 0;">
+                <TextField fx:id="messageField" promptText="پیام خود را بنویسید..." HBox.hgrow="ALWAYS" onAction="#sendMessage"/>
+                <Button text="ارسال ➤" onAction="#sendMessage"
+                        style="-fx-background-color: #0e9f6e;
+                               -fx-background-radius: 12;
+                               -fx-text-fill: white;
+                               -fx-font-weight: bold;
+                               -fx-font-size: 13px;
+                               -fx-cursor: hand;
+                               -fx-padding: 10 22;"/>
             </HBox>
         </VBox>
     </HBox>

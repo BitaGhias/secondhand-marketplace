@@ -2,6 +2,7 @@ package com.secondhand.frontend.controller;
 
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.service.AuthService;
+import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.ValidationUtil;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
@@ -50,7 +51,7 @@ public class RegisterController extends BaseController {
 
         // انجام عملیات ناهمگام از طریق سرویس احراز هویت بدون پرتاب ارور چک‌شده
         AuthService.register(fullName, username, email, phone, password)
-                .thenAccept(responseBody -> handleRegisterSuccess())
+                .thenAccept(responseBody -> handleRegisterSuccess(username, password))
                 .exceptionally(ex -> {
                     // استخراج ایمن پیام خطا از داخل زنجیره CompletableFuture
                     String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
@@ -83,20 +84,31 @@ public class RegisterController extends BaseController {
         return false;
     }
 
-    private void handleRegisterSuccess() {
-        Platform.runLater(() -> {
-            showSuccess("✅ ثبت‌نام با موفقیت انجام شد! به صفحه ورود بروید.");
-            setLoadingState(false);
+    private void handleRegisterSuccess(String username, String password) {
+        Platform.runLater(() -> showSuccess("✅ ثبت‌نام با موفقیت انجام شد! در حال ورود به حساب شما..."));
 
-            new Thread(() -> {
-                try {
-                    Thread.sleep(2000);
-                    Platform.runLater(this::goToLogin);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).start();
-        });
+        // ورود خودکار پس از ثبت‌نام موفق
+        AuthService.login(username, password)
+                .thenAccept(loginResponse -> Platform.runLater(() -> {
+                    if (loginResponse != null && loginResponse.getUser() != null) {
+                        SessionManager.setCurrentUser(loginResponse.getUser());
+                    }
+                    setLoadingState(false);
+                    try {
+                        MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        goToLogin();
+                    }
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        setLoadingState(false);
+                        showSuccess("✅ ثبت‌نام انجام شد! لطفاً وارد شوید.");
+                        goToLogin();
+                    });
+                    return null;
+                });
     }
 
     private void handleRegisterError(String errorMessage) {
@@ -125,7 +137,7 @@ public class RegisterController extends BaseController {
         Platform.runLater(() -> {
             if (errorLabel != null) {
                 errorLabel.setText("❌ " + message);
-                errorLabel.setStyle("-fx-text-fill: #ff4757;");
+                errorLabel.setStyle("-fx-text-fill: #dc2626;");
                 errorLabel.setVisible(true);
             }
         });
@@ -135,7 +147,7 @@ public class RegisterController extends BaseController {
         Platform.runLater(() -> {
             if (errorLabel != null) {
                 errorLabel.setText(message);
-                errorLabel.setStyle("-fx-text-fill: #38ef7d;");
+                errorLabel.setStyle("-fx-text-fill: #16a34a;");
                 errorLabel.setVisible(true);
             }
         });

@@ -62,10 +62,10 @@ public class AdminUserAdListController extends BaseController {
 
         if (user.isBlocked()) {
             blockStatusLabel.setText("🔒 مسدود");
-            blockStatusLabel.setStyle("-fx-text-fill: #ff4757; -fx-font-size: 14px; -fx-font-weight: bold;");
+            blockStatusLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 14px; -fx-font-weight: bold;");
         } else {
             blockStatusLabel.setText("🟢 فعال");
-            blockStatusLabel.setStyle("-fx-text-fill: #38ef7d; -fx-font-size: 14px; -fx-font-weight: bold;");
+            blockStatusLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 14px; -fx-font-weight: bold;");
         }
 
         boolean isAdmin = "ADMIN".equalsIgnoreCase(user.getRole());
@@ -107,7 +107,7 @@ public class AdminUserAdListController extends BaseController {
 
         if (items.isEmpty()) {
             Label empty = new Label(emptyText);
-            empty.setStyle("-fx-text-fill: rgba(255,255,255,0.35); -fx-font-size: 13px;");
+            empty.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 13px;");
             pane.getChildren().add(empty);
             return;
         }
@@ -119,23 +119,23 @@ public class AdminUserAdListController extends BaseController {
 
     private VBox buildAdCard(Item item) {
         Label title = new Label(item.getTitle());
-        title.setStyle("-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;");
+        title.setStyle("-fx-text-fill: #1f2937; -fx-font-size: 14px; -fx-font-weight: bold;");
         title.setWrapText(true);
 
         Label price = new Label(item.getFormattedPrice());
-        price.setStyle("-fx-text-fill: #ff758c; -fx-font-size: 13px; -fx-font-weight: bold;");
+        price.setStyle("-fx-text-fill: #0e9f6e; -fx-font-size: 13px; -fx-font-weight: bold;");
 
         Label status = new Label(item.getPersianStatus());
         status.setStyle("-fx-text-fill: " + item.getStatusColor() + "; -fx-font-size: 12px; -fx-font-weight: bold;");
 
         Label meta = new Label("📂 " + safe(item.getCategoryName()) + "   📍 " + safe(item.getCityName()));
-        meta.setStyle("-fx-text-fill: rgba(255,255,255,0.5); -fx-font-size: 12px;");
+        meta.setStyle("-fx-text-fill: #64748b; -fx-font-size: 12px;");
 
         VBox card = new VBox(6, title, price, status, meta);
         card.setPrefWidth(290);
-        card.setStyle("-fx-background-color: rgba(255,255,255,0.04);"
+        card.setStyle("-fx-background-color: #f1f5f9;"
                 + " -fx-background-radius: 14;"
-                + " -fx-border-color: rgba(255,255,255,0.08);"
+                + " -fx-border-color: #e7ecf2;"
                 + " -fx-border-radius: 14;"
                 + " -fx-padding: 14;");
         return card;
@@ -160,9 +160,9 @@ public class AdminUserAdListController extends BaseController {
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
-        UserService.toggleBlockAsync(user.getId()) // متد Async جدید
-                .thenAccept(v -> Platform.runLater(() -> {
-                    user.setBlocked(block); // به‌روزرسانی محلی وضعیت
+        UserService.toggleBlockAsync(user.getId(), block)
+                .thenAccept(updated -> Platform.runLater(() -> {
+                    user.setBlocked(updated != null ? updated.isBlocked() : block);
                     renderUserInfo();
                     showMessage(block ? "🔒 کاربر مسدود شد" : "🔓 کاربر فعال شد", true);
                 }))
@@ -174,7 +174,7 @@ public class AdminUserAdListController extends BaseController {
 
     private void showMessage(String text, boolean success) {
         messageLabel.setText(text);
-        messageLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (success ? "#38ef7d" : "#ff4757") + ";");
+        messageLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (success ? "#16a34a" : "#dc2626") + ";");
         messageLabel.setVisible(true);
     }
 

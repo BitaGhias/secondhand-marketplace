@@ -119,7 +119,7 @@ public class AdListController extends BaseController implements FilterDialogCont
 
         if (items == null || items.isEmpty()) {
             Label emptyLabel = new Label("هیچ آگهی‌ای برای نمایش وجود ندارد");
-            emptyLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: rgba(255,255,255,0.45);");
+            emptyLabel.setStyle("-fx-font-size: 18px; -fx-text-fill: #94a3b8;");
             StackPane emptyPane = new StackPane(emptyLabel);
             emptyPane.setAlignment(Pos.CENTER);
             emptyPane.prefWidthProperty().bind(adsFlowPane.widthProperty());
@@ -156,7 +156,7 @@ public class AdListController extends BaseController implements FilterDialogCont
             if (adsFlowPane != null) {
                 adsFlowPane.getChildren().clear();
                 Label errorLabel = new Label("خطا در بارگذاری آگهی‌ها: " + e.getMessage());
-                errorLabel.setStyle("-fx-text-fill: #ff576c; -fx-font-size: 14px;");
+                errorLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 14px;");
                 adsFlowPane.getChildren().add(errorLabel);
             }
         });

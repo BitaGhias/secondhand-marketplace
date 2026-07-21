@@ -143,14 +143,14 @@ public class Item {
      * رنگ وضعیت برای نمایش در UI
      */
     public String getStatusColor() {
-        if (status == null) return "#888888";
+        if (status == null) return "#94a3b8";
         return switch (status.toUpperCase()) {
-            case "PENDING" -> "#f9a825";    // زرد
-            case "APPROVED", "ACTIVE" -> "#4caf50";     // سبز
-            case "SOLD" -> "#2196f3";       // آبی
-            case "DELETED" -> "#f44336";    // قرمز
-            case "REJECTED" -> "#f44336";   // قرمز
-            default -> "#888888";
+            case "PENDING" -> "#d97706";    // زرد
+            case "APPROVED", "ACTIVE" -> "#16a34a";     // سبز
+            case "SOLD" -> "#2563eb";       // آبی
+            case "DELETED" -> "#dc2626";    // قرمز
+            case "REJECTED" -> "#dc2626";   // قرمز
+            default -> "#94a3b8";
         };
     }
 
