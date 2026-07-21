@@ -92,7 +92,6 @@ public class ChatsController extends BaseController {
             try {
                 List<Conversation> conversations = ChatService.getConversations();
                 Platform.runLater(() -> {
-                    // حفظ آیتم انتخاب فعلی
                     Conversation selected = chatUsersListView.getSelectionModel().getSelectedItem();
                     chatUsersListView.getItems().setAll(conversations);
 
@@ -158,7 +157,7 @@ public class ChatsController extends BaseController {
                     lastMessageCount = messages.size();
                 });
             } catch (Exception e) {
-                // polling ساکت شکست — خطا را نمایش نمی‌دهیم تا تجربه کاربر خراب نشود
+                // polling ساکت شکست — خطا نمایش نمی‌دهیم تا تجربه کاربر خراب نشود
                 System.err.println("[Chat Poll] خطا در دریافت پیام‌ها: " + e.getMessage());
             }
         }).start();
@@ -213,7 +212,6 @@ public class ChatsController extends BaseController {
         new Thread(() -> {
             try {
                 ChatService.sendMessage(conversationId, text);
-                // بارگذاری فوری بعد از ارسال + scroll
                 List<ChatMessage> messages = ChatService.getMessages(conversationId);
                 Platform.runLater(() -> {
                     renderMessages(messages);
@@ -250,7 +248,6 @@ public class ChatsController extends BaseController {
         refreshTimeline = new Timeline(
                 new KeyFrame(Duration.seconds(POLL_SECONDS), event -> {
                     if (currentConversation != null) {
-                        // فقط پیام‌ها را به‌روز می‌کنیم (scroll فقط وقتی پیام جدید داشتیم)
                         loadMessages(false);
                     }
                 })
@@ -272,7 +269,7 @@ public class ChatsController extends BaseController {
     // ─────────────────────
     @Override
     @FXML
-    public void closeWindow(javafx.event.ActionEvent event) {
+    public void closeWindow(ActionEvent event) {
         stopPolling();
         super.closeWindow(event);
     }
