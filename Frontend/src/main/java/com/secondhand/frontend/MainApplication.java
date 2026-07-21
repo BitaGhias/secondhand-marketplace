@@ -1,5 +1,7 @@
 package com.secondhand.frontend;
 
+import com.secondhand.frontend.controller.ItemDetailController;
+import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.util.BrandLogo;
 import javafx.animation.FadeTransition;
 import javafx.animation.PauseTransition;
@@ -52,11 +54,11 @@ public class MainApplication extends Application {
         card.setAlignment(Pos.CENTER);
         card.setStyle(
                 "-fx-background-color: #ffffff;" +
-                "-fx-background-radius: 26;" +
-                "-fx-border-color: #e3e8f0;" +
-                "-fx-border-width: 1;" +
-                "-fx-border-radius: 26;" +
-                "-fx-padding: 44 70;"
+                        "-fx-background-radius: 26;" +
+                        "-fx-border-color: #e3e8f0;" +
+                        "-fx-border-width: 1;" +
+                        "-fx-border-radius: 26;" +
+                        "-fx-padding: 44 70;"
         );
         DropShadow shadow = new DropShadow();
         shadow.setColor(Color.rgb(15, 23, 42, 0.20));
@@ -75,7 +77,6 @@ public class MainApplication extends Application {
         splash.centerOnScreen();
         splash.show();
 
-        // انیمیشن: محو شدن به داخل ← مکث ← محو شدن به بیرون ← نمایش صفحه ورود
         card.setOpacity(0);
         FadeTransition fadeIn = new FadeTransition(Duration.millis(450), card);
         fadeIn.setFromValue(0);
@@ -126,6 +127,26 @@ public class MainApplication extends Application {
         primaryStage.setTitle(title);
         primaryStage.setScene(scene);
         primaryStage.show();
+    }
+
+    /**
+     * رفتن به صفحه جزئیات آگهی — جایگزین کد تکراری در AdListController،
+     * FavoritesController، MyAdsController و AdItemController
+     */
+    public static void goToItemDetail(Item item) throws Exception {
+        FXMLLoader loader = new FXMLLoader(
+                MainApplication.class.getResource("/com/secondhand/frontend/item_detail.fxml"));
+        Parent root = loader.load();
+        ItemDetailController controller = loader.getController();
+        controller.setItem(item);
+
+        Scene scene = new Scene(root, DEFAULT_WIDTH, DEFAULT_HEIGHT);
+        scene.setFill(Color.TRANSPARENT);
+        scene.getStylesheets().add(
+                MainApplication.class.getResource(STYLESHEET).toExternalForm());
+
+        primaryStage.setTitle("جزئیات آگهی");
+        primaryStage.setScene(scene);
     }
 
     public static void main(String[] args) {

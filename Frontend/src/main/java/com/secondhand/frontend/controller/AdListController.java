@@ -49,17 +49,13 @@ public class AdListController extends BaseController implements FilterDialogCont
         if (currentUser != null && userMenuButton != null) {
             userMenuButton.setText("👤 " + currentUser.getFullName());
         }
-
         setupMenuActions();
-
         if (SessionManager.isAdmin() && userMenuButton != null) {
             MenuItem adminPanelItem = new MenuItem("🛡️ پنل مدیریت");
             adminPanelItem.setOnAction(e -> goToAdminPanel());
             userMenuButton.getItems().add(0, adminPanelItem);
         }
-
         fetchAdsFromBackend();
-
         if (searchField != null) {
             searchField.textProperty().addListener((observable, oldValue, newValue) -> {
                 searchDebounce.setOnFinished(e -> runFilteredSearch());
@@ -80,9 +76,7 @@ public class AdListController extends BaseController implements FilterDialogCont
     }
 
     @FXML
-    private void handleSearchClick() {
-        runFilteredSearch();
-    }
+    private void handleSearchClick() { runFilteredSearch(); }
 
     private boolean hasActiveFilterOrSearch() {
         String keyword = searchField != null ? searchField.getText() : null;
@@ -92,29 +86,20 @@ public class AdListController extends BaseController implements FilterDialogCont
     }
 
     private void runFilteredSearch() {
-        if (!hasActiveFilterOrSearch()) {
-            fetchAdsFromBackend();
-            return;
-        }
-
+        if (!hasActiveFilterOrSearch()) { fetchAdsFromBackend(); return; }
         final String keyword = searchField != null ? searchField.getText() : null;
         new Thread(() -> {
             try {
                 List<Item> items = ItemService.searchItems(
                         keyword, filterCategoryId, filterCityId, filterMinPrice, filterMaxPrice);
                 Platform.runLater(() -> renderItems(items));
-            } catch (Exception e) {
-                showLoadError(e);
-            }
+            } catch (Exception e) { showLoadError(e); }
         }).start();
     }
 
     private void renderItems(List<Item> items) {
-        if (loadingContainer != null) {
-            loadingContainer.setVisible(false);
-        }
+        if (loadingContainer != null) loadingContainer.setVisible(false);
         if (adsFlowPane == null) return;
-
         adsFlowPane.getChildren().clear();
 
         if (items == null || items.isEmpty()) {
@@ -130,29 +115,22 @@ public class AdListController extends BaseController implements FilterDialogCont
 
         for (Item item : items) {
             try {
-                FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/item_ad.fxml"));
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                        "/com/secondhand/frontend/item_ad.fxml"));
                 Parent card = loader.load();
-
-                // 🟢 هماهنگ‌سازی نام کلاس کنترلر و متد مقداردهی کارت
                 AdItemController controller = loader.getController();
                 controller.setItem(item);
-
                 card.setOnMouseClicked(event -> goToItemDetail(item));
                 adsFlowPane.getChildren().add(card);
             } catch (Exception e) {
-                System.err.println("❌ خطا در رندر کارت آگهی:");
-                e.printStackTrace();
+                System.err.println("❌ خطا در رندر کارت آگهی: " + e.getMessage());
             }
         }
     }
 
     private void showLoadError(Exception e) {
-        System.err.println("❌ خطا در دریافت آگهی‌ها:");
-        e.printStackTrace();
         Platform.runLater(() -> {
-            if (loadingContainer != null) {
-                loadingContainer.setVisible(false);
-            }
+            if (loadingContainer != null) loadingContainer.setVisible(false);
             if (adsFlowPane != null) {
                 adsFlowPane.getChildren().clear();
                 Label errorLabel = new Label("خطا در بارگذاری آگهی‌ها: " + e.getMessage());
@@ -164,113 +142,73 @@ public class AdListController extends BaseController implements FilterDialogCont
 
     private void goToItemDetail(Item item) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/item_detail.fxml"));
-            Parent root = loader.load();
-
-            ItemDetailController controller = loader.getController();
-            controller.setItem(item);
-
-            Stage stage = (Stage) adsFlowPane.getScene().getWindow();
-            Scene scene = new Scene(root, 1000, 1000);
-            scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-            scene.getStylesheets().add(getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-            stage.setScene(scene);
-            stage.setTitle("جزئیات آگهی");
+            MainApplication.goToItemDetail(item);
         } catch (Exception e) {
-            System.err.println("❌ خطا در رفتن به صفحه جزئیات:");
-            e.printStackTrace();
+            System.err.println("❌ خطا در رفتن به صفحه جزئیات: " + e.getMessage());
         }
     }
 
     @FXML
     private void showFilterDialog() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/filter_dialogue.fxml"));
+            FXMLLoader loader = new FXMLLoader(getClass().getResource(
+                    "/com/secondhand/frontend/filter_dialogue.fxml"));
             Parent root = loader.load();
-
             FilterDialogController controller = loader.getController();
             controller.setListener(this);
-
             Stage dialog = new Stage();
             dialog.initModality(Modality.APPLICATION_MODAL);
             dialog.initOwner(adsFlowPane.getScene().getWindow());
             dialog.setTitle("فیلترهای جست‌وجو");
             dialog.setScene(new Scene(root));
             dialog.showAndWait();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        } catch (Exception e) { e.printStackTrace(); }
     }
 
     @Override
     public void onFilterApplied(Long categoryId, Long cityId, Long minPrice, Long maxPrice) {
-        this.filterCategoryId = categoryId;
-        this.filterCityId = cityId;
-        this.filterMinPrice = minPrice;
-        this.filterMaxPrice = maxPrice;
+        this.filterCategoryId = categoryId; this.filterCityId = cityId;
+        this.filterMinPrice = minPrice; this.filterMaxPrice = maxPrice;
         runFilteredSearch();
     }
 
     @Override
     public void onFilterCleared() {
-        this.filterCategoryId = null;
-        this.filterCityId = null;
-        this.filterMinPrice = null;
-        this.filterMaxPrice = null;
+        this.filterCategoryId = null; this.filterCityId = null;
+        this.filterMinPrice = null; this.filterMaxPrice = null;
         runFilteredSearch();
     }
 
     private void setupMenuActions() {
-        if (userMenuButton != null && userMenuButton.getItems() != null) {
-            for (MenuItem item : userMenuButton.getItems()) {
-                item.setOnAction(event -> {
-                    String itemText = item.getText();
-                    if (itemText == null) return;
-
-                    switch (itemText.trim()) {
-                        case "➕ ثبت آگهی جدید":
-                        case "ثبت آگهی جدید":
-                            goToCreateAd();
-                            break;
-                        case "📝 آگهی‌های من":
-                            goToMyAds();
-                            break;
-                        case "❤️ علاقه‌مندی‌ها":
-                            goToFavorites();
-                            break;
-                        case "💬 گفت‌وگوها":
-                            goToChats();
-                            break;
-                        case "🛒 خریدها":
-                            goToPurchases();
-                            break;
-                        case "👤 پروفایل":
-                            goToProfile();
-                            break;
-                        case "خروج":
-                        case "🚪 خروج":
-                            handleLogout();
-                            break;
-                    }
-                });
-            }
+        if (userMenuButton == null || userMenuButton.getItems() == null) return;
+        for (MenuItem item : userMenuButton.getItems()) {
+            item.setOnAction(event -> {
+                String t = item.getText();
+                if (t == null) return;
+                switch (t.trim()) {
+                    case "➕ ثبت آگهی جدید", "ثبت آگهی جدید" -> goToCreateAd();
+                    case "📝 آگهی‌های من" -> goToMyAds();
+                    case "❤️ علاقه‌مندی‌ها" -> goToFavorites();
+                    case "💬 گفت‌وگوها" -> goToChats();
+                    case "🛒 خریدها" -> goToPurchases();
+                    case "👤 پروفایل" -> goToProfile();
+                    case "خروج", "🚪 خروج" -> handleLogout();
+                }
+            });
         }
     }
 
-    @FXML private void goToMyAds() { try { MainApplication.changeScene("/com/secondhand/frontend/my_ads.fxml", "آگهی‌های من"); } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToFavorites() { try { MainApplication.changeScene("/com/secondhand/frontend/favorites.fxml", "علاقه‌مندی‌ها"); } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToChats() { try { MainApplication.changeScene("/com/secondhand/frontend/chats.fxml", "پیام‌ها"); } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToPurchases() { try { MainApplication.changeScene("/com/secondhand/frontend/purchases.fxml", "خریدها"); } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToCreateAd() { try { MainApplication.changeScene("/com/secondhand/frontend/create_ad.fxml", "ثبت آگهی جدید"); } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToAdminPanel() { try { MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت"); } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToProfile() { try { MainApplication.changeScene("/com/secondhand/frontend/profile.fxml", "پروفایل من"); } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToMyAds()      { try { MainApplication.changeScene("/com/secondhand/frontend/my_ads.fxml",      "آگهی‌های من");    } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToFavorites()  { try { MainApplication.changeScene("/com/secondhand/frontend/favorites.fxml",   "علاقه‌مندی‌ها");  } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToChats()      { try { MainApplication.changeScene("/com/secondhand/frontend/chats.fxml",       "پیام‌ها");         } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToPurchases()  { try { MainApplication.changeScene("/com/secondhand/frontend/purchases.fxml",   "خریدها");          } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToCreateAd()   { try { MainApplication.changeScene("/com/secondhand/frontend/create_ad.fxml",   "ثبت آگهی جدید");  } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToAdminPanel() { try { MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت");      } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToProfile()    { try { MainApplication.changeScene("/com/secondhand/frontend/profile.fxml",     "پروفایل من");      } catch (Exception e) { e.printStackTrace(); } }
 
     private void handleLogout() {
         SessionManager.logout();
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/login.fxml", "ورود");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        try { MainApplication.changeScene("/com/secondhand/frontend/login.fxml", "ورود"); }
+        catch (Exception e) { e.printStackTrace(); }
     }
 }
