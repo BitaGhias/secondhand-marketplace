@@ -69,6 +69,7 @@ public class ItemDetailController extends BaseController {
     private Item currentItem;
     private Long currentUserId;
     private boolean isFavorite = false;
+    private static Long pendingItemId;
 
     // ─────────────────────────────────────────────
     //  init
@@ -86,6 +87,11 @@ public class ItemDetailController extends BaseController {
         bindManaged(addCommentBox);
         if (ownerActions != null) ownerActions.managedProperty().bind(ownerActions.visibleProperty());
         if (buyerActions != null) buyerActions.managedProperty().bind(buyerActions.visibleProperty());
+        if (pendingItemId != null) {
+            Long id = pendingItemId;
+            pendingItemId = null;
+            loadItemById(id);
+        }
     }
 
     private void bindManaged(Region node) {
@@ -101,6 +107,26 @@ public class ItemDetailController extends BaseController {
         configureActions();
         checkFavoriteStatus();
         loadComments();
+    }
+
+
+    public static void setItemId(Long id) {
+        pendingItemId = id;
+    }
+
+    /** Phase 7: لود آگهی از API بر اساس ID — وقتی از PurchasesController میاییم */
+    private void loadItemById(Long id) {
+        ItemService.getItemByIdAsync(id)
+                .thenAccept(item -> Platform.runLater(() -> setItem(item)))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        if (errorLabel != null) {
+                            errorLabel.setText("خطا در بارگذاری آگهی: " + ex.getMessage());
+                            errorLabel.setVisible(true);
+                        }
+                    });
+                    return null;
+                });
     }
 
     // ─────────────────────────────────────────────
