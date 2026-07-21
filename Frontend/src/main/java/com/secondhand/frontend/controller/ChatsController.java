@@ -15,7 +15,6 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.event.ActionEvent;
-import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import java.util.List;
