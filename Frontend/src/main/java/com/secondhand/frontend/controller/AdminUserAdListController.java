@@ -5,6 +5,7 @@ import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.UserService;
+import com.secondhand.frontend.util.Routes;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -17,24 +18,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * صفحه ادمین برای یک کاربر خاص:
- * همه آگهی‌های ثبت‌شده، فروخته‌شده و حذف‌شده کاربر + مسدود/فعال‌سازی
- */
 public class AdminUserAdListController extends BaseController {
-    @FXML private HBox titleBar;
-    @FXML private Label userTitleLabel;
-    @FXML private Label userInfoLabel;
-    @FXML private Label blockStatusLabel;
-    @FXML private Button blockButton;
-    @FXML private Button unblockButton;
-    @FXML private Label postedCountLabel;
-    @FXML private Label soldCountLabel;
-    @FXML private Label deletedCountLabel;
+
+    @FXML private HBox    titleBar;
+    @FXML private Label   userTitleLabel;
+    @FXML private Label   userInfoLabel;
+    @FXML private Label   blockStatusLabel;
+    @FXML private Button  blockButton;
+    @FXML private Button  unblockButton;
+    @FXML private Label   postedCountLabel;
+    @FXML private Label   soldCountLabel;
+    @FXML private Label   deletedCountLabel;
     @FXML private FlowPane postedFlowPane;
     @FXML private FlowPane soldFlowPane;
     @FXML private FlowPane deletedFlowPane;
-    @FXML private Label messageLabel;
+    @FXML private Label   messageLabel;
 
     private User user;
 
@@ -53,7 +51,6 @@ public class AdminUserAdListController extends BaseController {
 
     private void renderUserInfo() {
         userTitleLabel.setText("👤 " + user.getUsername());
-
         String role = "ADMIN".equalsIgnoreCase(user.getRole()) ? "🛡️ ادمین" : "کاربر عادی";
         userInfoLabel.setText(safe(user.getFullName())
                 + "  |  " + role
@@ -80,18 +77,17 @@ public class AdminUserAdListController extends BaseController {
     private void loadUserAds() {
         ItemService.getUserItemsForAdminAsync(user.getId())
                 .thenAccept(items -> {
-                    List<Item> posted = new ArrayList<>();
-                    List<Item> sold = new ArrayList<>();
+                    List<Item> posted  = new ArrayList<>();
+                    List<Item> sold    = new ArrayList<>();
                     List<Item> deleted = new ArrayList<>();
                     for (Item item : items) {
                         if (item.isSold()) sold.add(item);
                         else if ("DELETED".equalsIgnoreCase(item.getStatus())) deleted.add(item);
                         else posted.add(item);
                     }
-
                     Platform.runLater(() -> {
-                        fillSection(postedFlowPane, postedCountLabel, posted, "این کاربر آگهی ثبت‌شده‌ای ندارد");
-                        fillSection(soldFlowPane, soldCountLabel, sold, "این کاربر آگهی فروخته‌شده‌ای ندارد");
+                        fillSection(postedFlowPane,  postedCountLabel,  posted,  "این کاربر آگهی ثبت‌شده‌ای ندارد");
+                        fillSection(soldFlowPane,    soldCountLabel,    sold,    "این کاربر آگهی فروخته‌شده‌ای ندارد");
                         fillSection(deletedFlowPane, deletedCountLabel, deleted, "این کاربر آگهی حذف‌شده‌ای ندارد");
                     });
                 })
@@ -104,59 +100,43 @@ public class AdminUserAdListController extends BaseController {
     private void fillSection(FlowPane pane, Label countLabel, List<Item> items, String emptyText) {
         pane.getChildren().clear();
         countLabel.setText(items.size() + " مورد");
-
         if (items.isEmpty()) {
             Label empty = new Label(emptyText);
             empty.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 13px;");
             pane.getChildren().add(empty);
             return;
         }
-
-        for (Item item : items) {
-            pane.getChildren().add(buildAdCard(item));
-        }
+        for (Item item : items) pane.getChildren().add(buildAdCard(item));
     }
 
     private VBox buildAdCard(Item item) {
-        Label title = new Label(item.getTitle());
+        Label title  = new Label(item.getTitle());
         title.setStyle("-fx-text-fill: #1f2937; -fx-font-size: 14px; -fx-font-weight: bold;");
         title.setWrapText(true);
 
-        Label price = new Label(item.getFormattedPrice());
+        Label price  = new Label(item.getFormattedPrice());
         price.setStyle("-fx-text-fill: #0e9f6e; -fx-font-size: 13px; -fx-font-weight: bold;");
 
         Label status = new Label(item.getPersianStatus());
         status.setStyle("-fx-text-fill: " + item.getStatusColor() + "; -fx-font-size: 12px; -fx-font-weight: bold;");
 
-        Label meta = new Label("📂 " + safe(item.getCategoryName()) + "   📍 " + safe(item.getCityName()));
+        Label meta   = new Label("📂 " + safe(item.getCategoryName()) + "   📍 " + safe(item.getCityName()));
         meta.setStyle("-fx-text-fill: #64748b; -fx-font-size: 12px;");
 
         VBox card = new VBox(6, title, price, status, meta);
         card.setPrefWidth(290);
-        card.setStyle("-fx-background-color: #f1f5f9;"
-                + " -fx-background-radius: 14;"
-                + " -fx-border-color: #e7ecf2;"
-                + " -fx-border-radius: 14;"
-                + " -fx-padding: 14;");
+        card.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 14;"
+                + " -fx-border-color: #e7ecf2; -fx-border-radius: 14; -fx-padding: 14;");
         return card;
     }
 
-    @FXML
-    private void blockUser() {
-        toggleBlock(true);
-    }
-
-    @FXML
-    private void unblockUser() {
-        toggleBlock(false);
-    }
+    @FXML private void blockUser()   { toggleBlock(true);  }
+    @FXML private void unblockUser() { toggleBlock(false); }
 
     private void toggleBlock(boolean block) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle(block ? "مسدود کردن کاربر" : "فعال‌سازی کاربر");
-        confirm.setHeaderText((block ? "آیا از مسدود کردن «" : "آیا از فعال‌سازی «")
-                + user.getUsername() + "» اطمینان دارید؟");
-        // تنظیمات استایل ...
+        confirm.setHeaderText((block ? "آیا از مسدود کردن «" : "آیا از فعال‌سازی «") + user.getUsername() + "» اطمینان دارید؟");
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
@@ -180,10 +160,7 @@ public class AdminUserAdListController extends BaseController {
 
     @FXML
     private void goBack() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        try { MainApplication.changeScene(Routes.ADMIN_PANEL, "پنل مدیریت"); }
+        catch (Exception e) { e.printStackTrace(); }
     }
 }

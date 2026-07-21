@@ -3,6 +3,7 @@ package com.secondhand.frontend.controller;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.FavoriteService;
+import com.secondhand.frontend.util.Routes;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -15,9 +16,10 @@ import javafx.scene.layout.HBox;
 import java.util.List;
 
 public class FavoritesController extends BaseController {
+
     @FXML private FlowPane favoritesFlowPane;
-    @FXML private Label noFavoritesLabel;
-    @FXML private HBox titleBar;
+    @FXML private Label    noFavoritesLabel;
+    @FXML private HBox     titleBar;
 
     @FXML
     public void initialize() {
@@ -37,8 +39,7 @@ public class FavoritesController extends BaseController {
                     } else {
                         for (Item item : favorites) {
                             try {
-                                FXMLLoader loader = new FXMLLoader(getClass().getResource(
-                                        "/com/secondhand/frontend/item_ad.fxml"));
+                                FXMLLoader loader = new FXMLLoader(getClass().getResource(Routes.ITEM_AD));
                                 Parent card = loader.load();
                                 AdItemController controller = loader.getController();
                                 controller.setItem(item);
@@ -49,6 +50,7 @@ public class FavoritesController extends BaseController {
                     }
                 });
             } catch (Exception e) {
+                e.printStackTrace();
                 Platform.runLater(() -> {
                     noFavoritesLabel.setText("خطا در دریافت علاقه‌مندی‌ها: " + e.getMessage());
                     noFavoritesLabel.setVisible(true);
@@ -58,16 +60,13 @@ public class FavoritesController extends BaseController {
     }
 
     private void goToItemDetail(Item item) {
-        try {
-            MainApplication.goToItemDetail(item);
-        } catch (Exception e) {
-            System.err.println("❌ خطا در رفتن به جزئیات: " + e.getMessage());
-        }
+        try { MainApplication.goToItemDetail(item); }
+        catch (Exception e) { System.err.println("❌ خطا در رفتن به جزئیات: " + e.getMessage()); }
     }
 
     @FXML
     private void goBack() {
-        try { MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "لیست آگهی‌ها"); }
+        try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }
         catch (Exception e) { e.printStackTrace(); }
     }
 }

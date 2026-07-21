@@ -4,6 +4,7 @@ import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.RatingService;
+import com.secondhand.frontend.util.Routes;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
 import javafx.beans.property.ReadOnlyStringWrapper;
@@ -15,10 +16,6 @@ import javafx.scene.layout.VBox;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Phase 3: بررسی امتیاز قبل از نمایش دکمه
- * Phase 7: كلیک روی ردیف جهت باز کردن جزئیات آگهی
- */
 public class PurchasesController extends BaseController {
 
     @FXML private TableView<Item> purchasesTable;
@@ -28,13 +25,10 @@ public class PurchasesController extends BaseController {
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         setupColumns();
-        setupRowDoubleClick(); // Phase 7
+        setupRowDoubleClick();
         loadPurchases();
     }
 
-    // ─────────────────────
-    //  Phase 7: کلیک دوبل برای باز کردن جزئیات
-    // ─────────────────────
     private void setupRowDoubleClick() {
         purchasesTable.setRowFactory(tv -> {
             TableRow<Item> row = new TableRow<>();
@@ -50,15 +44,12 @@ public class PurchasesController extends BaseController {
     private void openItemDetail(Item item) {
         try {
             ItemDetailController.setItemId(item.getId());
-            MainApplication.changeScene("/com/secondhand/frontend/item_detail.fxml", "جزئیات آگهی");
+            MainApplication.changeScene(Routes.ITEM_DETAIL, "جزئیات آگهی");
         } catch (Exception e) {
             showAlert("خطا در باز کردن جزئیات: " + e.getMessage(), Alert.AlertType.ERROR);
         }
     }
 
-    // ─────────────────────
-    //  ستاپ ستون‌ها
-    // ─────────────────────
     private void setupColumns() {
         TableColumn<Item, String> titleCol = new TableColumn<>("عنوان کالا");
         titleCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getTitle()));
@@ -76,7 +67,6 @@ public class PurchasesController extends BaseController {
         statusCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getPersianStatus()));
         statusCol.setPrefWidth(110);
 
-        // Phase 3: دکمه امتیاز فقط وقتی کاربر تا به حال امتیاز نداده
         TableColumn<Item, Void> rateCol = new TableColumn<>("امتیازدهی");
         rateCol.setPrefWidth(150);
         rateCol.setCellFactory(col -> new TableCell<>() {
@@ -97,7 +87,6 @@ public class PurchasesController extends BaseController {
                 super.updateItem(v, empty);
                 if (empty) { setGraphic(null); return; }
                 Item item = getTableView().getItems().get(getIndex());
-                // در حال نمایش دکمه — سپس وضعیت را به‌روز می‌کنیم
                 setGraphic(rateBtn);
                 rateBtn.setDisable(true);
                 RatingService.hasRatedAsync(item.getId()).thenAccept(rated ->
@@ -113,12 +102,9 @@ public class PurchasesController extends BaseController {
         });
 
         purchasesTable.getColumns().setAll(List.of(titleCol, priceCol, sellerCol, statusCol, rateCol));
-
-        // tooltip hint for Phase 7
         purchasesTable.setPlaceholder(new Label("خریدی در تاریخچه ندارید"));
     }
 
-    // ─────────────────────
     private void loadPurchases() {
         ItemService.getPurchasedItemsAsync()
                 .thenAccept(list -> Platform.runLater(() -> purchasesTable.getItems().setAll(list)))
@@ -128,13 +114,14 @@ public class PurchasesController extends BaseController {
                 });
     }
 
-    // ─────────────────────
     private void showRatingDialog(Item item, Button rateBtn, Label ratedLbl) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("امتیازدهی به فروشنده");
         dialog.setHeaderText("امتیاز شما به «" + item.getOwnerUsername() + "» برای خرید «" + item.getTitle() + "»");
-        dialog.getDialogPane().getStylesheets().add(
-                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+        try {
+            dialog.getDialogPane().getStylesheets().add(
+                    getClass().getResource(Routes.STYLESHEET).toExternalForm());
+        } catch (Exception ignored) {}
         dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
 
         VBox content = new VBox(10);
@@ -159,13 +146,12 @@ public class PurchasesController extends BaseController {
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
-        int score   = scoreBox.getValue() != null ? scoreBox.getValue() : 5;
+        int score      = scoreBox.getValue() != null ? scoreBox.getValue() : 5;
         String comment = commentArea.getText() != null ? commentArea.getText().trim() : "";
 
         rateBtn.setDisable(true);
         RatingService.rateSellerAsync(item.getId(), score, comment)
                 .thenRun(() -> Platform.runLater(() -> {
-                    // refresh کافیه — updateItem دوباره اجرا می‌شه و hasRatedAsync چک می‌کنه
                     purchasesTable.refresh();
                     showAlert("✅ امتیاز با موفقیت ثبت شد", Alert.AlertType.INFORMATION);
                 }))
@@ -178,23 +164,10 @@ public class PurchasesController extends BaseController {
                 });
     }
 
-    private void showAlert(String msg, Alert.AlertType type) {
-        Alert alert = new Alert(type);
-        alert.setTitle(type == Alert.AlertType.ERROR ? "خطا" : "موفق");
-        alert.setHeaderText(null);
-        alert.setContentText(msg);
-        try {
-            alert.getDialogPane().getStylesheets().add(
-                    getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        } catch (Exception ignored) {}
-        alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
-        alert.showAndWait();
-    }
-
     @FXML
     private void goBack() {
         try {
-            MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "لیست آگهی‌ها");
+            MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها");
         } catch (Exception e) { e.printStackTrace(); }
     }
 }

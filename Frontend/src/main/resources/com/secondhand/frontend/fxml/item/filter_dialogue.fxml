@@ -9,7 +9,7 @@
              -fx-background-radius: 18;
              -fx-border-color: #e7ecf2;
              -fx-border-radius: 18;"
-      stylesheets="@css/styles.css"
+      stylesheets="@../../css/styles.css"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.FilterDialogController">
 

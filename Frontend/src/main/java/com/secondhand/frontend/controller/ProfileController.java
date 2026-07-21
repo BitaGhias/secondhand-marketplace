@@ -172,7 +172,7 @@ public class ProfileController extends BaseController {
 
     @FXML
     private void goBack() {
-        try { MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "لیست آگهی‌ها"); }
+        try { MainApplication.changeScene("/com/secondhand/frontend/fxml/item/adlist.fxml", "لیست آگهی‌ها"); }
         catch (Exception e) { e.printStackTrace(); }
     }
 }
