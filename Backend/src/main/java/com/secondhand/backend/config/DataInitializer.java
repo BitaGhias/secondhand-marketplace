@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 
 @Component
-public class DataInitializer implements CommandLineRunner {
+public class DataInitializer implements CommandLineRunner { // بعد از اینکه برنامه کامل راه افتاد متد run() رو اجرا کن
 
     private static final Logger logger = LoggerFactory.getLogger(DataInitializer.class);
 
@@ -74,6 +74,7 @@ public class DataInitializer implements CommandLineRunner {
             userRepository.save(testUser);
 
             logger.info("کاربر تست ایجاد شد: username=testuser");
+            //توی terminal چاپ میشه تا بدونی چی اتفاق افتاده
         }
     }
 

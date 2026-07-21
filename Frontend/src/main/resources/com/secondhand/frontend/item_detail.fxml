@@ -219,6 +219,53 @@
                         </HBox>
                     </VBox>
                 </HBox>
+
+                <!-- ===== بخش نظرات ===== -->
+                <VBox spacing="14"
+                      style="-fx-background-color: #ffffff;
+                             -fx-background-radius: 18;
+                             -fx-border-color: #e7ecf2;
+                             -fx-border-radius: 18;
+                             -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 16, 0, 0, 5);
+                             -fx-padding: 22 28;">
+
+                    <!-- سرتیتل -->
+                    <HBox alignment="CENTER_LEFT" spacing="10">
+                        <Label text="💬 نظرات"
+                               style="-fx-text-fill: #0f172a; -fx-font-size: 16px; -fx-font-weight: bold;"/>
+                        <Label fx:id="commentCountLabel" text="(0)"
+                               style="-fx-text-fill: #64748b; -fx-font-size: 13px;"/>
+                    </HBox>
+
+                    <!-- فرم ارسال نظر (فقط برای کاربران لاگین‌شده) -->
+                    <HBox fx:id="addCommentBox" spacing="10" alignment="CENTER_LEFT">
+                        <TextArea fx:id="newCommentArea"
+                                  promptText="نظر خود را بنویسید..."
+                                  prefHeight="72" prefWidth="680" wrapText="true"
+                                  style="-fx-background-radius: 12;
+                                         -fx-border-radius: 12;
+                                         -fx-border-color: #e7ecf2;
+                                         -fx-font-size: 13px;
+                                         -fx-text-fill: #1f2937;"/>
+                        <Button text="✉️ ارسال" onAction="#submitComment"
+                                style="-fx-background-color: #0e9f6e;
+                                       -fx-text-fill: white;
+                                       -fx-font-weight: bold;
+                                       -fx-font-size: 13px;
+                                       -fx-background-radius: 12;
+                                       -fx-cursor: hand;
+                                       -fx-padding: 12 22;"/>
+                    </HBox>
+
+                    <!-- لیست نظرات -->
+                    <VBox fx:id="commentsListBox" spacing="10"/>
+
+                    <!-- خالی بودن -->
+                    <Label fx:id="noCommentsLabel" text="هنوز نظری ثبت نشده است."
+                           visible="false"
+                           style="-fx-text-fill: #94a3b8; -fx-font-size: 13px; -fx-padding: 8 0;"/>
+                </VBox>
+
             </VBox>
         </content>
     </ScrollPane>

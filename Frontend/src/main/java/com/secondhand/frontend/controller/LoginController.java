@@ -7,65 +7,51 @@ import com.secondhand.frontend.util.ApiClient;
 import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
-import javafx.stage.Stage;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 
-public class LoginController {
+/**
+ * Phase 6: LoginController extends BaseController
+ * (minimizeWindow / closeWindow از BaseController به ارث می‌رسند — تکرار حذف شد)
+ */
+public class LoginController extends BaseController {
 
-    @FXML private TextField usernameField;
-    @FXML private PasswordField passwordField;
-    @FXML private Button loginButton;
-    @FXML private Hyperlink registerLink;
-    @FXML private Label errorLabel;
+    @FXML private TextField         usernameField;
+    @FXML private PasswordField     passwordField;
+    @FXML private Button            loginButton;
+    @FXML private Hyperlink         registerLink;
+    @FXML private Label             errorLabel;
     @FXML private ProgressIndicator loadingIndicator;
-    @FXML private HBox titleBar;
+    @FXML private HBox              titleBar;
 
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
+
         // اگر قبلاً وارد شده بود، مستقیم به صفحه اصلی بره
         if (SessionManager.isLoggedIn()) {
             try {
-                User currentUser = SessionManager.getCurrentUser();
-                if (currentUser != null && "ADMIN".equalsIgnoreCase(currentUser.getRole())) {
-                    MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت");
-                } else {
-                    MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                navigateAfterLogin();
+            } catch (Exception e) { e.printStackTrace(); }
             return;
         }
 
         // فوکوس هوشمند با اینتر
-        usernameField.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER) passwordField.requestFocus();
-        });
-        passwordField.setOnKeyPressed(e -> {
-            if (e.getCode() == KeyCode.ENTER) handleLogin();
-        });
+        usernameField.setOnKeyPressed(e -> { if (e.getCode() == KeyCode.ENTER) passwordField.requestFocus(); });
+        passwordField.setOnKeyPressed(e -> { if (e.getCode() == KeyCode.ENTER) handleLogin(); });
     }
 
-    @FXML
-    private void minimizeWindow() {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        stage.setIconified(true);
-    }
-
-    @FXML
-    private void closeWindow() {
-        Stage stage = (Stage) usernameField.getScene().getWindow();
-        stage.close();
-    }
+    // ─ window controls ─ BaseController پالیش کرده (ActionEvent)
+    // login.fxml از onAction="#minimizeWindow" / onAction="#closeWindow" استفاده می‌کند
+    // BaseController هر دو را دارد — هیچ overrideای لازم نیست
 
     @FXML
     private void handleLogin() {
@@ -83,53 +69,37 @@ public class LoginController {
 
         try {
             String json = String.format("{\"username\":\"%s\",\"password\":\"%s\"}", username, password);
-
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(ApiClient.getBaseUrl() + "/auth/login"))
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(json))
                     .build();
-
             ApiClient.getClient().sendAsync(request, HttpResponse.BodyHandlers.ofString())
                     .thenAccept(this::handleLoginResponse)
                     .exceptionally(e -> {
-                        e.printStackTrace();
                         showError("خطا در ارتباط با سرور: " + e.getMessage());
                         return null;
                     });
-
         } catch (Exception e) {
-            e.printStackTrace();
             showError("خطا: " + e.getMessage());
         }
     }
 
     private void handleLoginResponse(HttpResponse<String> response) {
-        int statusCode = response.statusCode();
-        String responseBody = response.body();
-
-        System.out.println("Status Code: " + statusCode);
-        System.out.println("Response Body: " + responseBody);
-
-        if (statusCode == 401 || statusCode == 403) {
-            showError("نام کاربری یا رمز عبور اشتباه است");
-            return;
-        }
-        if (statusCode != 200) {
-            showError("خطای سرور: کد وضعیت " + statusCode);
-            return;
-        }
+        int status = response.statusCode();
+        if (status == 401 || status == 403) { showError("نام کاربری یا رمز عبور اشتباه است"); return; }
+        if (status != 200) { showError("خطای سرور: " + status); return; }
 
         try {
             ObjectMapper mapper = ApiClient.getMapper();
-            Map<String, Object> responseMap = mapper.readValue(responseBody, Map.class);
+            @SuppressWarnings("unchecked")
+            Map<String, Object> res = mapper.readValue(response.body(), Map.class);
 
-            // استخراج و ذخیره‌سازی توکن
-            String token = (String) responseMap.get("token");
+            String token = (String) res.get("token");
             ApiClient.setToken(token);
 
-            // استخراج آبجکت کاربر
-            Map<String, Object> userMap = (Map<String, Object>) responseMap.get("user");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> userMap = (Map<String, Object>) res.get("user");
             if (userMap != null) {
                 User user = new User(
                         ((Number) userMap.get("id")).longValue(),
@@ -141,30 +111,22 @@ public class LoginController {
                         (String) userMap.get("email")
                 );
                 SessionManager.setCurrentUser(user);
-                System.out.println("✅ کاربر وارد شد: " + user.getFullName());
-                System.out.println("👤 نقش کاربر: " + user.getRole());
             }
-
-            // تغییر به صفحه مناسب بر اساس نقش کاربر
             Platform.runLater(() -> {
-                try {
-                    User currentUser = SessionManager.getCurrentUser();
-                    if (currentUser != null && "ADMIN".equalsIgnoreCase(currentUser.getRole())) {
-                        MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت");
-                    } else {
-                        MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید - لیست آگهی‌ها");
-                    }
-                } catch (Exception e) {
-                    System.err.println("❌ خطا در تغییر صفحه:");
-                    e.printStackTrace();
-                    showError("خطا در رندر و بارگذاری صفحه اصلی");
-                }
+                try { navigateAfterLogin(); }
+                catch (Exception e) { showError("خطا در بارگذاری صفحه"); }
             });
-
         } catch (Exception e) {
-            e.printStackTrace();
-            showError("خطا در پردازش اطلاعات دریافتی از سرور");
+            showError("خطا در پردازش پاسخ سرور");
         }
+    }
+
+    private void navigateAfterLogin() throws Exception {
+        User u = SessionManager.getCurrentUser();
+        if (u != null && "ADMIN".equalsIgnoreCase(u.getRole()))
+            MainApplication.changeScene("/com/secondhand/frontend/admin_panel.fxml", "پنل مدیریت");
+        else
+            MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "بازار سفید — لیست آگهی‌ها");
     }
 
     private void showError(String message) {
@@ -179,11 +141,7 @@ public class LoginController {
 
     @FXML
     private void goToRegister() {
-        try {
-            MainApplication.changeScene("/com/secondhand/frontend/register.fxml", "ثبت‌نام");
-        } catch (Exception e) {
-            e.printStackTrace();
-            showError("خطا در بارگذاری صفحه ثبت‌نام");
-        }
+        try { MainApplication.changeScene("/com/secondhand/frontend/register.fxml", "ثبت‌نام"); }
+        catch (Exception e) { showError("خطا در بارگذاری صفحه ثبت‌نام"); }
     }
 }

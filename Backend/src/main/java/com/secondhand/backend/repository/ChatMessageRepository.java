@@ -23,8 +23,8 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
                              @Param("userId") Long userId);
 
     // علامت‌گذاری همه پیام‌های یک مکالمه به عنوان خوانده‌شده
-    @Modifying
-    @Transactional
+    @Modifying // کوئری رو تغییر میده
+    @Transactional // مطمئن شو کامل انجام شه یا برگرده
     @Query("UPDATE ChatMessage m SET m.isRead = true " +
             "WHERE m.conversation.id = :conversationId AND m.sender.id != :userId AND m.isRead = false")
     void markAllAsRead(@Param("conversationId") Long conversationId,

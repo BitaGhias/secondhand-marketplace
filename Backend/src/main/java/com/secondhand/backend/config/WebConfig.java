@@ -17,3 +17,6 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:uploads/");
     }
 }
+/*به Spring بگو تصاویر آپلودشده رو که
+ روی هارد ذخیره شدن،
+  از طریق URL قابل دسترس کن تا فرانت بتونه نشونشون بده*/

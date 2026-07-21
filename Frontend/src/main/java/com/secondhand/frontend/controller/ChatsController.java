@@ -6,76 +6,97 @@ import com.secondhand.frontend.model.Conversation;
 import com.secondhand.frontend.service.ChatService;
 import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.WindowUtil;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.util.List;
 
 public class ChatsController extends BaseController {
+
     @FXML private ListView<Conversation> chatUsersListView;
     @FXML private Label currentChatUserLabel;
     @FXML private TextField messageField;
     @FXML private VBox messagesVBox;
+    @FXML private ScrollPane messagesScrollPane;
     @FXML private HBox titleBar;
 
     private Conversation currentConversation;
 
-    // گفت‌وگویی که باید بعد از باز شدن صفحه به صورت خودکار انتخاب شود
-    // (وقتی از دکمه «پیام به فروشنده» در صفحه جزئیات آگهی می‌آییم)
+    /** گفت‌وگویی که باید بعد از باز شدن صفحه خودکار انتخاب شود */
     private static Long initialConversationId;
 
-    public static void setInitialConversationId(Long conversationId) {
-        initialConversationId = conversationId;
-    }
+    /** Timeline برای polling خودکار پیام‌ها */
+    private Timeline refreshTimeline;
 
+    /** آخرین تعداد پیام‌های رندر شده (برای جلوگیری از scroll به پایین بیخود) */
+    private int lastMessageCount = 0;
+
+    /** فاصله زمانی refresh بر حسب ثانیه */
+    private static final int POLL_SECONDS = 3;
+
+    // ─────────────────────
+    public static void setInitialConversationId(Long id) { initialConversationId = id; }
+
+    // ─────────────────────
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         setupConversationList();
         loadConversations();
+        startPolling();
     }
 
+    // ─────────────────────
+    //  ستاپ لیست گفت‌وگوها
+    // ─────────────────────
     private void setupConversationList() {
         Long myId = SessionManager.getCurrentUserId();
 
-        chatUsersListView.setCellFactory(listView -> new ListCell<>() {
+        chatUsersListView.setCellFactory(lv -> new ListCell<>() {
             @Override
-            protected void updateItem(Conversation conversation, boolean empty) {
-                super.updateItem(conversation, empty);
-                if (empty || conversation == null) {
+            protected void updateItem(Conversation c, boolean empty) {
+                super.updateItem(c, empty);
+                if (empty || c == null) {
                     setText(null);
                     setStyle("-fx-background-color: transparent;");
                 } else {
-                    String other = conversation.getOtherPartyUsername(myId);
-                    setText("📦 " + conversation.getItemTitle() + "\n👤 " + (other != null ? other : "کاربر"));
-                    setStyle("-fx-background-color: transparent; -fx-text-fill: #1f2937; -fx-font-size: 13px; -fx-padding: 10;");
+                    String other = c.getOtherPartyUsername(myId);
+                    setText("\uD83D\uDCE6 " + c.getItemTitle()
+                            + "\n\uD83D\uDC64 " + (other != null ? other : "کاربر"));
+                    setStyle("-fx-background-color: transparent; -fx-text-fill: #1f2937;"
+                            + " -fx-font-size: 13px; -fx-padding: 10;");
                 }
             }
         });
 
-        chatUsersListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                openConversation(newVal);
-            }
-        });
+        chatUsersListView.getSelectionModel().selectedItemProperty()
+                .addListener((obs, old, newVal) -> {
+                    if (newVal != null) openConversation(newVal);
+                });
     }
 
+    // ─────────────────────
+    //  بارگذاری لیست گفت‌وگوها
+    // ─────────────────────
     private void loadConversations() {
         new Thread(() -> {
             try {
                 List<Conversation> conversations = ChatService.getConversations();
                 Platform.runLater(() -> {
+                    // حفظ آیتم انتخاب فعلی
+                    Conversation selected = chatUsersListView.getSelectionModel().getSelectedItem();
                     chatUsersListView.getItems().setAll(conversations);
 
-                    // ✅ انتخاب خودکار گفت‌وگویی که از صفحه جزئیات آگهی آمده
                     if (initialConversationId != null) {
+                        // انتخاب خودکار گفت‌وگویی که از جزئیات آگهی آمدیم
                         for (Conversation c : conversations) {
                             if (initialConversationId.equals(c.getId())) {
                                 chatUsersListView.getSelectionModel().select(c);
@@ -84,38 +105,60 @@ public class ChatsController extends BaseController {
                             }
                         }
                         initialConversationId = null;
+                    } else if (selected != null) {
+                        // حفظ انتخاب فعلی بعد از به‌روزرسانی لیست
+                        for (Conversation c : conversations) {
+                            if (c.getId().equals(selected.getId())) {
+                                chatUsersListView.getSelectionModel().select(c);
+                                break;
+                            }
+                        }
                     } else if (conversations.isEmpty()) {
                         currentChatUserLabel.setText("هنوز هیچ گفت‌وگویی ندارید");
                     }
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> currentChatUserLabel.setText("خطا در دریافت گفت‌وگوها"));
+                Platform.runLater(() ->
+                        currentChatUserLabel.setText("خطا در دریافت گفت‌وگوها"));
             }
         }).start();
     }
 
+    // ─────────────────────
+    //  باز کردن گفت‌وگو
+    // ─────────────────────
     private void openConversation(Conversation conversation) {
         currentConversation = conversation;
         Long myId = SessionManager.getCurrentUserId();
         String other = conversation.getOtherPartyUsername(myId);
-        currentChatUserLabel.setText("💬 " + conversation.getItemTitle() + " — " + (other != null ? other : "کاربر"));
-        loadMessages();
+        currentChatUserLabel.setText("\uD83D\uDCAC " + conversation.getItemTitle()
+                + " — " + (other != null ? other : "کاربر"));
+        lastMessageCount = 0;   // reset برای scroll تا پایین
+        loadMessages(true);
     }
 
-    private void loadMessages() {
+    // ─────────────────────
+    //  بارگذاری پیام‌ها
+    // ─────────────────────
+    /**
+     * @param scrollToBottom  اگر true باشد همیشه scroll می‌کند،
+     *                        اگر false فقط وقتی scroll می‌کند که پیام جدید آمده باشد
+     */
+    private void loadMessages(boolean scrollToBottom) {
         if (currentConversation == null) return;
         final Long conversationId = currentConversation.getId();
         new Thread(() -> {
             try {
                 List<ChatMessage> messages = ChatService.getMessages(conversationId);
-                Platform.runLater(() -> renderMessages(messages));
-            } catch (Exception e) {
                 Platform.runLater(() -> {
-                    messagesVBox.getChildren().clear();
-                    Label errorLabel = new Label("خطا در دریافت پیام‌ها: " + e.getMessage());
-                    errorLabel.setStyle("-fx-text-fill: #dc2626;");
-                    messagesVBox.getChildren().add(errorLabel);
+                    boolean hasNew = messages.size() > lastMessageCount;
+                    renderMessages(messages);
+                    if (scrollToBottom || hasNew) scrollToBottom();
+                    lastMessageCount = messages.size();
                 });
+            } catch (Exception e) {
+                // polling ساکت شکست — خطا را نمایش نمی‌دهیم تا تجربه کاربر خراب نشود
+                System.err.println("[Chat Poll] خطا در دریافت پیام‌ها: " + e.getMessage());
             }
         }).start();
     }
@@ -130,19 +173,29 @@ public class ChatsController extends BaseController {
             Label bubble = new Label(message.getText());
             bubble.setWrapText(true);
             bubble.setMaxWidth(380);
-            if (mine) {
-                bubble.setStyle("-fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 8 12;");
-            } else {
-                bubble.setStyle("-fx-background-color: #e7ecf2; -fx-text-fill: #1f2937; -fx-background-radius: 12; -fx-padding: 8 12;");
-            }
+            bubble.setStyle(mine
+                    ? "-fx-background-color: #059669; -fx-text-fill: white;"
+                    + " -fx-background-radius: 12; -fx-padding: 8 12;"
+                    : "-fx-background-color: #e7ecf2; -fx-text-fill: #1f2937;"
+                    + " -fx-background-radius: 12; -fx-padding: 8 12;");
 
             HBox row = new HBox(bubble);
-            // کانتینر RTL است: پیام من یک طرف، پیام طرف مقابل طرف دیگر
             row.setAlignment(mine ? Pos.CENTER_LEFT : Pos.CENTER_RIGHT);
             messagesVBox.getChildren().add(row);
         }
     }
 
+    /** scroll به آخرین پیام */
+    private void scrollToBottom() {
+        if (messagesScrollPane != null) {
+            messagesScrollPane.layout();
+            messagesScrollPane.setVvalue(1.0);
+        }
+    }
+
+    // ─────────────────────
+    //  ارسال پیام
+    // ─────────────────────
     @FXML
     private void sendMessage() {
         if (currentConversation == null) {
@@ -154,27 +207,77 @@ public class ChatsController extends BaseController {
 
         messageField.clear();
         final Long conversationId = currentConversation.getId();
+
         new Thread(() -> {
             try {
                 ChatService.sendMessage(conversationId, text);
+                // بارگذاری فوری بعد از ارسال + scroll
                 List<ChatMessage> messages = ChatService.getMessages(conversationId);
-                Platform.runLater(() -> renderMessages(messages));
+                Platform.runLater(() -> {
+                    renderMessages(messages);
+                    scrollToBottom();
+                    lastMessageCount = messages.size();
+                });
             } catch (Exception e) {
                 Platform.runLater(() -> {
-                    Label errorLabel = new Label("خطا در ارسال پیام: " + e.getMessage());
-                    errorLabel.setStyle("-fx-text-fill: #dc2626;");
-                    messagesVBox.getChildren().add(errorLabel);
+                    Label err = new Label("خطا در ارسال پیام: " + e.getMessage());
+                    err.setStyle("-fx-text-fill: #dc2626;");
+                    messagesVBox.getChildren().add(err);
                 });
             }
         }).start();
     }
 
+    // ─────────────────────
+    //  بازگشت
+    // ─────────────────────
     @FXML
     private void goBack() {
+        stopPolling();
         try {
             MainApplication.changeScene("/com/secondhand/frontend/adlist.fxml", "لیست آگهی‌ها");
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    // ─────────────────────
+    //  Polling خودکار (Timeline)
+    // ─────────────────────
+    private void startPolling() {
+        refreshTimeline = new Timeline(
+                new KeyFrame(Duration.seconds(POLL_SECONDS), event -> {
+                    if (currentConversation != null) {
+                        // فقط پیام‌ها را به‌روز می‌کنیم (scroll فقط وقتی پیام جدید داشتیم)
+                        loadMessages(false);
+                    }
+                })
+        );
+        refreshTimeline.setCycleCount(Animation.INDEFINITE);
+        refreshTimeline.play();
+    }
+
+    private void stopPolling() {
+        if (refreshTimeline != null) {
+            refreshTimeline.stop();
+            refreshTimeline = null;
+        }
+    }
+
+    // ─────────────────────
+    //  Window controls
+    // ─────────────────────
+    @FXML private void minimizeWindow() {
+        Stage stage = (Stage) messageField.getScene().getWindow();
+        stage.setIconified(true);
+    }
+    @FXML private void maximizeWindow() {
+        Stage stage = (Stage) messageField.getScene().getWindow();
+        stage.setMaximized(!stage.isMaximized());
+    }
+    @FXML private void closeWindow() {
+        stopPolling();
+        Stage stage = (Stage) messageField.getScene().getWindow();
+        stage.close();
     }
 }

@@ -1,5 +1,6 @@
 package com.secondhand.backend.dto.item;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class ItemResponse {
@@ -17,6 +18,8 @@ public class ItemResponse {
     private String rejectionReason;
     private Long buyerId;
     private String buyerUsername;
+    // تاریخ ثبت آگهی
+    private LocalDateTime createdAt;
 
     public ItemResponse() {}
 
@@ -52,6 +55,7 @@ public class ItemResponse {
     public String getRejectionReason() { return rejectionReason; }
     public Long getBuyerId() { return buyerId; }
     public String getBuyerUsername() { return buyerUsername; }
+    public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void setId(Long id) { this.id = id; }
     public void setTitle(String title) { this.title = title; }
@@ -67,4 +71,5 @@ public class ItemResponse {
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }
     public void setBuyerUsername(String buyerUsername) { this.buyerUsername = buyerUsername; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

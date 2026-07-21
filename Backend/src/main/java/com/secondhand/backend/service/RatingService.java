@@ -103,4 +103,7 @@ public class RatingService {
                 .map(this::convertToResponse)
                 .toList();
     }
+    public boolean hasUserRatedItem(Long raterId, Long itemId) {
+        return ratingRepository.findByRaterIdAndItemId(raterId, itemId).isPresent();
+    }
 }

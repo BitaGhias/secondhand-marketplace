@@ -36,7 +36,7 @@ public class User {
     @Column(nullable = false)
     private boolean blocked = false;
 
-    // مسیر عکس پروفایل (اختیاری)
+    // مسیر عکس پروفایل
     @Column(name = "profile_image_path")
     private String profileImagePath;
 

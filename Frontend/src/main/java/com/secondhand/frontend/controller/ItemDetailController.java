@@ -1,32 +1,38 @@
 package com.secondhand.frontend.controller;
 
 import com.secondhand.frontend.MainApplication;
+import com.secondhand.frontend.model.Comment;
 import com.secondhand.frontend.model.Conversation;
-import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.model.Image;
+import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.ChatService;
+import com.secondhand.frontend.service.CommentService;
 import com.secondhand.frontend.service.FavoriteService;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.RatingService;
+import com.secondhand.frontend.util.ImageLoaderUtil;
 import com.secondhand.frontend.util.SessionManager;
 import com.secondhand.frontend.util.WindowUtil;
-import com.secondhand.frontend.util.ImageLoaderUtil;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
 import java.util.List;
 import java.util.Optional;
 
 public class ItemDetailController extends BaseController {
+
+    // ===== گالری تصاویر =====
     @FXML private javafx.scene.image.ImageView mainImageView;
     @FXML private HBox thumbnailContainer;
+
+    // ===== اطلاعات آگهی =====
     @FXML private Label titleLabel;
     @FXML private Label priceLabel;
     @FXML private Label statusLabel;
@@ -35,61 +41,109 @@ public class ItemDetailController extends BaseController {
     @FXML private Label categoryLabel;
     @FXML private Label ratingLabel;
     @FXML private Label ownerLabel;
+    @FXML private Label errorLabel;
+
+    // ===== اکشن‌های خریدار =====
     @FXML private HBox buyerActions;
     @FXML private Button buyButton;
     @FXML private Button chatButton;
     @FXML private Button favoriteButton;
     @FXML private Button ratingButton;
+
+    // ===== اکشن‌های مالک =====
     @FXML private HBox ownerActions;
     @FXML private Button editButton;
     @FXML private Button deleteButton;
     @FXML private Button soldButton;
-    @FXML private Label errorLabel;
+
+    // ===== بخش نظرات =====
+    @FXML private HBox addCommentBox;
+    @FXML private TextArea newCommentArea;
+    @FXML private VBox commentsListBox;
+    @FXML private Label commentCountLabel;
+    @FXML private Label noCommentsLabel;
+
+    // ===== نوار پنجره =====
     @FXML private HBox titleBar;
 
     private Item currentItem;
     private Long currentUserId;
     private boolean isFavorite = false;
+    private static Long pendingItemId;
 
+    // ─────────────────────────────────────────────
+    //  init
+    // ─────────────────────────────────────────────
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         currentUserId = SessionManager.getCurrentUserId();
 
+        // اتصال managed به visible برای جلوگیری از فضای خالی
         bindManaged(buyButton);
         bindManaged(chatButton);
         bindManaged(ratingButton);
         bindManaged(favoriteButton);
+        bindManaged(addCommentBox);
         if (ownerActions != null) ownerActions.managedProperty().bind(ownerActions.visibleProperty());
         if (buyerActions != null) buyerActions.managedProperty().bind(buyerActions.visibleProperty());
-    }
-
-    private void bindManaged(Button button) {
-        if (button != null) {
-            button.managedProperty().bind(button.visibleProperty());
+        if (pendingItemId != null) {
+            Long id = pendingItemId;
+            pendingItemId = null;
+            loadItemById(id);
         }
     }
 
+    private void bindManaged(Region node) {
+        if (node != null) node.managedProperty().bind(node.visibleProperty());
+    }
+
+    // ─────────────────────────────────────────────
+    //  ورودی اصلی — از AdListController فراخوانی می‌شود
+    // ─────────────────────────────────────────────
     public void setItem(Item item) {
         this.currentItem = item;
         displayItemDetails();
         configureActions();
         checkFavoriteStatus();
+        loadComments();
     }
 
+
+    public static void setItemId(Long id) {
+        pendingItemId = id;
+    }
+
+    /** Phase 7: لود آگهی از API بر اساس ID — وقتی از PurchasesController میاییم */
+    private void loadItemById(Long id) {
+        ItemService.getItemByIdAsync(id)
+                .thenAccept(item -> Platform.runLater(() -> setItem(item)))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        if (errorLabel != null) {
+                            errorLabel.setText("خطا در بارگذاری آگهی: " + ex.getMessage());
+                            errorLabel.setVisible(true);
+                        }
+                    });
+                    return null;
+                });
+    }
+
+    // ─────────────────────────────────────────────
+    //  نمایش اطلاعات
+    // ─────────────────────────────────────────────
     private void displayItemDetails() {
         if (currentItem == null) return;
-
         titleLabel.setText(currentItem.getTitle());
         priceLabel.setText(currentItem.getFormattedPrice());
         statusLabel.setText(currentItem.getPersianStatus());
-        statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+        statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor()
+                + "; -fx-font-size: 14px; -fx-font-weight: bold;");
         descriptionLabel.setText(currentItem.getDescription());
-        cityLabel.setText("📍 " + currentItem.getCityName());
-        categoryLabel.setText("📂 " + currentItem.getCategoryName());
+        cityLabel.setText("\uD83D\uDCCD " + currentItem.getCityName());
+        categoryLabel.setText("\uD83D\uDCC2 " + currentItem.getCategoryName());
         ratingLabel.setText(currentItem.getFormattedRating());
-        ownerLabel.setText("👤 " + currentItem.getOwnerUsername());
-
+        ownerLabel.setText("\uD83D\uDC64 " + currentItem.getOwnerUsername());
         loadImages();
     }
 
@@ -97,7 +151,6 @@ public class ItemDetailController extends BaseController {
         List<Image> images = currentItem.getImages();
         if (images != null && !images.isEmpty()) {
             ImageLoaderUtil.loadImageWithDefault(mainImageView, images.get(0).getFullUrl());
-
             thumbnailContainer.getChildren().clear();
             for (int i = 1; i < Math.min(images.size(), 5); i++) {
                 javafx.scene.image.ImageView thumb = new javafx.scene.image.ImageView();
@@ -105,11 +158,9 @@ public class ItemDetailController extends BaseController {
                 thumb.setFitWidth(60);
                 thumb.setPreserveRatio(true);
                 thumb.setStyle("-fx-cursor: hand; -fx-border-color: #cbd5e1; -fx-border-radius: 8;");
-
-                final String imageUrl = images.get(i).getFullUrl();
-                ImageLoaderUtil.loadImageWithDefault(thumb, imageUrl);
-
-                thumb.setOnMouseClicked(e -> ImageLoaderUtil.loadImageWithDefault(mainImageView, imageUrl));
+                final String url = images.get(i).getFullUrl();
+                ImageLoaderUtil.loadImageWithDefault(thumb, url);
+                thumb.setOnMouseClicked(e -> ImageLoaderUtil.loadImageWithDefault(mainImageView, url));
                 thumbnailContainer.getChildren().add(thumb);
             }
         } else {
@@ -117,33 +168,43 @@ public class ItemDetailController extends BaseController {
         }
     }
 
+    // ─────────────────────────────────────────────
+    //  پیکربندی دکمه‌ها
+    // ─────────────────────────────────────────────
     private void configureActions() {
         if (currentItem == null || currentUserId == null) return;
 
-        boolean owner = currentItem.isOwner(currentUserId);
-        boolean approved = currentItem.isActive();
-        boolean iAmBuyer = currentItem.isPurchasedBy(currentUserId);
+        boolean isOwner  = currentItem.isOwner(currentUserId);
+        boolean isActive = currentItem.isActive();
+        boolean isBuyer  = currentItem.isPurchasedBy(currentUserId);
+        boolean isLoggedIn = SessionManager.isLoggedIn();
 
-        ownerActions.setVisible(owner);
-        buyerActions.setVisible(!owner);
+        ownerActions.setVisible(isOwner);
+        buyerActions.setVisible(!isOwner);
 
-        if (!owner) {
-            buyButton.setVisible(approved);
-            chatButton.setVisible(approved);
+        if (!isOwner) {
+            buyButton.setVisible(isActive);
+            chatButton.setVisible(isActive);
             favoriteButton.setVisible(true);
-            ratingButton.setVisible(iAmBuyer);
+            // دکمه امتیاز فقط برای خریدار این آگهی
+            ratingButton.setVisible(isBuyer);
+        }
+
+        // فرم نظر فقط برای کاربران لاگین‌شده (نه مالک)
+        if (addCommentBox != null) {
+            addCommentBox.setVisible(isLoggedIn && !isOwner);
         }
     }
 
+    // ─────────────────────────────────────────────
+    //  علاقه‌مندی
+    // ─────────────────────────────────────────────
     private void checkFavoriteStatus() {
         if (currentItem == null || currentUserId == null || currentItem.isOwner(currentUserId)) return;
         new Thread(() -> {
             try {
                 boolean fav = FavoriteService.isFavorite(currentItem.getId());
-                Platform.runLater(() -> {
-                    isFavorite = fav;
-                    updateFavoriteButton();
-                });
+                Platform.runLater(() -> { isFavorite = fav; updateFavoriteButton(); });
             } catch (Exception e) {
                 System.err.println("خطا در بررسی علاقه‌مندی: " + e.getMessage());
             }
@@ -152,11 +213,14 @@ public class ItemDetailController extends BaseController {
 
     private void updateFavoriteButton() {
         if (isFavorite) {
-            favoriteButton.setText("❤️");
-            favoriteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-size: 24px; -fx-cursor: hand;");
+            favoriteButton.setText("\u2764\uFE0F");
+            favoriteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #dc2626;"
+                    + " -fx-font-size: 24px; -fx-cursor: hand;");
         } else {
-            favoriteButton.setText("🤍");
-            favoriteButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-font-size: 24px; -fx-cursor: hand;");
+            favoriteButton.setText("\uD83E\uDD0D");
+            favoriteButton.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #64748b;"
+                    + " -fx-background-radius: 12; -fx-border-color: #e7ecf2;"
+                    + " -fx-border-radius: 12; -fx-font-size: 17px; -fx-cursor: hand; -fx-padding: 8 14;");
         }
     }
 
@@ -178,6 +242,9 @@ public class ItemDetailController extends BaseController {
         }
     }
 
+    // ─────────────────────────────────────────────
+    //  خرید
+    // ─────────────────────────────────────────────
     @FXML
     private void buyItem() {
         if (currentItem == null) return;
@@ -190,8 +257,8 @@ public class ItemDetailController extends BaseController {
         VBox content = new VBox(12);
         content.setStyle("-fx-padding: 20;");
 
-        Label info = new Label("💰 قیمت: " + currentItem.getFormattedPrice()
-                + "\n👤 فروشنده: " + currentItem.getOwnerUsername()
+        Label info = new Label("\uD83D\uDCB0 قیمت: " + currentItem.getFormattedPrice()
+                + "\n\uD83D\uDC64 فروشنده: " + currentItem.getOwnerUsername()
                 + "\n\nآیا از خرید این کالا اطمینان دارید؟");
         info.setStyle("-fx-text-fill: #1f2937; -fx-font-size: 14px;");
         info.setWrapText(true);
@@ -202,11 +269,9 @@ public class ItemDetailController extends BaseController {
 
         Label scoreLabel = new Label("امتیاز (۱ تا ۵):");
         scoreLabel.setStyle("-fx-text-fill: #1f2937;");
-
         ComboBox<Integer> scoreComboBox = new ComboBox<>();
         scoreComboBox.getItems().addAll(1, 2, 3, 4, 5);
         scoreComboBox.setValue(5);
-
         TextArea commentArea = new TextArea();
         commentArea.setPromptText("نظر شما درباره فروشنده (اختیاری)...");
         commentArea.setPrefHeight(70);
@@ -218,40 +283,44 @@ public class ItemDetailController extends BaseController {
         content.getChildren().addAll(info, new Separator(), rateCheck, ratingBox);
         dialog.getDialogPane().setContent(content);
 
-        ButtonType buyType = new ButtonType("✅ خرید", ButtonBar.ButtonData.OK_DONE);
+        ButtonType buyType = new ButtonType("\u2705 خرید", ButtonBar.ButtonData.OK_DONE);
         dialog.getDialogPane().getButtonTypes().addAll(buyType, ButtonType.CANCEL);
 
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isEmpty() || result.get() != buyType) return;
 
-        final boolean rateToo = rateCheck.isSelected();
-        final int score = scoreComboBox.getValue() != null ? scoreComboBox.getValue() : 5;
-        final String comment = commentArea.getText() != null ? commentArea.getText().trim() : "";
+        final boolean rateToo  = rateCheck.isSelected();
+        final int score        = scoreComboBox.getValue() != null ? scoreComboBox.getValue() : 5;
+        final String ratingMsg = commentArea.getText() != null ? commentArea.getText().trim() : "";
 
-        // استفاده از ساختار ناهمگام جدید ItemService که در مراحل قبلی ساخته شد
         ItemService.purchaseItemAsync(currentItem.getId())
                 .thenCompose(v -> {
                     if (rateToo) {
-                        return RatingService.rateSellerAsync(currentItem.getId(), score, comment)
+                        return RatingService.rateSellerAsync(currentItem.getId(), score, ratingMsg)
                                 .thenApply(r -> " و امتیاز شما ثبت شد");
                     }
                     return java.util.concurrent.CompletableFuture.completedFuture("");
                 })
-                .thenAccept(ratingMsg -> Platform.runLater(() -> {
+                .thenAccept(extra -> Platform.runLater(() -> {
                     currentItem.setStatus("SOLD");
                     currentItem.setBuyerId(currentUserId);
                     statusLabel.setText(currentItem.getPersianStatus());
-                    statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+                    statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor()
+                            + "; -fx-font-size: 14px; -fx-font-weight: bold;");
                     configureActions();
-                    showMessage("✅ خرید با موفقیت انجام شد" + ratingMsg + " — در بخش «خریدها» قابل مشاهده است", "success");
+                    showMessage("\u2705 خرید با موفقیت انجام شد" + extra
+                            + " — در بخش «خریدها» قابل مشاهده است", "success");
                 }))
                 .exceptionally(ex -> {
-                    String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
-                    showMessage("خطا در خرید: " + errorMsg, "error");
+                    String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    showMessage("خطا در خرید: " + msg, "error");
                     return null;
                 });
     }
 
+    // ─────────────────────────────────────────────
+    //  چت
+    // ─────────────────────────────────────────────
     @FXML
     private void startChat() {
         if (currentItem == null) return;
@@ -272,71 +341,62 @@ public class ItemDetailController extends BaseController {
         }).start();
     }
 
+    // ─────────────────────────────────────────────
+    //  امتیازدهی
+    // ─────────────────────────────────────────────
     @FXML
     private void showRatingDialog() {
-        try {
-            Dialog<ButtonType> dialog = new Dialog<>();
-            dialog.setTitle("امتیازدهی به فروشنده");
-            dialog.setHeaderText("به فروشنده امتیاز دهید");
-            styleDialog(dialog);
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("امتیازدهی به فروشنده");
+        dialog.setHeaderText("به فروشنده امتیاز دهید");
+        styleDialog(dialog);
 
-            VBox content = new VBox(10);
-            content.setStyle("-fx-padding: 20;");
+        VBox content = new VBox(10);
+        content.setStyle("-fx-padding: 20;");
+        Label scoreLabel = new Label("امتیاز (1 تا 5):");
+        scoreLabel.setStyle("-fx-text-fill: #1f2937;");
+        ComboBox<Integer> scoreComboBox = new ComboBox<>();
+        scoreComboBox.getItems().addAll(1, 2, 3, 4, 5);
+        scoreComboBox.setValue(5);
+        Label commentLabel = new Label("نظر (اختیاری):");
+        commentLabel.setStyle("-fx-text-fill: #1f2937;");
+        TextArea commentArea = new TextArea();
+        commentArea.setPromptText("نظر خود را بنویسید...");
+        commentArea.setPrefHeight(80);
+        content.getChildren().addAll(scoreLabel, scoreComboBox, commentLabel, commentArea);
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
-            Label scoreLabel = new Label("امتیاز (1 تا 5):");
-            scoreLabel.setStyle("-fx-text-fill: #1f2937;");
-
-            ComboBox<Integer> scoreComboBox = new ComboBox<>();
-            scoreComboBox.getItems().addAll(1, 2, 3, 4, 5);
-            scoreComboBox.setValue(5);
-
-            Label commentLabel = new Label("نظر (اختیاری):");
-            commentLabel.setStyle("-fx-text-fill: #1f2937;");
-
-            TextArea commentArea = new TextArea();
-            commentArea.setPromptText("نظر خود را بنویسید...");
-            commentArea.setPrefHeight(80);
-
-            content.getChildren().addAll(scoreLabel, scoreComboBox, commentLabel, commentArea);
-            dialog.getDialogPane().setContent(content);
-            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-            Optional<ButtonType> result = dialog.showAndWait();
-            if (result.isPresent() && result.get() == ButtonType.OK) {
-                int score = scoreComboBox.getValue();
-                String comment = commentArea.getText().trim();
-
-                RatingService.rateSellerAsync(currentItem.getId(), score, comment)
-                        .thenAccept(v -> showMessage("امتیاز با موفقیت ثبت شد", "success"))
-                        .exceptionally(ex -> {
-                            String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
-                            showMessage("خطا در ثبت امتیاز: " + errorMsg, "error");
-                            return null;
-                        });
-            }
-        } catch (Exception e) {
-            showMessage("خطا در بارگذاری دیالوگ: " + e.getMessage(), "error");
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isPresent() && result.get() == ButtonType.OK) {
+            int score = scoreComboBox.getValue();
+            String comment = commentArea.getText().trim();
+            RatingService.rateSellerAsync(currentItem.getId(), score, comment)
+                    .thenAccept(v -> showMessage("امتیاز با موفقیت ثبت شد", "success"))
+                    .exceptionally(ex -> {
+                        String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                        showMessage("خطا در ثبت امتیاز: " + msg, "error");
+                        return null;
+                    });
         }
     }
 
-    private void styleDialog(Dialog<?> dialog) {
-        dialog.getDialogPane().getStylesheets().add(
-                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
-        dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
-    }
-
+    // ─────────────────────────────────────────────
+    //  ویرایش / حذف / اعلام فروش (مالک)
+    // ─────────────────────────────────────────────
     @FXML
     private void editItem() {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/secondhand/frontend/create_ad.fxml"));
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource("/com/secondhand/frontend/create_ad.fxml"));
             Parent root = loader.load();
             CreateAdController controller = loader.getController();
             controller.setItemForEdit(currentItem);
-
             Stage stage = (Stage) titleLabel.getScene().getWindow();
             Scene scene = new Scene(root, 1000, 1000);
             scene.setFill(javafx.scene.paint.Color.TRANSPARENT);
-            scene.getStylesheets().add(getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+            scene.getStylesheets().add(
+                    getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
             stage.setScene(scene);
             stage.setTitle("ویرایش آگهی");
         } catch (Exception e) {
@@ -353,7 +413,6 @@ public class ItemDetailController extends BaseController {
         confirm.getDialogPane().getStylesheets().add(
                 getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
         confirm.getDialogPane().setStyle("-fx-background-color: #ffffff;");
-
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             ItemService.deleteItemAsync(currentItem.getId())
@@ -362,8 +421,8 @@ public class ItemDetailController extends BaseController {
                         goBack();
                     }))
                     .exceptionally(ex -> {
-                        String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
-                        showMessage("خطا در حذف آگهی: " + errorMsg, "error");
+                        String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                        showMessage("خطا در حذف آگهی: " + msg, "error");
                         return null;
                     });
         }
@@ -373,18 +432,162 @@ public class ItemDetailController extends BaseController {
     private void markAsSold() {
         ItemService.markAsSoldAsync(currentItem.getId())
                 .thenAccept(v -> Platform.runLater(() -> {
-                    showMessage("وضعیت آگهی به فروخته شده تغییر کرد", "success");
                     currentItem.setStatus("SOLD");
                     statusLabel.setText(currentItem.getPersianStatus());
-                    statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+                    statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor()
+                            + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+                    showMessage("وضعیت آگهی به فروخته شده تغییر کرد", "success");
                 }))
                 .exceptionally(ex -> {
-                    String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
-                    showMessage("خطا در تغییر وضعیت: " + errorMsg, "error");
+                    String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    showMessage("خطا در تغییر وضعیت: " + msg, "error");
                     return null;
                 });
     }
 
+    // ─────────────────────────────────────────────
+    //  بخش نظرات
+    // ─────────────────────────────────────────────
+
+    /** بارگذاری نظرات از سرور */
+    private void loadComments() {
+        if (currentItem == null) return;
+        new Thread(() -> {
+            try {
+                List<Comment> comments = CommentService.getComments(currentItem.getId());
+                Platform.runLater(() -> renderComments(comments));
+            } catch (Exception e) {
+                // نمایش نظرات اجباری نیست — خطا را نادیده می‌گیریم
+                System.err.println("خطا در دریافت نظرات: " + e.getMessage());
+            }
+        }).start();
+    }
+
+    /** رندر لیست نظرات */
+    private void renderComments(List<Comment> comments) {
+        commentsListBox.getChildren().clear();
+
+        if (comments == null || comments.isEmpty()) {
+            noCommentsLabel.setVisible(true);
+            commentCountLabel.setText("(0)");
+            return;
+        }
+
+        noCommentsLabel.setVisible(false);
+        commentCountLabel.setText("(" + comments.size() + ")");
+
+        for (Comment comment : comments) {
+            commentsListBox.getChildren().add(buildCommentCard(comment));
+        }
+    }
+
+    /** ساخت کارت یک نظر */
+    private VBox buildCommentCard(Comment comment) {
+        VBox card = new VBox(6);
+        card.setStyle("-fx-background-color: #f8fafc;"
+                + " -fx-background-radius: 12;"
+                + " -fx-border-color: #e7ecf2;"
+                + " -fx-border-radius: 12;"
+                + " -fx-padding: 12 16;");
+
+        // سر نظر: نام کاربری + تاریخ + دکمه حذف
+        HBox header = new HBox(8);
+        header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+
+        Label usernameLabel = new Label("\uD83D\uDC64 " + comment.getUsername());
+        usernameLabel.setStyle("-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;");
+
+        Label dateLabel = new Label(comment.getShortDate());
+        dateLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 11px;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        header.getChildren().addAll(usernameLabel, dateLabel, spacer);
+
+        // دکمه حذف (فقط برای صاحب نظر یا ادمین)
+        boolean isMyComment  = currentUserId != null && currentUserId.equals(comment.getUserId());
+        boolean isAdmin      = SessionManager.isAdmin();
+        if (isMyComment || isAdmin) {
+            Button deleteBtn = new Button("\uD83D\uDDD1");
+            deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #dc2626;"
+                    + " -fx-cursor: hand; -fx-font-size: 13px; -fx-padding: 0 4;");
+            Tooltip.install(deleteBtn, new Tooltip("حذف نظر"));
+            deleteBtn.setOnAction(e -> deleteComment(comment.getId(), card));
+            header.getChildren().add(deleteBtn);
+        }
+
+        // متن نظر
+        Label textLabel = new Label(comment.getText());
+        textLabel.setWrapText(true);
+        textLabel.setStyle("-fx-text-fill: #334155; -fx-font-size: 13px;");
+
+        card.getChildren().addAll(header, textLabel);
+        return card;
+    }
+
+    /** ارسال نظر جدید */
+    @FXML
+    private void submitComment() {
+        if (currentItem == null || newCommentArea == null) return;
+        String text = newCommentArea.getText() != null ? newCommentArea.getText().trim() : "";
+        if (text.isEmpty()) {
+            showMessage("لطفاً متن نظر را بنویسید", "error");
+            return;
+        }
+
+        CommentService.addComment(currentItem.getId(), text)
+                .thenAccept(newComment -> Platform.runLater(() -> {
+                    newCommentArea.clear();
+                    // اضافه کردن نظر جدید به ابتدای لیست (بدون reload کامل)
+                    VBox card = buildCommentCard(newComment);
+                    commentsListBox.getChildren().add(0, card);
+                    noCommentsLabel.setVisible(false);
+                    // به‌روزرسانی شمارنده
+                    int current = parseCount(commentCountLabel.getText());
+                    commentCountLabel.setText("(" + (current + 1) + ")");
+                    showMessage("نظر شما با موفقیت ثبت شد", "success");
+                }))
+                .exceptionally(ex -> {
+                    String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    showMessage("خطا در ثبت نظر: " + msg, "error");
+                    return null;
+                });
+    }
+
+    /** حذف نظر */
+    private void deleteComment(Long commentId, VBox card) {
+        CommentService.deleteComment(commentId)
+                .thenRun(() -> Platform.runLater(() -> {
+                    commentsListBox.getChildren().remove(card);
+                    int current = parseCount(commentCountLabel.getText());
+                    int updated = Math.max(0, current - 1);
+                    commentCountLabel.setText("(" + updated + ")");
+                    if (commentsListBox.getChildren().isEmpty()) {
+                        noCommentsLabel.setVisible(true);
+                    }
+                    showMessage("نظر حذف شد", "success");
+                }))
+                .exceptionally(ex -> {
+                    String msg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
+                    showMessage("خطا در حذف نظر: " + msg, "error");
+                    return null;
+                });
+    }
+
+    /** پارس عدد از رشته «(N)» */
+    private int parseCount(String text) {
+        if (text == null) return 0;
+        try {
+            return Integer.parseInt(text.replaceAll("[^0-9]", ""));
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    //  ناوبری و کمکی
+    // ─────────────────────────────────────────────
     @FXML
     private void goBack() {
         try {
@@ -394,17 +597,37 @@ public class ItemDetailController extends BaseController {
         }
     }
 
+    private void styleDialog(Dialog<?> dialog) {
+        dialog.getDialogPane().getStylesheets().add(
+                getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
+        dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
+    }
+
     private void showMessage(String message, String type) {
         Platform.runLater(() -> {
             if (errorLabel != null) {
                 errorLabel.setText(message);
                 errorLabel.setVisible(true);
-                if ("success".equals(type)) {
-                    errorLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 13px;");
-                } else {
-                    errorLabel.setStyle("-fx-text-fill: #dc2626; -fx-font-size: 13px;");
-                }
+                errorLabel.setStyle("success".equals(type)
+                        ? "-fx-text-fill: #16a34a; -fx-font-size: 13px;"
+                        : "-fx-text-fill: #dc2626; -fx-font-size: 13px;");
             }
         });
+    }
+
+    // ─────────────────────────────────────────────
+    //  Window controls (از BaseController ارث نمی‌برند — inline)
+    // ─────────────────────────────────────────────
+    @FXML private void minimizeWindow() {
+        Stage stage = (Stage) titleLabel.getScene().getWindow();
+        stage.setIconified(true);
+    }
+    @FXML private void maximizeWindow() {
+        Stage stage = (Stage) titleLabel.getScene().getWindow();
+        stage.setMaximized(!stage.isMaximized());
+    }
+    @FXML private void closeWindow() {
+        Stage stage = (Stage) titleLabel.getScene().getWindow();
+        stage.close();
     }
 }
