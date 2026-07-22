@@ -39,14 +39,15 @@ public class CommentService {
                 comment.getItem() != null ? comment.getItem().getTitle() : "آگهی حذف شده",
                 comment.getUser() != null ? comment.getUser().getId() : null,
                 comment.getUser() != null ? comment.getUser().getUsername() : "کاربر ناشناس",
-                comment.getCreatedAt()
+                comment.getCreatedAt(),
+                comment.isEdited() // FIX (مورد ۴)
         );
     }
 
     public CommentResponse addComment(CommentCreateRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        UserValidationHelper.validateActiveAndNotBlocked(user);  //  از helper مشترک
+        UserValidationHelper.validateActiveAndNotBlocked(user);
 
         if (request.getText() == null || request.getText().trim().isEmpty()) {
             throw new BadRequestException("متن کامنت نمی‌تواند خالی باشد!");
@@ -81,11 +82,6 @@ public class CommentService {
         return responses;
     }
 
-    /**
-     *  FIX: کاربر عادی می‌تواند کامنت خودش را حذف کند
-     *         ادمین می‌تواند هر کامنتی را حذف کند
-     *         قبلاً فقط ادمین می‌توانست حذف کند
-     */
     public void deleteComment(Long commentId, Long requesterId) {
         User requester = userRepository.findById(requesterId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -106,7 +102,7 @@ public class CommentService {
     public CommentResponse updateComment(Long commentId, Long userId, String newText) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
-        UserValidationHelper.validateActiveAndNotBlocked(user);  //  از helper مشترک
+        UserValidationHelper.validateActiveAndNotBlocked(user);
 
         if (newText == null || newText.trim().isEmpty()) {
             throw new BadRequestException("متن کامنت نمی‌تواند خالی باشد!");
@@ -120,6 +116,7 @@ public class CommentService {
         }
 
         comment.setText(newText);
+        comment.setEdited(true); // FIX (مورد ۴): نشانگر ویرایش‌شده برای کامنت
         Comment updatedComment = commentRepository.save(comment);
         return convertToResponse(updatedComment);
     }

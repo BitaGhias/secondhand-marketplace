@@ -311,7 +311,6 @@ public class ItemService {
         ItemResponse response = convertToResponse(itemRepository.save(item));
 
         // FIX: رد خودکار درخواست‌های خرید در انتظار این آگهی، تا برای همیشه در وضعیت «در انتظار» معلق نمانند
-        // (این کار مشابه چیزی است که در تایید یک درخواست خرید خاص هم انجام می‌شود)
         for (PurchaseRequest pending : purchaseRequestRepository.findByItemIdAndStatus(itemId, PurchaseRequestStatus.PENDING)) {
             pending.setStatus(PurchaseRequestStatus.DECLINED);
             pending.setRespondedAt(java.time.LocalDateTime.now());
@@ -455,6 +454,9 @@ public class ItemService {
         return convertToResponseList(items);
     }
 
+    // FIX (مورد ۱): مشابه باگ قبلی markAsSold - بعد از خرید مستقیم باید درخواست‌های خرید
+    // معلق روی همین آگهی رد شوند، وگرنه برای همیشه در وضعیت «در انتظار» باقی می‌مانند
+    @Transactional
     public ItemResponse purchaseItem(Long itemId, Long buyerId) {
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -472,7 +474,16 @@ public class ItemService {
 
         item.setBuyer(buyer);
         item.setStatus(ItemStatus.SOLD);
-        return convertToResponse(itemRepository.save(item));
+        ItemResponse response = convertToResponse(itemRepository.save(item));
+
+        // FIX: رد خودکار سایر درخواست‌های خرید در انتظار همین آگهی
+        for (PurchaseRequest pending : purchaseRequestRepository.findByItemIdAndStatus(itemId, PurchaseRequestStatus.PENDING)) {
+            pending.setStatus(PurchaseRequestStatus.DECLINED);
+            pending.setRespondedAt(java.time.LocalDateTime.now());
+            purchaseRequestRepository.save(pending);
+        }
+
+        return response;
     }
 
     public List<ItemResponse> getPurchasedItems(Long buyerId) {

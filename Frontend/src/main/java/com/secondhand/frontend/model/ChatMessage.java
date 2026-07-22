@@ -8,11 +8,11 @@ public class ChatMessage {
     private Long conversationId;
     private Long senderId;
     private String senderUsername;
-    // ⚠️ نام فیلد مطابق ChatMessageResponse بک‌اند: text
     private String text;
     private String timestamp;
+    // FIX (مورد ۴): نشانگر ویرایش‌شدن پیام - این فیلد قبلاً در پاسخ بک‌اند وجود داشت اما در مدل فرانت نبود
+    private boolean edited;
 
-    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -30,4 +30,7 @@ public class ChatMessage {
 
     public String getTimestamp() { return timestamp; }
     public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
+
+    public boolean isEdited() { return edited; }
+    public void setEdited(boolean edited) { this.edited = edited; }
 }

@@ -409,7 +409,7 @@ public class CreateAdController extends BaseController {
         try {
             if (isEditMode && editingItem != null) {
                 ItemService.ItemUpdateRequest req = new ItemService.ItemUpdateRequest(
-                        title, description, price, selectedCategory.getId(), city.getId(), editingItem.getStatus());
+                        title, description, price, selectedCategory.getId(), city.getId());
                 // FIX: تصاویر حذف‌شده و تصاویر تازه هم همراه ویرایش ارسال می‌شوند
                 req.removedImageIds = removedImageIds;
                 req.newImagePaths = imagePaths;

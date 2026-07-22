@@ -229,15 +229,17 @@ public class ItemService {
     }
 
     public static class ItemUpdateRequest {
-        public String title, description, status;
+        public String title, description;
         public Long price, categoryId, cityId;
-        // FIX: پشتیبانی از تغییر تصاویر در ویرایش آگهی
         public List<Long> removedImageIds;
         public List<String> newImagePaths;
 
-        public ItemUpdateRequest(String t, String d, Long p, Long cat, Long city, String s) {
+        // FIX (مورد ۲): پارامتر status حذف شد. این مقدار قبلاً هرگز واقعاً به سرور ارسال
+        // نمی‌شد (updateItem فقط title/description/price/categoryId/cityId را می‌فرستد) و
+        // صرفاً وضعیت قدیمی و گمراه‌کننده‌ی آگهی (مثلاً "REJECTED") را بی‌مصرف حمل می‌کرد.
+        public ItemUpdateRequest(String t, String d, Long p, Long cat, Long city) {
             this.title = t; this.description = d; this.price = p;
-            this.categoryId = cat; this.cityId = city; this.status = s;
+            this.categoryId = cat; this.cityId = city;
         }
     }
 }

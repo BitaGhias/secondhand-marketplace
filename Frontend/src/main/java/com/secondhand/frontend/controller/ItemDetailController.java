@@ -477,25 +477,29 @@ public class ItemDetailController extends BaseController {
         VBox card = new VBox(6);
         card.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-border-color: #e7ecf2; -fx-border-radius: 12; -fx-padding: 12 16;");
         HBox header = new HBox(8); header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        Label usernameLabel = new Label("\uD83D\uDC64 " + comment.getUsername());
+        Label usernameLabel = new Label("👤 " + comment.getUsername());
         usernameLabel.setStyle("-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;");
         Label dateLabel = new Label(comment.getShortDate());
         dateLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 11px;");
+        // FIX (مورد ۴): نشانگر «ویرایش شده» برای کامنت‌هایی که بعد از ثبت تغییر داده شده‌اند
+        Label editedTag = new Label("(ویرایش شده)");
+        editedTag.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 10px; -fx-font-style: italic;");
+        editedTag.setVisible(comment.isEdited());
+        editedTag.setManaged(comment.isEdited());
         Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(usernameLabel, dateLabel, spacer);
+        header.getChildren().addAll(usernameLabel, dateLabel, editedTag, spacer);
         boolean isMyComment = currentUserId != null && currentUserId.equals(comment.getUserId());
         Label textLabel = new Label(comment.getText()); textLabel.setWrapText(true);
         textLabel.setStyle("-fx-text-fill: #334155; -fx-font-size: 13px;");
-        // FIX: امکان ویرایش نظر خود کاربر - قبلاً فقط دکمه حذف وجود داشت، درحالی‌که بک‌اند از ویرایش نظر پشتیبانی می‌کند
         if (isMyComment) {
-            Button editBtn = new Button("\u270F");
+            Button editBtn = new Button("✏");
             editBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #2563eb; -fx-cursor: hand; -fx-font-size: 13px; -fx-padding: 0 4;");
             Tooltip.install(editBtn, new Tooltip("ویرایش نظر"));
-            editBtn.setOnAction(e -> startEditComment(comment, card, textLabel));
+            editBtn.setOnAction(e -> startEditComment(comment, card, textLabel, editedTag));
             header.getChildren().add(editBtn);
         }
         if (isMyComment || SessionManager.isAdmin()) {
-            Button deleteBtn = new Button("\uD83D\uDDD1");
+            Button deleteBtn = new Button("🗑");
             deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-cursor: hand; -fx-font-size: 13px; -fx-padding: 0 4;");
             Tooltip.install(deleteBtn, new Tooltip("حذف نظر"));
             deleteBtn.setOnAction(e -> deleteComment(comment.getId(), card));
@@ -505,8 +509,7 @@ public class ItemDetailController extends BaseController {
         return card;
     }
 
-    // FIX: حالت ویرایش درون‌خطی برای نظر - از متد از قبل موجود CommentService.editComment استفاده می‌کند
-    private void startEditComment(Comment comment, VBox card, Label textLabel) {
+    private void startEditComment(Comment comment, VBox card, Label textLabel, Label editedTag) {
         TextArea editArea = new TextArea(comment.getText());
         editArea.setWrapText(true);
         editArea.setPrefRowCount(2);
@@ -534,7 +537,10 @@ public class ItemDetailController extends BaseController {
             CommentService.editComment(comment.getId(), newText)
                     .thenAccept(updated -> Platform.runLater(() -> {
                         comment.setText(updated.getText());
+                        comment.setEdited(true); // FIX (مورد ۴)
                         textLabel.setText(updated.getText());
+                        editedTag.setVisible(true);
+                        editedTag.setManaged(true);
                         card.getChildren().remove(editActions);
                         card.getChildren().set(card.getChildren().indexOf(editArea), textLabel);
                         showMessage("نظر ویرایش شد", "success");
