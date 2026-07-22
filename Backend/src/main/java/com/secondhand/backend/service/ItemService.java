@@ -27,6 +27,9 @@ import org.slf4j.LoggerFactory;
 public class ItemService {
 
     private static final Logger logger = LoggerFactory.getLogger(ItemService.class);
+    private static final int MAX_TITLE_LENGTH = 100;
+    private static final int MAX_DESCRIPTION_LENGTH = 5000;
+    private static final long MAX_PRICE = 999_999_999_999L;
 
     @Autowired
     private RatingRepository ratingRepository;
@@ -41,13 +44,26 @@ public class ItemService {
     private void validateItemPrice(Long price) {
         if (price == null) throw new BadRequestException("قیمت آگهی الزامی است!");
         if (price <= 0) throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
+        if (price > MAX_PRICE) throw new BadRequestException("قیمت آگهی بیش از حد مجاز است!");
+    }
+
+    private void validateItemTitle(String title) {
+        if (title == null || title.trim().isEmpty())
+            throw new BadRequestException("عنوان آگهی نمی‌تواند خالی باشد!");
+        if (title.trim().length() > MAX_TITLE_LENGTH)
+            throw new BadRequestException("عنوان آگهی نباید بیشتر از ۱۰۰ کاراکتر باشد!");
+    }
+
+    private void validateItemDescription(String description) {
+        if (description == null || description.trim().isEmpty())
+            throw new BadRequestException("توضیحات آگهی نمی‌تواند خالی باشد!");
+        if (description.trim().length() > MAX_DESCRIPTION_LENGTH)
+            throw new BadRequestException("توضیحات آگهی نباید بیشتر از ۵۰۰۰ کاراکتر باشد!");
     }
 
     private void validateItemTitleAndDescription(String title, String description) {
-        if (title == null || title.trim().isEmpty())
-            throw new BadRequestException("عنوان آگهی نمی‌تواند خالی باشد!");
-        if (description == null || description.trim().isEmpty())
-            throw new BadRequestException("توضیحات آگهی نمی‌تواند خالی باشد!");
+        validateItemTitle(title);
+        validateItemDescription(description);
     }
 
     private void validateUserIsAdmin(User user) {
@@ -160,14 +176,19 @@ public class ItemService {
         validateItemPrice(request.getPrice());
         validateImages(request.getImages());
 
+        if (request.getCategoryId() == null)
+            throw new BadRequestException("دسته‌بندی آگهی الزامی است!");
+        if (request.getCityId() == null)
+            throw new BadRequestException("شهر آگهی الزامی است!");
+
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی یافت نشد"));
         City city = cityRepository.findById(request.getCityId())
                 .orElseThrow(() -> new ResourceNotFoundException("شهر یافت نشد"));
 
         Item item = new Item();
-        item.setTitle(request.getTitle());
-        item.setDescription(request.getDescription());
+        item.setTitle(request.getTitle().trim());
+        item.setDescription(request.getDescription().trim());
         item.setPrice(request.getPrice());
         item.setStatus(ItemStatus.PENDING);
         item.setUser(user);
@@ -369,12 +390,16 @@ public class ItemService {
         if (item.getStatus() == ItemStatus.SOLD || item.getStatus() == ItemStatus.DELETED)
             throw new BadRequestException("این آگهی قابل ویرایش نیست!");
 
-        if (request.getTitle() != null && !request.getTitle().trim().isEmpty())
-            item.setTitle(request.getTitle());
-        if (request.getDescription() != null && !request.getDescription().trim().isEmpty())
-            item.setDescription(request.getDescription());
+        if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
+            validateItemTitle(request.getTitle());
+            item.setTitle(request.getTitle().trim());
+        }
+        if (request.getDescription() != null && !request.getDescription().trim().isEmpty()) {
+            validateItemDescription(request.getDescription());
+            item.setDescription(request.getDescription().trim());
+        }
         if (request.getPrice() != null) {
-            if (request.getPrice() <= 0) throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
+            validateItemPrice(request.getPrice());
             item.setPrice(request.getPrice());
         }
         if (request.getCategoryId() != null) {
