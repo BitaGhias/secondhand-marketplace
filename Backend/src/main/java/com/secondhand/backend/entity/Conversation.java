@@ -3,7 +3,11 @@ package com.secondhand.backend.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "conversations")
+@Table(name = "conversations", indexes = {
+        @Index(name = "idx_conversations_item", columnList = "item_id"),
+        @Index(name = "idx_conversations_buyer", columnList = "buyer_id"),
+        @Index(name = "idx_conversations_seller", columnList = "seller_id")
+})
 public class Conversation {
 
     @Id

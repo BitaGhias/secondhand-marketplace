@@ -8,7 +8,11 @@ import java.time.LocalDateTime;
  * درخواست خرید — خریدار ابتدا درخواست می‌دهد و فروشنده تصمیم می‌گیرد.
  */
 @Entity
-@Table(name = "purchase_requests")
+@Table(name = "purchase_requests", indexes = {
+        @Index(name = "idx_purchase_item_status", columnList = "item_id, status"),
+        @Index(name = "idx_purchase_buyer_created", columnList = "buyer_id, created_at"),
+        @Index(name = "idx_purchase_item_created", columnList = "item_id, created_at")
+})
 public class PurchaseRequest {
 
     @Id

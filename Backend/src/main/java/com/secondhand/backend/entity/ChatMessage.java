@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "chat_messages")
+@Table(name = "chat_messages", indexes = {
+        @Index(name = "idx_chat_messages_conversation_time", columnList = "conversation_id, timestamp"),
+        @Index(name = "idx_chat_messages_conversation_read", columnList = "conversation_id, is_read")
+})
 public class ChatMessage {
 
     @Id

@@ -4,7 +4,10 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "comments")
+@Table(name = "comments", indexes = {
+        @Index(name = "idx_comments_item_created", columnList = "item_id, created_at"),
+        @Index(name = "idx_comments_user", columnList = "user_id")
+})
 public class Comment {
 
     @Id
