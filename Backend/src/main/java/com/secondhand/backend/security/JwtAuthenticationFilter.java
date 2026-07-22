@@ -12,6 +12,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -52,22 +53,34 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+            // FIX: اگر کاربر مسدود/حذف شده باشد، loadUserByUsername خطا پرتاب می‌کند؛
+            // قبلاً این خطا کنترل نمی‌شد و باعث خطای خام (500) در تمام درخواست‌های بعدی کاربر مسدودشده می‌شد.
+            try {
+                UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
-            if (jwtUtil.validateToken(token, username)) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(
-                                userDetails,
-                                null,
-                                userDetails.getAuthorities()
-                        );
+                if (jwtUtil.validateToken(token, username)) {
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(
+                                    userDetails,
+                                    null,
+                                    userDetails.getAuthorities()
+                            );
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
 
-                logger.debug("کاربر با موفقیت احراز هویت شد: {}", username);
-            } else {
-                logger.warn("توکن JWT نامعتبر است یا منقضی شده است.");
+                    logger.debug("کاربر با موفقیت احراز هویت شد: {}", username);
+                } else {
+                    logger.warn("توکن JWT نامعتبر است یا منقضی شده است.");
+                }
+            } catch (UsernameNotFoundException e) {
+                logger.warn("دسترسی رد شد برای '{}': {}", username, e.getMessage());
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write(
+                        "{\"message\":\"" + e.getMessage().replace("\"", "'") + "\",\"statusCode\":403,\"status\":\"FORBIDDEN\"}"
+                );
+                return;
             }
         }
 

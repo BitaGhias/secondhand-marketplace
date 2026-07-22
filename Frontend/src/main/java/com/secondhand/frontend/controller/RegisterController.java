@@ -35,7 +35,8 @@ public class RegisterController extends BaseController {
         String fullName         = fullNameField.getText().trim();
         String username         = usernameField.getText().trim();
         String email            = emailField.getText().trim();
-        String phone            = phoneField.getText().trim();
+        // FIX: تبدیل ارقام فارسی/عربی احتمالی شماره تلفن به انگلیسی قبل از اعتبارسنجی و ارسال
+        String phone            = ValidationUtil.normalizeDigits(phoneField.getText().trim());
         String password         = passwordField.getText();
         String confirmPassword  = confirmPasswordField.getText();
 
@@ -62,7 +63,10 @@ public class RegisterController extends BaseController {
 
         if (password.isEmpty())                              return showValidationError("رمز عبور الزامی است!");
         if (!ValidationUtil.isValidPassword(password, 6))    return showValidationError("رمز عبور باید حداقل ۶ کاراکتر باشد!");
+        // FIX: بررسی حداکثر طول رمز عبور
         if (ValidationUtil.isPasswordTooLong(password, 100)) return showValidationError("رمز عبور نباید بیشتر از ۱۰۰ کاراکتر باشد!");
+        // FIX: بررسی عدم وجود فاصله در رمز عبور
+        if (ValidationUtil.containsSpace(password))          return showValidationError("رمز عبور نباید شامل فاصله باشد!");
         if (!password.equals(confirmPassword))               return showValidationError("رمز عبور و تکرار آن مطابقت ندارند!");
 
         if (email.isEmpty())                                 return showValidationError("ایمیل الزامی است!");

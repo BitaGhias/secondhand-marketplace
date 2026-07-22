@@ -20,7 +20,8 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
-        User user = userRepository.findByUsername(username)
+        // FIX: جستجوی نام کاربری بدون توجه به بزرگی/کوچکی حروف
+        User user = userRepository.findByUsernameIgnoreCase(username)
                 .orElseThrow(() -> new UsernameNotFoundException("کاربر یافت نشد: " + username));
 
         // اگه کاربر مسدود شده باشه، نمیذاریم لاگین کنه

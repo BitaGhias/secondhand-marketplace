@@ -91,7 +91,7 @@
                 <HBox spacing="12">
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="رمز عبور" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
-                        <PasswordField fx:id="passwordField" promptText="حداقل ۶ کاراکتر"/>
+                        <PasswordField fx:id="passwordField" promptText="حداقل ۶ کاراکتر، بدون فاصله"/>
                     </VBox>
                     <VBox spacing="5" HBox.hgrow="ALWAYS">
                         <Label text="تکرار رمز عبور" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
