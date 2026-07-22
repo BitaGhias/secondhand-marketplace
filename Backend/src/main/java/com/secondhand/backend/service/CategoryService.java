@@ -179,6 +179,15 @@ public class CategoryService {
             }
             Category parent = categoryRepository.findById(request.getParentId())
                     .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی والد یافت نشد"));
+            // جلوگیری از حلقه در درخت دسته‌بندی: زنجیره اجداد والد جدید تا ریشه بررسی می‌شود؛
+            // اگر خود این دسته در زنجیره باشد، والد انتخابی زیرمجموعه خودش است و حلقه ایجاد می‌شود.
+            Category ancestor = parent;
+            while (ancestor != null) {
+                if (ancestor.getId().equals(id)) {
+                    throw new BadRequestException("والد انتخاب‌شده یکی از زیردسته‌های همین دسته‌بندی است و باعث حلقه در درخت دسته‌بندی می‌شود!");
+                }
+                ancestor = ancestor.getParent();
+            }
             category.setParent(parent);
         } else {
             category.setParent(null);

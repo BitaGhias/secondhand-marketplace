@@ -5,11 +5,15 @@ import com.secondhand.frontend.model.Comment;
 import com.secondhand.frontend.model.Conversation;
 import com.secondhand.frontend.model.Image;
 import com.secondhand.frontend.model.Item;
+import com.secondhand.frontend.model.PurchaseRequest;
 import com.secondhand.frontend.service.ChatService;
 import com.secondhand.frontend.service.CommentService;
 import com.secondhand.frontend.service.FavoriteService;
 import com.secondhand.frontend.service.ItemService;
+import com.secondhand.frontend.service.PurchaseRequestService;
 import com.secondhand.frontend.service.RatingService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.secondhand.frontend.util.ApiClient;
 import com.secondhand.frontend.util.ImageLoaderUtil;
 import com.secondhand.frontend.util.Routes;
 import com.secondhand.frontend.util.SessionManager;
@@ -55,6 +59,9 @@ public class ItemDetailController extends BaseController {
     @FXML private Label  commentCountLabel;
     @FXML private Label  noCommentsLabel;
     @FXML private HBox   titleBar;
+    @FXML private VBox   purchaseRequestsCard;
+    @FXML private VBox   purchaseRequestsBox;
+    @FXML private Label  purchaseRequestsCount;
 
     private Item   currentItem;
     private Long   currentUserId;
@@ -69,6 +76,7 @@ public class ItemDetailController extends BaseController {
         bindManaged(ratingButton); bindManaged(favoriteButton); bindManaged(addCommentBox);
         if (ownerActions != null) ownerActions.managedProperty().bind(ownerActions.visibleProperty());
         if (buyerActions != null) buyerActions.managedProperty().bind(buyerActions.visibleProperty());
+        if (purchaseRequestsCard != null) purchaseRequestsCard.managedProperty().bind(purchaseRequestsCard.visibleProperty());
         if (pendingItemId != null) { Long id = pendingItemId; pendingItemId = null; loadItemById(id); }
     }
 
@@ -82,6 +90,8 @@ public class ItemDetailController extends BaseController {
         configureActions();
         checkFavoriteStatus();
         loadComments();
+        loadPurchaseRequests();
+        checkMyPendingRequest();
     }
 
     public static void setItemId(Long id) { pendingItemId = id; }
@@ -177,56 +187,181 @@ public class ItemDetailController extends BaseController {
     @FXML
     private void buyItem() {
         if (currentItem == null) return;
-        Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("خرید کالا");
-        dialog.setHeaderText("خرید «" + currentItem.getTitle() + "»");
-        styleDialog(dialog);
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("درخواست خرید");
+        confirm.setHeaderText("درخواست خرید «" + currentItem.getTitle() + "»");
+        confirm.setContentText("\ud83d\udcb0 قیمت: " + currentItem.getFormattedPrice()
+                + "\n\ud83d\udc64 فروشنده: " + currentItem.getOwnerUsername()
+                + "\n\nدرخواست شما برای فروشنده ارسال می‌شود و پس از تایید او، خرید قطعی می‌شود.");
+        try { confirm.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) {}
+        confirm.getDialogPane().setStyle("-fx-background-color: #ffffff;");
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) return;
 
-        VBox content = new VBox(12);
-        content.setStyle("-fx-padding: 20;");
-        Label info = new Label("\uD83D\uDCB0 قیمت: " + currentItem.getFormattedPrice()
-                + "\n\uD83D\uDC64 فروشنده: " + currentItem.getOwnerUsername()
-                + "\n\nآیا از خرید این کالا اطمینان دارید؟");
-        info.setStyle("-fx-text-fill: #1f2937; -fx-font-size: 14px;"); info.setWrapText(true);
-
-        CheckBox rateCheck = new CheckBox("همزمان با خرید، به فروشنده امتیاز می‌دهم");
-        rateCheck.setSelected(true); rateCheck.setStyle("-fx-text-fill: #1f2937;");
-
-        Label scoreLabel = new Label("امتیاز (۱ تا ۵):"); scoreLabel.setStyle("-fx-text-fill: #1f2937;");
-        ComboBox<Integer> scoreComboBox = new ComboBox<>();
-        scoreComboBox.getItems().addAll(1, 2, 3, 4, 5); scoreComboBox.setValue(5);
-        TextArea commentArea = new TextArea();
-        commentArea.setPromptText("نظر شما درباره فروشنده (اختیاری)..."); commentArea.setPrefHeight(70);
-
-        VBox ratingBox = new VBox(8, scoreLabel, scoreComboBox, commentArea);
-        ratingBox.visibleProperty().bind(rateCheck.selectedProperty());
-        ratingBox.managedProperty().bind(rateCheck.selectedProperty());
-        content.getChildren().addAll(info, new Separator(), rateCheck, ratingBox);
-        dialog.getDialogPane().setContent(content);
-
-        ButtonType buyType = new ButtonType("\u2705 خرید", ButtonBar.ButtonData.OK_DONE);
-        dialog.getDialogPane().getButtonTypes().addAll(buyType, ButtonType.CANCEL);
-
-        Optional<ButtonType> result = dialog.showAndWait();
-        if (result.isEmpty() || result.get() != buyType) return;
-
-        final boolean rateToo  = rateCheck.isSelected();
-        final int score        = scoreComboBox.getValue() != null ? scoreComboBox.getValue() : 5;
-        final String ratingMsg = commentArea.getText() != null ? commentArea.getText().trim() : "";
-
-        ItemService.purchaseItemAsync(currentItem.getId())
-                .thenCompose(v -> {
-                    if (rateToo) return RatingService.rateSellerAsync(currentItem.getId(), score, ratingMsg).thenApply(r -> " و امتیاز شما ثبت شد");
-                    return java.util.concurrent.CompletableFuture.completedFuture("");
-                })
-                .thenAccept(extra -> Platform.runLater(() -> {
-                    currentItem.setStatus("SOLD"); currentItem.setBuyerId(currentUserId);
-                    statusLabel.setText(currentItem.getPersianStatus());
-                    statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
-                    configureActions();
-                    showMessage("\u2705 خرید با موفقیت انجام شد" + extra + " — در بخش «خریدها» قابل مشاهده است", "success");
+        buyButton.setDisable(true);
+        PurchaseRequestService.createAsync(currentItem.getId())
+                .thenAccept(pr -> Platform.runLater(() -> {
+                    setPendingRequestState();
+                    showMessage("\ud83d\udce9 درخواست خرید شما برای فروشنده ارسال شد — نتیجه در بخش اعلان‌ها اطلاع داده می‌شود", "success");
                 }))
-                .exceptionally(ex -> { showMessage("خطا در خرید: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error"); return null; });
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> buyButton.setDisable(false));
+                    showMessage("خطا در ثبت درخواست خرید: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error");
+                    return null;
+                });
+    }
+
+    /** اگر برای این آگهی درخواست در انتظار دارم، دکمه خرید قفل شود */
+    private void checkMyPendingRequest() {
+        if (currentItem == null || currentUserId == null || currentItem.isOwner(currentUserId)) return;
+        PurchaseRequestService.mineAsync()
+                .thenAccept(list -> Platform.runLater(() -> {
+                    for (PurchaseRequest pr : list) {
+                        if (pr.getItemId() != null && pr.getItemId().equals(currentItem.getId()) && pr.isPending()) {
+                            setPendingRequestState();
+                            return;
+                        }
+                    }
+                }))
+                .exceptionally(ex -> null);
+    }
+
+    private void setPendingRequestState() {
+        buyButton.setDisable(true);
+        buyButton.setText("\u23f3 در انتظار تایید فروشنده");
+        buyButton.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #b45309; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 11 24; -fx-opacity: 1;");
+    }
+
+    // ===================== درخواست‌های خرید (صاحب آگهی) =====================
+
+    private void loadPurchaseRequests() {
+        if (currentItem == null || currentUserId == null || !currentItem.isOwner(currentUserId)) return;
+        if (purchaseRequestsCard == null) return;
+        PurchaseRequestService.listForItemAsync(currentItem.getId())
+                .thenAccept(list -> Platform.runLater(() -> renderPurchaseRequests(list)))
+                .exceptionally(ex -> null);
+    }
+
+    private void renderPurchaseRequests(List<PurchaseRequest> list) {
+        purchaseRequestsBox.getChildren().clear();
+        purchaseRequestsCard.setVisible(list != null && !list.isEmpty());
+        if (list == null || list.isEmpty()) return;
+        long pending = list.stream().filter(PurchaseRequest::isPending).count();
+        purchaseRequestsCount.setText(pending > 0 ? pending + " در انتظار تصمیم شما" : list.size() + " درخواست");
+        for (PurchaseRequest pr : list) purchaseRequestsBox.getChildren().add(buildRequestRow(pr));
+    }
+
+    private HBox buildRequestRow(PurchaseRequest pr) {
+        Label avatar = new Label("\ud83d\udc64");
+        avatar.setStyle("-fx-background-color: #ffedd5; -fx-background-radius: 50; -fx-padding: 7 10; -fx-font-size: 14px;");
+        Label name = new Label(pr.getBuyerFullName() != null && !pr.getBuyerFullName().isBlank() ? pr.getBuyerFullName() : pr.getBuyerUsername());
+        name.setStyle("-fx-text-fill: #0f172a; -fx-font-size: 13px; -fx-font-weight: bold;");
+        Label sub = new Label("@" + pr.getBuyerUsername());
+        sub.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 11px;");
+        VBox nameBox = new VBox(1, name, sub);
+        HBox.setHgrow(nameBox, Priority.ALWAYS);
+
+        Button profileBtn = new Button("\ud83d\udc64 پروفایل خریدار");
+        profileBtn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #143449; -fx-border-color: #cbd5e1; -fx-border-radius: 9; -fx-background-radius: 9; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 6 13;");
+        profileBtn.setOnAction(e -> showBuyerProfileDialog(pr));
+
+        HBox row = new HBox(10, avatar, nameBox, profileBtn);
+        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        row.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-border-color: #e7ecf2; -fx-border-radius: 12; -fx-padding: 10 14;");
+
+        if (pr.isPending()) {
+            Button acceptBtn = new Button("\u2713 تایید فروش");
+            acceptBtn.setStyle("-fx-background-color: #16a34a; -fx-text-fill: white; -fx-background-radius: 9; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 6 14;");
+            acceptBtn.setOnAction(e -> respondToRequest(pr, true));
+            Button declineBtn = new Button("\u2715 رد");
+            declineBtn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #dc2626; -fx-border-color: #fecaca; -fx-border-radius: 9; -fx-background-radius: 9; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 6 13;");
+            declineBtn.setOnAction(e -> respondToRequest(pr, false));
+            row.getChildren().addAll(acceptBtn, declineBtn);
+        } else {
+            Label st = new Label(pr.getPersianStatus());
+            st.setStyle(pr.isAccepted()
+                    ? "-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-background-radius: 999; -fx-padding: 3 12; -fx-font-size: 10px; -fx-font-weight: bold;"
+                    : "-fx-background-color: #fee2e2; -fx-text-fill: #b91c1c; -fx-background-radius: 999; -fx-padding: 3 12; -fx-font-size: 10px; -fx-font-weight: bold;");
+            row.getChildren().add(st);
+        }
+        return row;
+    }
+
+    private void respondToRequest(PurchaseRequest pr, boolean accept) {
+        (accept ? PurchaseRequestService.acceptAsync(pr.getId()) : PurchaseRequestService.declineAsync(pr.getId()))
+                .thenAccept(updated -> Platform.runLater(() -> {
+                    if (accept) {
+                        currentItem.setStatus("SOLD");
+                        currentItem.setBuyerId(updated.getBuyerId());
+                        statusLabel.setText(currentItem.getPersianStatus());
+                        statusLabel.setStyle("-fx-text-fill: " + currentItem.getStatusColor() + "; -fx-font-size: 14px; -fx-font-weight: bold;");
+                        showMessage("\u2705 فروش تایید شد — کالا به «" + updated.getBuyerUsername() + "» فروخته شد", "success");
+                    } else {
+                        showMessage("درخواست خرید رد شد", "success");
+                    }
+                    loadPurchaseRequests();
+                }))
+                .exceptionally(ex -> { showMessage("خطا: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error"); return null; });
+    }
+
+    /** دیالوگ پروفایل خریدار برای فروشنده */
+    private void showBuyerProfileDialog(PurchaseRequest pr) {
+        new Thread(() -> {
+            String fullName = pr.getBuyerFullName();
+            String phone = pr.getBuyerPhone();
+            String email = pr.getBuyerEmail();
+            try {
+                java.net.http.HttpResponse<String> res = ApiClient.get("/auth/" + pr.getBuyerId());
+                if (res.statusCode() >= 200 && res.statusCode() < 300) {
+                    JsonNode node = ApiClient.getMapper().readTree(res.body());
+                    if (node.hasNonNull("fullName")) fullName = node.get("fullName").asText();
+                    if (node.hasNonNull("phoneNumber")) phone = node.get("phoneNumber").asText();
+                    if (node.hasNonNull("email")) email = node.get("email").asText();
+                }
+            } catch (Exception ignored) {}
+            final String fFull = fullName;
+            final String fPhone = phone;
+            final String fEmail = email;
+            Platform.runLater(() -> {
+                Dialog<ButtonType> dialog = new Dialog<>();
+                dialog.setTitle("پروفایل خریدار");
+                styleDialog(dialog);
+                DialogPane pane = dialog.getDialogPane();
+                pane.setPrefWidth(420);
+
+                Label avatar = new Label("\ud83d\udc64");
+                avatar.setStyle("-fx-background-color: rgba(249,115,22,0.22); -fx-background-radius: 50; -fx-padding: 12 16; -fx-font-size: 20px;");
+                Label nm = new Label(fFull != null && !fFull.isBlank() ? fFull : pr.getBuyerUsername());
+                nm.setStyle("-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;");
+                Label un = new Label("@" + pr.getBuyerUsername());
+                un.setStyle("-fx-text-fill: rgba(255,255,255,0.65); -fx-font-size: 11px;");
+                VBox nameBox = new VBox(2, nm, un);
+                HBox head = new HBox(12, avatar, nameBox);
+                head.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                head.setStyle("-fx-background-color: linear-gradient(to left, #143449, #0e2433); -fx-background-radius: 14; -fx-padding: 14 16;");
+
+                VBox info = new VBox(8,
+                        profileRow("\ud83d\udcde تلفن", fPhone),
+                        profileRow("\u2709 ایمیل", fEmail));
+
+                VBox content = new VBox(12, head, info);
+                content.setNodeOrientation(javafx.geometry.NodeOrientation.RIGHT_TO_LEFT);
+                pane.setContent(content);
+                pane.getButtonTypes().add(ButtonType.CLOSE);
+                dialog.showAndWait();
+            });
+        }).start();
+    }
+
+    private HBox profileRow(String caption, String value) {
+        Label c = new Label(caption);
+        c.setStyle("-fx-text-fill: #64748b; -fx-font-size: 12px; -fx-min-width: 70;");
+        Label v = new Label(value != null && !value.isBlank() ? value : "\u2014");
+        v.setStyle("-fx-text-fill: #0f172a; -fx-font-size: 13px; -fx-font-weight: bold;");
+        HBox row = new HBox(10, c, v);
+        row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+        row.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 10; -fx-border-color: #e7ecf2; -fx-border-radius: 10; -fx-padding: 9 13;");
+        return row;
     }
 
     @FXML
@@ -264,7 +399,7 @@ public class ItemDetailController extends BaseController {
             int score = scoreComboBox.getValue();
             String comment = commentArea.getText().trim();
             RatingService.rateSellerAsync(currentItem.getId(), score, comment)
-                    .thenAccept(v -> showMessage("امتیاز با موفقیت ثبت شد", "success"))
+                    .thenAccept(v -> Platform.runLater(() -> { showMessage("امتیاز با موفقیت ثبت شد", "success"); ratingButton.setDisable(true); ratingButton.setText("\u2705 امتیاز ثبت شده"); }))
                     .exceptionally(ex -> { showMessage("خطا در ثبت امتیاز: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error"); return null; });
         }
     }

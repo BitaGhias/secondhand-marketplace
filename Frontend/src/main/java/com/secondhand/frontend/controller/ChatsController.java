@@ -13,9 +13,11 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
+import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 import java.util.List;
@@ -50,16 +52,49 @@ public class ChatsController extends BaseController {
         chatUsersListView.setCellFactory(lv -> new ListCell<>() {
             @Override protected void updateItem(Conversation c, boolean empty) {
                 super.updateItem(c, empty);
-                if (empty || c == null) { setText(null); setStyle("-fx-background-color: transparent;"); }
-                else {
-                    String other = c.getOtherPartyUsername(myId);
-                    setText("\uD83D\uDCE6 " + c.getItemTitle() + "\n\uD83D\uDC64 " + (other != null ? other : "کاربر"));
-                    setStyle("-fx-background-color: transparent; -fx-text-fill: #1f2937; -fx-font-size: 13px; -fx-padding: 10;");
+                setText(null);
+                if (empty || c == null) { setGraphic(null); setStyle("-fx-background-color: transparent;"); return; }
+
+                String other = c.getOtherPartyUsername(myId);
+                Label itemLabel = new Label("\ud83d\udce6 " + c.getItemTitle());
+                itemLabel.setStyle("-fx-text-fill: #0f172a; -fx-font-size: 13px; -fx-font-weight: bold;");
+                Label userLabel = new Label("\ud83d\udc64 " + (other != null ? other : "کاربر"));
+                userLabel.setStyle("-fx-text-fill: #64748b; -fx-font-size: 11px;");
+                VBox texts = new VBox(2, itemLabel, userLabel);
+                HBox.setHgrow(texts, Priority.ALWAYS);
+
+                HBox row = new HBox(8, texts);
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setPadding(new Insets(8, 6, 8, 6));
+
+                // دایرهٔ نارنجی پیام‌های خوانده‌نشده (مثل نوتیف)
+                int unread = c.getUnreadCount() != null ? c.getUnreadCount() : 0;
+                boolean isOpen = currentConversation != null && currentConversation.getId() != null
+                        && currentConversation.getId().equals(c.getId());
+                if (unread > 0 && !isOpen) {
+                    Circle circle = new Circle(11);
+                    circle.setStyle("-fx-fill: #f97316; -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.45), 6, 0, 0, 1);");
+                    Label count = new Label(unread > 99 ? "99+" : String.valueOf(unread));
+                    count.setStyle("-fx-text-fill: white; -fx-font-size: 10px; -fx-font-weight: bold;");
+                    StackPane badge = new StackPane(circle, count);
+                    row.getChildren().add(badge);
                 }
+
+                setGraphic(row);
+                setStyle("-fx-background-color: transparent;");
             }
         });
         chatUsersListView.getSelectionModel().selectedItemProperty()
-                .addListener((obs, old, newVal) -> { if (newVal != null) openConversation(newVal); });
+                .addListener((obs, old, newVal) -> {
+                    if (newVal == null) return;
+                    // فقط وقتی گفت‌وگوی دیگری انتخاب شد بازش کن (نه هنگام ریفرش لیست)
+                    if (currentConversation == null || currentConversation.getId() == null
+                            || !currentConversation.getId().equals(newVal.getId())) {
+                        openConversation(newVal);
+                    } else {
+                        currentConversation = newVal;
+                    }
+                });
     }
 
     private void loadConversations() {
@@ -100,10 +135,13 @@ public class ChatsController extends BaseController {
         currentConversation = conversation;
         Long myId = SessionManager.getCurrentUserId();
         String other = conversation.getOtherPartyUsername(myId);
-        currentChatUserLabel.setText("\uD83D\uDCAC " + conversation.getItemTitle()
+        currentChatUserLabel.setText("\ud83d\udcac " + conversation.getItemTitle()
                 + " — " + (other != null ? other : "کاربر"));
         lastMessageCount = 0;
         loadMessages(true);
+        // باز کردن گفت‌وگو = خوانده شدن پیام‌ها ← حذف فوری دایرهٔ نارنجی
+        conversation.setUnreadCount(0);
+        chatUsersListView.refresh();
     }
 
     private void loadMessages(boolean scrollToBottom) {
@@ -133,8 +171,8 @@ public class ChatsController extends BaseController {
             bubble.setWrapText(true);
             bubble.setMaxWidth(380);
             bubble.setStyle(mine
-                    ? "-fx-background-color: #059669; -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 8 12;"
-                    : "-fx-background-color: #e7ecf2; -fx-text-fill: #1f2937; -fx-background-radius: 12; -fx-padding: 8 12;");
+                    ? "-fx-background-color: #f97316; -fx-text-fill: white; -fx-background-radius: 14 14 2 14; -fx-padding: 9 13; -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.25), 6, 0, 0, 2);"
+                    : "-fx-background-color: #ffffff; -fx-text-fill: #0f172a; -fx-background-radius: 14 14 14 2; -fx-border-color: #e7ecf2; -fx-border-radius: 14 14 14 2; -fx-padding: 9 13;");
             HBox row = new HBox(bubble);
             row.setAlignment(mine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
             messagesVBox.getChildren().add(row);
@@ -178,6 +216,7 @@ public class ChatsController extends BaseController {
     private void startPolling() {
         refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(POLL_SECONDS), event -> {
             if (currentConversation != null) loadMessages(false);
+            loadConversations(); // بروزرسانی دایرهٔ نارنجی پیام‌های جدید
         }));
         refreshTimeline.setCycleCount(Animation.INDEFINITE);
         refreshTimeline.play();

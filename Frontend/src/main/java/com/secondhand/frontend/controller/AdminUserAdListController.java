@@ -115,7 +115,7 @@ public class AdminUserAdListController extends BaseController {
         title.setWrapText(true);
 
         Label price  = new Label(item.getFormattedPrice());
-        price.setStyle("-fx-text-fill: #0e9f6e; -fx-font-size: 13px; -fx-font-weight: bold;");
+        price.setStyle("-fx-text-fill: #f97316; -fx-font-size: 13px; -fx-font-weight: bold;");
 
         Label status = new Label(item.getPersianStatus());
         status.setStyle("-fx-text-fill: " + item.getStatusColor() + "; -fx-font-size: 12px; -fx-font-weight: bold;");

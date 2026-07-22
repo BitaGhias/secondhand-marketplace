@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.NotificationsController"
+      stylesheets="@../../css/styles.css"
+      style="-fx-background-color: #f6f8fa; -fx-background-radius: 24; -fx-border-color: #e7ecf2; -fx-border-radius: 24; -fx-border-width: 1;">
+
+    <!-- ===== نوار پنجره (نفتی) ===== -->
+    <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
+          style="-fx-background-color: #0e2433; -fx-background-radius: 24 24 0 0; -fx-padding: 12 16;">
+        <Label text="دست‌دوم مارکت" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Button text="─" onAction="#minimizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="✕" onAction="#closeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #f87171; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+    </HBox>
+
+    <!-- هدر صفحه -->
+    <HBox alignment="CENTER_LEFT" spacing="12" nodeOrientation="RIGHT_TO_LEFT"
+          style="-fx-background-color: #0e2433; -fx-padding: 8 24 18 24;">
+        <Label text="🔔 اعلان‌های من" style="-fx-text-fill: white; -fx-font-size: 19px; -fx-font-weight: bold;"/>
+        <Label fx:id="headerCountLabel" text=""
+               style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 999; -fx-padding: 3 12;"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button text="✓ خواندن همه" onAction="#markAllRead"
+                style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 7 16; -fx-cursor: hand; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+        <Button text="←" onAction="#goBack"
+                style="-fx-background-color: #143449; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 7 16; -fx-cursor: hand; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+    </HBox>
+
+    <!-- لیست اعلان‌ها -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+        <VBox fx:id="notificationsVBox" spacing="12" nodeOrientation="RIGHT_TO_LEFT">
+            <padding>
+                <Insets top="22" right="26" bottom="26" left="26"/>
+            </padding>
+        </VBox>
+    </ScrollPane>
+</VBox>

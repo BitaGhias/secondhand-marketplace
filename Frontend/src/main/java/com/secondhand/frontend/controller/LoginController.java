@@ -113,7 +113,7 @@ public class LoginController extends BaseController {
         if (u != null && "ADMIN".equalsIgnoreCase(u.getRole()))
             MainApplication.changeScene(Routes.ADMIN_PANEL, "پنل مدیریت");
         else
-            MainApplication.changeScene(Routes.AD_LIST, "بازار سفید — لیست آگهی‌ها");
+            MainApplication.changeScene(Routes.AD_LIST, "دست‌دوم مارکت — لیست آگهی‌ها");
     }
 
     @FXML

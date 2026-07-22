@@ -7,6 +7,7 @@ import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.CategoryService;
 import com.secondhand.frontend.service.CityService;
 import com.secondhand.frontend.service.ItemService;
+import com.secondhand.frontend.util.CategoryPicker;
 import com.secondhand.frontend.util.Routes;
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.application.Platform;
@@ -14,16 +15,27 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.DragEvent;
+import javafx.scene.input.Dragboard;
+import javafx.scene.input.TransferMode;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
+/**
+ * فرم ثبت/ویرایش آگهی به صورت ویزارد ۳ مرحله‌ای:
+ *   ۱) مشخصات (عنوان + دسته‌بندی + شهر)   ۲) توضیحات و قیمت   ۳) تصاویر و ثبت نهایی
+ * تصاویر هم با دکمه انتخاب فایل و هم با کشیدن و رها کردن (Drag & Drop) اضافه می‌شوند.
+ */
 public class CreateAdController extends BaseController {
 
+    @FXML private Label      pageTitle;
     @FXML private TextField  titleField;
     @FXML private TextArea   descriptionArea;
     @FXML private TextField  priceField;
@@ -34,23 +46,41 @@ public class CreateAdController extends BaseController {
     @FXML private Label      errorLabel;
     @FXML private HBox       titleBar;
 
+    // ── ویزارد ──
+    @FXML private VBox   step1Box;
+    @FXML private VBox   step2Box;
+    @FXML private VBox   step3Box;
+    @FXML private Label  stepLabel1;
+    @FXML private Label  stepLabel2;
+    @FXML private Label  stepLabel3;
+    @FXML private ProgressBar wizardProgressBar;
+    @FXML private Button backStepButton;
+    @FXML private Button nextStepButton;
+    @FXML private VBox   dropZone;
+
+    private static final List<String> IMAGE_EXTENSIONS = List.of(".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp");
+
     private List<String>   imagePaths      = new ArrayList<>();
     private List<Category> allCategories   = new ArrayList<>();
     private Category       selectedCategory;
     private Item           editingItem;
     private boolean        isEditMode      = false;
+    private int            currentStep     = 1;
 
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         loadCategories();
         loadCities();
+        setupDragAndDrop();
+        showStep(1);
     }
 
     public void setItemForEdit(Item item) {
         this.editingItem = item;
         this.isEditMode  = true;
         submitButton.setText("💾 ذخیره تغییرات");
+        if (pageTitle != null) pageTitle.setText("✏️ ویرایش آگهی");
         Platform.runLater(this::fillFormWithItemData);
     }
 
@@ -70,54 +100,124 @@ public class CreateAdController extends BaseController {
         }
     }
 
-    private void loadCategories() {
-        try {
-            List<Category> categories = CategoryService.getAllCategories();
-            Platform.runLater(() -> {
-                allCategories = categories;
-                buildCategoryMenu();
-                applyPendingCategorySelection();
-            });
-        } catch (Exception e) {
-            showErrorLabel("خطا در بارگذاری دسته‌بندی‌ها: " + e.getMessage());
+    // ===================== ویزارد =====================
+
+    @FXML
+    private void nextStep() {
+        hideErrorLabel();
+        if (currentStep == 1 && !validateStep1()) return;
+        if (currentStep == 2 && !validateStep2()) return;
+        if (currentStep < 3) showStep(currentStep + 1);
+    }
+
+    @FXML
+    private void prevStep() {
+        hideErrorLabel();
+        if (currentStep > 1) showStep(currentStep - 1);
+    }
+
+    private void showStep(int step) {
+        currentStep = step;
+        setStepVisible(step1Box, step == 1);
+        setStepVisible(step2Box, step == 2);
+        setStepVisible(step3Box, step == 3);
+
+        styleStepIndicator(stepLabel1, 1, step);
+        styleStepIndicator(stepLabel2, 2, step);
+        styleStepIndicator(stepLabel3, 3, step);
+
+        if (wizardProgressBar != null) wizardProgressBar.setProgress(step / 3.0);
+
+        if (backStepButton != null) {
+            backStepButton.setVisible(step > 1);
+            backStepButton.setManaged(step > 1);
+        }
+        if (nextStepButton != null) {
+            nextStepButton.setVisible(step < 3);
+            nextStepButton.setManaged(step < 3);
+        }
+        if (submitButton != null) {
+            submitButton.setVisible(step == 3);
+            submitButton.setManaged(step == 3);
         }
     }
 
-    private void buildCategoryMenu() {
-        categoryMenuButton.getItems().clear();
-        for (Category root : allCategories) {
-            if (root.getParentId() != null) continue;
-            List<Category> children = new ArrayList<>();
-            for (Category c : allCategories) {
-                if (root.getId() != null && root.getId().equals(c.getParentId()))
-                    children.add(c);
-            }
-            if (children.isEmpty()) {
-                MenuItem item = new MenuItem(root.getName());
-                item.setOnAction(e -> selectCategory(root));
-                categoryMenuButton.getItems().add(item);
-            } else {
-                Menu menu = new Menu(root.getName());
-                MenuItem selfItem = new MenuItem("📂 همه‌ی «" + root.getName() + "»");
-                selfItem.setOnAction(e -> selectCategory(root));
-                menu.getItems().add(selfItem);
-                menu.getItems().add(new SeparatorMenuItem());
-                for (Category child : children) {
-                    MenuItem childItem = new MenuItem(child.getName());
-                    childItem.setOnAction(e -> selectCategory(child));
-                    menu.getItems().add(childItem);
-                }
-                categoryMenuButton.getItems().add(menu);
-            }
+    private void setStepVisible(VBox box, boolean visible) {
+        if (box == null) return;
+        box.setVisible(visible);
+        box.setManaged(visible);
+    }
+
+    private void styleStepIndicator(Label label, int stepOfLabel, int activeStep) {
+        if (label == null) return;
+        if (stepOfLabel == activeStep) {
+            label.setStyle("-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-weight: bold;"
+                    + "-fx-background-radius: 999; -fx-padding: 6 16; -fx-font-size: 12px;");
+        } else if (stepOfLabel < activeStep) {
+            label.setStyle("-fx-background-color: #143449; -fx-text-fill: white;"
+                    + "-fx-background-radius: 999; -fx-padding: 6 16; -fx-font-size: 12px;");
+        } else {
+            label.setStyle("-fx-background-color: #eef2f6; -fx-text-fill: #94a3b8;"
+                    + "-fx-background-radius: 999; -fx-padding: 6 16; -fx-font-size: 12px;");
         }
+    }
+
+    private boolean validateStep1() {
+        if (titleField.getText() == null || titleField.getText().trim().isEmpty()) {
+            showErrorLabel("لطفاً عنوان آگهی را وارد کنید");
+            return false;
+        }
+        if (selectedCategory == null) {
+            showErrorLabel("لطفاً دسته‌بندی را انتخاب کنید");
+            return false;
+        }
+        if (cityComboBox.getValue() == null) {
+            showErrorLabel("لطفاً شهر را انتخاب کنید");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean validateStep2() {
+        if (descriptionArea.getText() == null || descriptionArea.getText().trim().isEmpty()) {
+            showErrorLabel("لطفاً توضیحات را وارد کنید");
+            return false;
+        }
+        String priceText = priceField.getText() != null ? priceField.getText().trim() : "";
+        if (priceText.isEmpty()) {
+            showErrorLabel("لطفاً قیمت را وارد کنید");
+            return false;
+        }
+        try {
+            Long.parseLong(priceText.replace(",", ""));
+        } catch (NumberFormatException e) {
+            showErrorLabel("قیمت وارد شده معتبر نیست");
+            return false;
+        }
+        return true;
+    }
+
+    // ===================== دسته‌بندی و شهر =====================
+
+    private void loadCategories() {
+        new Thread(() -> {
+            try {
+                List<Category> categories = CategoryService.getAllCategories();
+                Platform.runLater(() -> {
+                    allCategories = categories;
+                    // فلای‌اوت مشترک دسته‌بندی (زیردسته‌ها در زیرمنو)
+                    CategoryPicker.populate(categoryMenuButton, categories, null, cat -> selectedCategory = cat);
+                    applyPendingCategorySelection();
+                });
+            } catch (Exception e) {
+                showErrorLabel("خطا در بارگذاری دسته‌بندی‌ها: " + e.getMessage());
+            }
+        }).start();
     }
 
     private void selectCategory(Category category) {
         selectedCategory = category;
-        String label = category.getName();
-        if (category.getParentName() != null && !category.getParentName().isEmpty())
-            label = category.getParentName() + " › " + category.getName();
-        categoryMenuButton.setText("📂 " + label);
+        categoryMenuButton.setText("📂 " + CategoryPicker.displayName(category));
     }
 
     private void applyPendingCategorySelection() {
@@ -131,29 +231,90 @@ public class CreateAdController extends BaseController {
     }
 
     private void loadCities() {
-        try {
-            List<City> cities = CityService.getAllCities();
-            Platform.runLater(() -> {
-                cityComboBox.getItems().addAll(cities);
-                if (!cities.isEmpty()) cityComboBox.getSelectionModel().selectFirst();
-            });
-        } catch (Exception e) {
-            showErrorLabel("خطا در بارگذاری شهرها: " + e.getMessage());
-        }
+        new Thread(() -> {
+            try {
+                List<City> cities = CityService.getAllCities();
+                Platform.runLater(() -> {
+                    cityComboBox.getItems().addAll(cities);
+                    if (!cities.isEmpty()) cityComboBox.getSelectionModel().selectFirst();
+                });
+            } catch (Exception e) {
+                showErrorLabel("خطا در بارگذاری شهرها: " + e.getMessage());
+            }
+        }).start();
     }
+
+    // ===================== تصاویر =====================
 
     @FXML
     private void addImage() {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("انتخاب تصویر");
         fileChooser.getExtensionFilters().add(
-                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif"));
-        File selectedFile = fileChooser.showOpenDialog(null);
-        if (selectedFile != null) {
-            String imagePath = selectedFile.getAbsolutePath();
-            imagePaths.add(imagePath);
-            addImagePreview(imagePath);
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.gif", "*.bmp", "*.webp"));
+        List<File> selectedFiles = fileChooser.showOpenMultipleDialog(null);
+        if (selectedFiles != null) {
+            for (File file : selectedFiles) addImageFile(file);
         }
+    }
+
+    /** پشتیبانی از کشیدن و رها کردن تصویر روی ناحیه آپلود */
+    private void setupDragAndDrop() {
+        if (dropZone == null) return;
+
+        dropZone.setOnDragOver((DragEvent event) -> {
+            Dragboard db = event.getDragboard();
+            if (db.hasFiles() && db.getFiles().stream().anyMatch(CreateAdController::isImageFile)) {
+                event.acceptTransferModes(TransferMode.COPY);
+                dropZone.setStyle(dropZoneStyle(true));
+            }
+            event.consume();
+        });
+
+        dropZone.setOnDragExited(event -> {
+            dropZone.setStyle(dropZoneStyle(false));
+            event.consume();
+        });
+
+        dropZone.setOnDragDropped((DragEvent event) -> {
+            Dragboard db = event.getDragboard();
+            boolean success = false;
+            if (db.hasFiles()) {
+                for (File file : db.getFiles()) {
+                    if (isImageFile(file)) {
+                        addImageFile(file);
+                        success = true;
+                    }
+                }
+            }
+            dropZone.setStyle(dropZoneStyle(false));
+            event.setDropCompleted(success);
+            event.consume();
+        });
+
+        dropZone.setStyle(dropZoneStyle(false));
+    }
+
+    private static String dropZoneStyle(boolean active) {
+        return "-fx-background-color: " + (active ? "#fff1e6" : "#f8fafc") + ";"
+                + "-fx-background-radius: 14;"
+                + "-fx-border-color: " + (active ? "#f97316" : "#cbd5e1") + ";"
+                + "-fx-border-style: dashed; -fx-border-width: 2; -fx-border-radius: 14;";
+    }
+
+    private static boolean isImageFile(File file) {
+        String name = file.getName().toLowerCase(Locale.ROOT);
+        for (String ext : IMAGE_EXTENSIONS) {
+            if (name.endsWith(ext)) return true;
+        }
+        return false;
+    }
+
+    private void addImageFile(File file) {
+        String imagePath = file.getAbsolutePath();
+        if (imagePaths.contains(imagePath)) return;
+        imagePaths.add(imagePath);
+        addImagePreview(imagePath);
     }
 
     private void addImagePreview(String imagePath) {
@@ -174,6 +335,8 @@ public class CreateAdController extends BaseController {
         }
     }
 
+    // ===================== ثبت نهایی =====================
+
     @FXML
     private void submitAd() {
         String title       = titleField.getText().trim();
@@ -181,20 +344,20 @@ public class CreateAdController extends BaseController {
         String priceText   = priceField.getText().trim();
         City   city        = cityComboBox.getValue();
 
-        if (title.isEmpty())       { showErrorLabel("لطفاً عنوان آگهی را وارد کنید");    return; }
-        if (description.isEmpty()) { showErrorLabel("لطفاً توضیحات را وارد کنید");        return; }
-        if (priceText.isEmpty())   { showErrorLabel("لطفاً قیمت را وارد کنید");           return; }
+        if (title.isEmpty())       { showStep(1); showErrorLabel("لطفاً عنوان آگهی را وارد کنید");    return; }
+        if (selectedCategory == null) { showStep(1); showErrorLabel("لطفاً دسته‌بندی را انتخاب کنید"); return; }
+        if (city == null)             { showStep(1); showErrorLabel("لطفاً شهر را انتخاب کنید");        return; }
+        if (description.isEmpty())    { showStep(2); showErrorLabel("لطفاً توضیحات را وارد کنید");        return; }
+        if (priceText.isEmpty())      { showStep(2); showErrorLabel("لطفاً قیمت را وارد کنید");           return; }
 
         Long price;
         try {
             price = Long.parseLong(priceText.replace(",", ""));
         } catch (NumberFormatException e) {
+            showStep(2);
             showErrorLabel("قیمت وارد شده معتبر نیست");
             return;
         }
-
-        if (selectedCategory == null) { showErrorLabel("لطفاً دسته‌بندی را انتخاب کنید"); return; }
-        if (city == null)             { showErrorLabel("لطفاً شهر را انتخاب کنید");        return; }
 
         try {
             if (isEditMode && editingItem != null) {
@@ -230,7 +393,7 @@ public class CreateAdController extends BaseController {
         } catch (Exception e) { e.printStackTrace(); }
     }
 
-    // ─── Label helpers (≠ BaseController — روی Label داخل فرم نمایش می‌دن) ───
+    // ─── Label helpers (روی Label داخل فرم نمایش می‌دهند) ───
 
     private void showErrorLabel(String message) {
         Platform.runLater(() -> {
@@ -246,5 +409,9 @@ public class CreateAdController extends BaseController {
             errorLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 13px;");
             errorLabel.setVisible(true);
         });
+    }
+
+    private void hideErrorLabel() {
+        if (errorLabel != null) errorLabel.setVisible(false);
     }
 }

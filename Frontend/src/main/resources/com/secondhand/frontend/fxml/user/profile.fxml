@@ -13,18 +13,15 @@
 
     <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
-          style="-fx-background-color: #ffffff;
-                 -fx-padding: 12 16;
-                 -fx-border-color: transparent transparent #e7ecf2 transparent;
-                 -fx-border-width: 0 0 1 0;">
-        <Label text="بازار سفید — پروفایل" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+          style="-fx-background-color: #0e2433; -fx-padding: 12 16;">
+        <Label text="دست‌دوم مارکت — پروفایل" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
         <HBox HBox.hgrow="ALWAYS"/>
         <Button text="─" onAction="#minimizeWindow"
                 style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
         <Button text="☐" onAction="#maximizeWindow"
                 style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
         <Button text="✕" onAction="#closeWindow"
-                style="-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+                style="-fx-background-color: transparent; -fx-text-fill: #f87171; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
     </HBox>
 
     <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
@@ -41,10 +38,10 @@
                         <Label text="پروفایل کاربری" style="-fx-text-fill: #0f172a; -fx-font-size: 22px; -fx-font-weight: bold;"/>
                         <Label text="مدیریت اطلاعات حساب و رمز عبور" style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
                     </VBox>
-                    <Button text="→ بازگشت" onAction="#goBack"
+                    <Button text="←" onAction="#goBack"
                             style="-fx-background-color: #ffffff;
-                                   -fx-text-fill: #0e9f6e;
-                                   -fx-border-color: #0e9f6e;
+                                   -fx-text-fill: #f97316;
+                                   -fx-border-color: #f97316;
                                    -fx-border-width: 1.5;
                                    -fx-border-radius: 10;
                                    -fx-background-radius: 10;
@@ -64,7 +61,7 @@
                              -fx-padding: 22 26;">
                     <StackPane>
                         <Region minWidth="116" minHeight="116" maxWidth="116" maxHeight="116"
-                                style="-fx-background-color: #e6f7f0; -fx-background-radius: 58; -fx-border-color: #0e9f6e; -fx-border-radius: 58; -fx-border-width: 2;"/>
+                                style="-fx-background-color: #fff1e6; -fx-background-radius: 58; -fx-border-color: #f97316; -fx-border-radius: 58; -fx-border-width: 2;"/>
                         <ImageView fx:id="avatarImageView" fitWidth="110.0" fitHeight="110.0" pickOnBounds="true" preserveRatio="true"/>
                     </StackPane>
                     <VBox spacing="8" HBox.hgrow="ALWAYS">
@@ -86,8 +83,8 @@
                                       -fx-text-fill: #92400e;"/>
                         <Button text="📷 تغییر عکس پروفایل" onAction="#changeProfilePhoto"
                                 style="-fx-background-color: #ffffff;
-                                       -fx-text-fill: #0e9f6e;
-                                       -fx-border-color: #0e9f6e;
+                                       -fx-text-fill: #f97316;
+                                       -fx-border-color: #f97316;
                                        -fx-border-width: 1.5;
                                        -fx-border-radius: 10;
                                        -fx-background-radius: 10;
@@ -130,14 +127,14 @@
                     </HBox>
 
                     <Button text="💾 ذخیره تغییرات" onAction="#saveProfile"
-                            style="-fx-background-color: #0e9f6e;
+                            style="-fx-background-color: #f97316;
                                    -fx-background-radius: 12;
                                    -fx-text-fill: white;
                                    -fx-font-weight: bold;
                                    -fx-font-size: 14px;
                                    -fx-cursor: hand;
                                    -fx-padding: 11 26;
-                                   -fx-effect: dropshadow(gaussian, rgba(14,159,110,0.30), 10, 0, 0, 3);"/>
+                                   -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.30), 10, 0, 0, 3);"/>
                 </VBox>
 
                 <!-- کارت تغییر رمز عبور -->
