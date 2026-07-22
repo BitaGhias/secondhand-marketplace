@@ -38,7 +38,9 @@ public class AuthService {
                         if (statusCode == 200 || statusCode == 201) {
                             future.complete(responseBody);
                         } else {
-                            future.completeExceptionally(new RuntimeException(responseBody));
+                            future.completeExceptionally(new RuntimeException(
+                                    ApiClient.extractErrorMessage(responseBody)
+                            ));
                         }
                     })
                     .exceptionally(ex -> {
@@ -78,7 +80,9 @@ public class AuthService {
                                 SessionStore.save(loginResponse.getToken(), loginResponse.getUser());
                                 future.complete(loginResponse);
                             } else {
-                                future.completeExceptionally(new RuntimeException(response.body()));
+                                future.completeExceptionally(new RuntimeException(
+                                        ApiClient.extractErrorMessage(response.body())
+                                ));
                             }
                         } catch (Exception e) {
                             future.completeExceptionally(new RuntimeException("خطا در تحلیل پاسخ سرور"));
@@ -101,7 +105,9 @@ public class AuthService {
         if (response.statusCode() == 200) {
             return objectMapper.readValue(response.body(), User.class);
         } else {
-            throw new Exception("خطا در دریافت پروفایل: " + response.body());
+            throw new Exception(
+                    ApiClient.extractErrorMessage(response.body())
+            );
         }
     }
 

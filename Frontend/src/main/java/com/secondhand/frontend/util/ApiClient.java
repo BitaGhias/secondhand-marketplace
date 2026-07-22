@@ -216,6 +216,30 @@ public class ApiClient {
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    /**
+     * Extract the backend's standard Persian error message instead of exposing
+     * the complete JSON response to the user.
+     */
+    public static String extractErrorMessage(String body) {
+        if (body == null || body.isBlank()) return "خطای نامشخص از سرور دریافت شد.";
+        try {
+            var node = mapper.readTree(body);
+            if (node.hasNonNull("message") && !node.get("message").asText().isBlank()) {
+                return node.get("message").asText();
+            }
+        } catch (Exception ignored) {
+            // Some network/proxy errors are plain text rather than JSON.
+        }
+        return body.trim();
+    }
+
+    /** Throw a user-readable exception for any non-2xx response. */
+    public static void ensureSuccess(HttpResponse<String> response) throws Exception {
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new Exception(extractErrorMessage(response.body()));
+        }
+    }
+
     public static <T> T parseResponse(String json, Class<T> clazz) throws Exception {
         return mapper.readValue(json, clazz);
     }
