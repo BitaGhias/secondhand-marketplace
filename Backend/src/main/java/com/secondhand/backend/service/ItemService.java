@@ -1,6 +1,7 @@
 package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.ItemStatus;
+import com.secondhand.backend.constant.PurchaseRequestStatus;
 import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.item.*;
 import com.secondhand.backend.entity.*;
@@ -33,6 +34,7 @@ public class ItemService {
     @Autowired private CityRepository cityRepository;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private ImageRepository imageRepository;
+    @Autowired private PurchaseRequestRepository purchaseRequestRepository;
 
     private void validateItemPrice(Long price) {
         if (price == null) throw new BadRequestException("قیمت آگهی الزامی است!");
@@ -288,6 +290,8 @@ public class ItemService {
         return convertToResponseList(itemRepository.findByStatusAndCityId(ItemStatus.APPROVED, cityId));
     }
 
+    // FIX: @Transactional اضافه شد - علامت‌گذاری فروش و رد درخواست‌های معلق باید اتمیک باشند
+    @Transactional
     public ItemResponse markAsSold(Long itemId, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -304,7 +308,16 @@ public class ItemService {
             throw new BadRequestException("آگهی حذف شده است!");
 
         item.setStatus(ItemStatus.SOLD);
-        return convertToResponse(itemRepository.save(item));
+        ItemResponse response = convertToResponse(itemRepository.save(item));
+
+        // FIX: رد خودکار درخواست‌های خرید در انتظار این آگهی، تا برای همیشه در وضعیت «در انتظار» معلق نمانند
+        for (PurchaseRequest pending : purchaseRequestRepository.findByItemIdAndStatus(itemId, PurchaseRequestStatus.PENDING)) {
+            pending.setStatus(PurchaseRequestStatus.DECLINED);
+            pending.setRespondedAt(java.time.LocalDateTime.now());
+            purchaseRequestRepository.save(pending);
+        }
+
+        return response;
     }
 
     public ItemResponse getItemById(Long itemId) {
@@ -363,6 +376,62 @@ public class ItemService {
             item.setRejectionReason(null);
         }
 
+        // FIX: پشتیبانی از حذف تصاویر قبلی در ویرایش
+        List<Image> currentImages = imageRepository.findByItemId(itemId);
+        int remainingCount = currentImages.size();
+
+        if (request.getRemovedImageIds() != null && !request.getRemovedImageIds().isEmpty()) {
+            for (Long imageId : request.getRemovedImageIds()) {
+                Image image = imageRepository.findById(imageId)
+                        .orElseThrow(() -> new ResourceNotFoundException("تصویر یافت نشد"));
+                if (image.getItem() == null || !image.getItem().getId().equals(itemId))
+                    throw new ForbiddenException("این تصویر متعلق به این آگهی نیست!");
+                try {
+                    Path filePath = Paths.get(image.getImagePath());
+                    if (Files.exists(filePath)) Files.delete(filePath);
+                } catch (IOException e) {
+                    logger.warn("خطا در حذف فایل تصویر: {} - {}", image.getImagePath(), e.getMessage());
+                }
+                imageRepository.delete(image);
+                remainingCount--;
+            }
+        }
+
+        // FIX: پشتیبانی از افزودن تصاویر جدید در ویرایش
+        List<MultipartFile> newImages = request.getImages();
+        if (newImages != null && !newImages.isEmpty()) {
+            validateImages(newImages);
+            if (remainingCount + newImages.size() > 5)
+                throw new BadRequestException("حداکثر ۵ تصویر مجاز است!");
+
+            try {
+                String uploadDir = "uploads/";
+                Path uploadPath = Paths.get(uploadDir);
+                if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+
+                int index = 0;
+                for (MultipartFile file : newImages) {
+                    if (!file.isEmpty()) {
+                        String originalFileName = file.getOriginalFilename();
+                        String extension = "";
+                        if (originalFileName != null && originalFileName.contains("."))
+                            extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+
+                        String fileName = System.currentTimeMillis() + "_" + (index++) + extension;
+                        Path filePath = uploadPath.resolve(fileName);
+                        Files.write(filePath, file.getBytes());
+
+                        Image image = new Image();
+                        image.setImagePath(filePath.toString().replace("\\", "/"));
+                        image.setItem(item);
+                        imageRepository.save(image);
+                    }
+                }
+            } catch (IOException e) {
+                throw new BadRequestException("خطا در ذخیره تصویر: " + e.getMessage());
+            }
+        }
+
         return convertToResponse(itemRepository.save(item));
     }
 
@@ -385,6 +454,9 @@ public class ItemService {
         return convertToResponseList(items);
     }
 
+    // FIX (مورد ۱): مشابه باگ قبلی markAsSold - بعد از خرید مستقیم باید درخواست‌های خرید
+    // معلق روی همین آگهی رد شوند، وگرنه برای همیشه در وضعیت «در انتظار» باقی می‌مانند
+    @Transactional
     public ItemResponse purchaseItem(Long itemId, Long buyerId) {
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -402,7 +474,16 @@ public class ItemService {
 
         item.setBuyer(buyer);
         item.setStatus(ItemStatus.SOLD);
-        return convertToResponse(itemRepository.save(item));
+        ItemResponse response = convertToResponse(itemRepository.save(item));
+
+        // FIX: رد خودکار سایر درخواست‌های خرید در انتظار همین آگهی
+        for (PurchaseRequest pending : purchaseRequestRepository.findByItemIdAndStatus(itemId, PurchaseRequestStatus.PENDING)) {
+            pending.setStatus(PurchaseRequestStatus.DECLINED);
+            pending.setRespondedAt(java.time.LocalDateTime.now());
+            purchaseRequestRepository.save(pending);
+        }
+
+        return response;
     }
 
     public List<ItemResponse> getPurchasedItems(Long buyerId) {

@@ -1,5 +1,8 @@
 package com.secondhand.backend.dto.item;
 
+import org.springframework.web.multipart.MultipartFile;
+import java.util.List;
+
 public class ItemUpdateRequest {
     private String title;
     private String description;
@@ -7,6 +10,9 @@ public class ItemUpdateRequest {
     private Long categoryId;
     private Long cityId;
     private String rejectionReason;
+    // FIX: پشتیبانی از تغییر تصاویر هنگام ویرایش آگهی
+    private List<Long> removedImageIds;
+    private List<MultipartFile> images;
 
     public ItemUpdateRequest() {}
 
@@ -26,6 +32,8 @@ public class ItemUpdateRequest {
     public Long getCategoryId() { return categoryId; }
     public Long getCityId() { return cityId; }
     public String getRejectionReason() { return rejectionReason; }
+    public List<Long> getRemovedImageIds() { return removedImageIds; }
+    public List<MultipartFile> getImages() { return images; }
 
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
@@ -33,4 +41,6 @@ public class ItemUpdateRequest {
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
     public void setCityId(Long cityId) { this.cityId = cityId; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+    public void setRemovedImageIds(List<Long> removedImageIds) { this.removedImageIds = removedImageIds; }
+    public void setImages(List<MultipartFile> images) { this.images = images; }
 }

@@ -74,6 +74,8 @@ public class ItemDetailController extends BaseController {
         currentUserId = SessionManager.getCurrentUserId();
         bindManaged(buyButton); bindManaged(chatButton);
         bindManaged(ratingButton); bindManaged(favoriteButton); bindManaged(addCommentBox);
+        // FIX: دکمه‌های صاحب آگهی هم باید بر اساس visible مدیریت شوند تا با پنهان شدن فضا هم بگیرند
+        bindManaged(editButton); bindManaged(deleteButton); bindManaged(soldButton);
         if (ownerActions != null) ownerActions.managedProperty().bind(ownerActions.visibleProperty());
         if (buyerActions != null) buyerActions.managedProperty().bind(buyerActions.visibleProperty());
         if (purchaseRequestsCard != null) purchaseRequestsCard.managedProperty().bind(purchaseRequestsCard.visibleProperty());
@@ -146,6 +148,13 @@ public class ItemDetailController extends BaseController {
         boolean isLoggedIn = SessionManager.isLoggedIn();
         ownerActions.setVisible(isOwner);
         buyerActions.setVisible(!isOwner);
+        if (isOwner) {
+            // FIX: دکمه‌های ویرایش/حذف/فروخته‌شده فقط برای آگهی‌هایی که هنوز به فروش نرسیده‌اند نمایش داده شوند
+            // (قبلاً این دکمه‌ها برای آگهی فروخته‌شده هم نمایش داده می‌شدند و فقط با خطای بک‌اند مواجه می‌شدند)
+            editButton.setVisible(currentItem.isEditable());
+            deleteButton.setVisible(currentItem.isDeletable());
+            soldButton.setVisible(isActive);
+        }
         if (!isOwner) {
             buyButton.setVisible(isActive);
             chatButton.setVisible(isActive);
@@ -468,24 +477,82 @@ public class ItemDetailController extends BaseController {
         VBox card = new VBox(6);
         card.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-border-color: #e7ecf2; -fx-border-radius: 12; -fx-padding: 12 16;");
         HBox header = new HBox(8); header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        Label usernameLabel = new Label("\uD83D\uDC64 " + comment.getUsername());
+        Label usernameLabel = new Label("👤 " + comment.getUsername());
         usernameLabel.setStyle("-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;");
         Label dateLabel = new Label(comment.getShortDate());
         dateLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 11px;");
+        // FIX (مورد ۴): نشانگر «ویرایش شده» برای کامنت‌هایی که بعد از ثبت تغییر داده شده‌اند
+        Label editedTag = new Label("(ویرایش شده)");
+        editedTag.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 10px; -fx-font-style: italic;");
+        editedTag.setVisible(comment.isEdited());
+        editedTag.setManaged(comment.isEdited());
         Region spacer = new Region(); HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(usernameLabel, dateLabel, spacer);
+        header.getChildren().addAll(usernameLabel, dateLabel, editedTag, spacer);
         boolean isMyComment = currentUserId != null && currentUserId.equals(comment.getUserId());
+        Label textLabel = new Label(comment.getText()); textLabel.setWrapText(true);
+        textLabel.setStyle("-fx-text-fill: #334155; -fx-font-size: 13px;");
+        if (isMyComment) {
+            Button editBtn = new Button("✏");
+            editBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #2563eb; -fx-cursor: hand; -fx-font-size: 13px; -fx-padding: 0 4;");
+            Tooltip.install(editBtn, new Tooltip("ویرایش نظر"));
+            editBtn.setOnAction(e -> startEditComment(comment, card, textLabel, editedTag));
+            header.getChildren().add(editBtn);
+        }
         if (isMyComment || SessionManager.isAdmin()) {
-            Button deleteBtn = new Button("\uD83D\uDDD1");
+            Button deleteBtn = new Button("🗑");
             deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-cursor: hand; -fx-font-size: 13px; -fx-padding: 0 4;");
             Tooltip.install(deleteBtn, new Tooltip("حذف نظر"));
             deleteBtn.setOnAction(e -> deleteComment(comment.getId(), card));
             header.getChildren().add(deleteBtn);
         }
-        Label textLabel = new Label(comment.getText()); textLabel.setWrapText(true);
-        textLabel.setStyle("-fx-text-fill: #334155; -fx-font-size: 13px;");
         card.getChildren().addAll(header, textLabel);
         return card;
+    }
+
+    private void startEditComment(Comment comment, VBox card, Label textLabel, Label editedTag) {
+        TextArea editArea = new TextArea(comment.getText());
+        editArea.setWrapText(true);
+        editArea.setPrefRowCount(2);
+        editArea.setStyle("-fx-font-size: 13px;");
+
+        Button saveBtn = new Button("ذخیره");
+        saveBtn.setStyle("-fx-background-color: #f97316; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 5 12;");
+        Button cancelBtn = new Button("انصراف");
+        cancelBtn.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #64748b; -fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-background-radius: 8; -fx-font-size: 11px; -fx-cursor: hand; -fx-padding: 5 12;");
+        HBox editActions = new HBox(8, saveBtn, cancelBtn);
+
+        int textIndex = card.getChildren().indexOf(textLabel);
+        card.getChildren().set(textIndex, editArea);
+        card.getChildren().add(editActions);
+
+        cancelBtn.setOnAction(e -> {
+            card.getChildren().remove(editActions);
+            card.getChildren().set(card.getChildren().indexOf(editArea), textLabel);
+        });
+
+        saveBtn.setOnAction(e -> {
+            String newText = editArea.getText() != null ? editArea.getText().trim() : "";
+            if (newText.isEmpty()) { showMessage("متن نظر نمی‌تواند خالی باشد", "error"); return; }
+            saveBtn.setDisable(true);
+            CommentService.editComment(comment.getId(), newText)
+                    .thenAccept(updated -> Platform.runLater(() -> {
+                        comment.setText(updated.getText());
+                        comment.setEdited(true); // FIX (مورد ۴)
+                        textLabel.setText(updated.getText());
+                        editedTag.setVisible(true);
+                        editedTag.setManaged(true);
+                        card.getChildren().remove(editActions);
+                        card.getChildren().set(card.getChildren().indexOf(editArea), textLabel);
+                        showMessage("نظر ویرایش شد", "success");
+                    }))
+                    .exceptionally(ex -> {
+                        Platform.runLater(() -> {
+                            saveBtn.setDisable(false);
+                            showMessage("خطا در ویرایش نظر: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error");
+                        });
+                        return null;
+                    });
+        });
     }
 
     @FXML

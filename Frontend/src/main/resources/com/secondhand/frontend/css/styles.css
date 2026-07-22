@@ -347,6 +347,20 @@
     -fx-underline: true;
 }
 
+/* ============ Auth Switch Link (ثبت‌نام کنید / وارد شوید) ============ */
+.auth-link {
+    -fx-text-fill: #ea580c;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-underline: false;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+}
+.auth-link:hover {
+    -fx-text-fill: #c2410c;
+    -fx-underline: true;
+}
+
 /* ============ Separator ============ */
 .separator .line {
     -fx-border-color: -line transparent transparent transparent;

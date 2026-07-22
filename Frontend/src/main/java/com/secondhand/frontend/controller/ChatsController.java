@@ -21,6 +21,7 @@ import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ChatsController extends BaseController {
 
@@ -173,10 +174,85 @@ public class ChatsController extends BaseController {
             bubble.setStyle(mine
                     ? "-fx-background-color: #f97316; -fx-text-fill: white; -fx-background-radius: 14 14 2 14; -fx-padding: 9 13; -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.25), 6, 0, 0, 2);"
                     : "-fx-background-color: #ffffff; -fx-text-fill: #0f172a; -fx-background-radius: 14 14 14 2; -fx-border-color: #e7ecf2; -fx-border-radius: 14 14 14 2; -fx-padding: 9 13;");
-            HBox row = new HBox(bubble);
+
+            // FIX (مورد ۴): نشانگر «ویرایش شده» زیر حباب پیام‌های ویرایش‌شده
+            VBox bubbleBox = new VBox(2, bubble);
+            bubbleBox.setAlignment(mine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+            if (message.isEdited()) {
+                Label editedTag = new Label("ویرایش شده");
+                editedTag.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 9px; -fx-font-style: italic; -fx-padding: 0 4;");
+                bubbleBox.getChildren().add(editedTag);
+            }
+
+            HBox row;
+            if (mine) {
+                Button editBtn = new Button("✏");
+                editBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-cursor: hand; -fx-font-size: 11px; -fx-padding: 0 2;");
+                Tooltip.install(editBtn, new Tooltip("ویرایش پیام"));
+                editBtn.setOnAction(e -> startEditMessage(message));
+
+                Button deleteBtn = new Button("🗑");
+                deleteBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-cursor: hand; -fx-font-size: 11px; -fx-padding: 0 2;");
+                Tooltip.install(deleteBtn, new Tooltip("حذف پیام"));
+                deleteBtn.setOnAction(e -> deleteMessage(message));
+
+                VBox actions = new VBox(2, editBtn, deleteBtn);
+                actions.setAlignment(Pos.CENTER);
+                row = new HBox(6, actions, bubbleBox);
+            } else {
+                row = new HBox(bubbleBox);
+            }
             row.setAlignment(mine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
             messagesVBox.getChildren().add(row);
         }
+    }
+
+    // FIX (مورد ۴): بعد از ویرایش، کل لیست پیام‌ها دوباره از سرور خوانده می‌شود تا نشانگر «ویرایش شده» هم نمایش داده شود
+    private void startEditMessage(ChatMessage message) {
+        TextInputDialog dialog = new TextInputDialog(message.getText());
+        dialog.setTitle("ویرایش پیام");
+        dialog.setHeaderText(null);
+        dialog.setContentText("متن جدید:");
+        try { dialog.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) {}
+        Optional<String> result = dialog.showAndWait();
+        if (result.isEmpty()) return;
+        String newText = result.get().trim();
+        if (newText.isEmpty()) return;
+        final Long conversationId = currentConversation != null ? currentConversation.getId() : null;
+        new Thread(() -> {
+            try {
+                ChatService.editMessage(message.getId(), newText);
+                if (conversationId != null) {
+                    List<ChatMessage> messages = ChatService.getMessages(conversationId);
+                    Platform.runLater(() -> { renderMessages(messages); lastMessageCount = messages.size(); });
+                }
+            } catch (Exception e) {
+                Platform.runLater(() -> currentChatUserLabel.setText("خطا در ویرایش پیام: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    // FIX: دیالوگ حذف پیام - از متد API بک‌اند موجود (DELETE /chat/message/{id}) که قبلاً بدون UI بود
+    private void deleteMessage(ChatMessage message) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("حذف پیام");
+        confirm.setHeaderText(null);
+        confirm.setContentText("از حذف این پیام اطمینان دارید؟");
+        try { confirm.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) {}
+        Optional<ButtonType> result = confirm.showAndWait();
+        if (result.isEmpty() || result.get() != ButtonType.OK) return;
+        final Long conversationId = currentConversation != null ? currentConversation.getId() : null;
+        new Thread(() -> {
+            try {
+                ChatService.deleteMessage(message.getId());
+                if (conversationId != null) {
+                    List<ChatMessage> messages = ChatService.getMessages(conversationId);
+                    Platform.runLater(() -> { renderMessages(messages); lastMessageCount = messages.size(); });
+                }
+            } catch (Exception e) {
+                Platform.runLater(() -> currentChatUserLabel.setText("خطا در حذف پیام: " + e.getMessage()));
+            }
+        }).start();
     }
 
     private void scrollToBottom() {

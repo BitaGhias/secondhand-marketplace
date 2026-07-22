@@ -42,12 +42,44 @@ public class UserService {
         return phone.matches(phoneRegex);
     }
 
-    // FIX: بررسی حداقل طول رمز عبور
+    // FIX: تبدیل ارقام فارسی/عربی به انگلیسی (مثلاً شماره تلفن با کیبورد فارسی تایپ‌شده)
+    private String normalizeDigits(String input) {
+        if (input == null) return null;
+        StringBuilder sb = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            if (c >= '۰' && c <= '۹') { // ارقام فارسی
+                sb.append((char) (c - '۰' + '0'));
+            } else if (c >= '٠' && c <= '٩') { // ارقام عربی
+                sb.append((char) (c - '٠' + '0'));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    // FIX: بررسی فرمت نام کامل (فقط حروف و فاصله، بین ۳ تا ۵۰ کاراکتر)
+    private boolean isValidFullName(String fullName) {
+        if (fullName == null) return false;
+        return fullName.trim().matches("^[\\p{L} ]{3,50}$");
+    }
+
+    // FIX: بررسی فرمت نام کاربری (فقط حروف انگلیسی، عدد و _ ، بین ۳ تا ۲۰ کاراکتر)
+    private boolean isValidUsername(String username) {
+        if (username == null) return false;
+        return username.trim().matches("^[A-Za-z0-9_]{3,20}$");
+    }
+
+    // FIX: بررسی حداقل/حداکثر طول رمز عبور و عدم وجود فاصله
     private void validatePassword(String password) {
         if (password == null || password.trim().isEmpty())
             throw new BadRequestException("رمز عبور الزامی است!");
         if (password.length() < 6)
             throw new BadRequestException("رمز عبور باید حداقل ۶ کاراکتر باشد!");
+        if (password.length() > 100)
+            throw new BadRequestException("رمز عبور نباید بیشتر از ۱۰۰ کاراکتر باشد!");
+        if (password.contains(" "))
+            throw new BadRequestException("رمز عبور نباید شامل فاصله باشد!");
     }
 
     public UserResponse convertToResponse(User user) {
@@ -68,39 +100,55 @@ public class UserService {
         if (request.getFullName() == null || request.getFullName().trim().isEmpty())
             throw new BadRequestException("نام کامل الزامی است!");
 
+        if (!isValidFullName(request.getFullName()))
+            throw new BadRequestException("نام کامل باید بین ۳ تا ۵۰ حرف باشد و فقط شامل حروف باشد!");
+
         if (request.getUsername() == null || request.getUsername().trim().isEmpty())
             throw new BadRequestException("نام کاربری الزامی است!");
 
-        if (userRepository.existsByUsername(request.getUsername()))
+        if (!isValidUsername(request.getUsername()))
+            throw new BadRequestException("نام کاربری باید بین ۳ تا ۲۰ کاراکتر باشد و فقط شامل حروف انگلیسی، عدد و _ باشد!");
+
+        String normalizedUsername = request.getUsername().trim().toLowerCase();
+
+        // FIX: بررسی تکراری بودن نام کاربری بدون توجه به بزرگی/کوچکی حروف
+        if (userRepository.existsByUsernameIgnoreCase(request.getUsername().trim()))
             throw new BadRequestException("نام کاربری تکراری است!");
 
         // FIX: استفاده از validatePassword به جای بررسی null ساده
         validatePassword(request.getPassword());
 
+        if (request.getConfirmPassword() == null || !request.getPassword().equals(request.getConfirmPassword()))
+            throw new BadRequestException("رمز عبور و تکرار آن مطابقت ندارند!");
+
         if (request.getEmail() == null || request.getEmail().trim().isEmpty())
             throw new BadRequestException("ایمیل الزامی است!");
 
-        if (!isValidEmail(request.getEmail()))
+        String normalizedEmail = request.getEmail().trim().toLowerCase();
+        if (!isValidEmail(normalizedEmail))
             throw new BadRequestException("فرمت ایمیل نامعتبر است!");
 
-        if (userRepository.existsByEmail(request.getEmail()))
+        if (userRepository.existsByEmail(normalizedEmail))
             throw new BadRequestException("ایمیل تکراری است!");
 
         if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty())
             throw new BadRequestException("شماره تلفن الزامی است!");
 
-        if (!isValidPhoneNumber(request.getPhoneNumber()))
+        // FIX: تبدیل ارقام فارسی/عربی احتمالی شماره تلفن به انگلیسی قبل از بررسی فرمت
+        String normalizedPhone = normalizeDigits(request.getPhoneNumber().trim());
+
+        if (!isValidPhoneNumber(normalizedPhone))
             throw new BadRequestException("فرمت شماره تلفن نامعتبر است! باید با 09 شروع شود و 11 رقم باشد.");
 
-        if (userRepository.existsByPhoneNumber(request.getPhoneNumber()))
+        if (userRepository.existsByPhoneNumber(normalizedPhone))
             throw new BadRequestException("شماره تلفن تکراری است!");
 
         User user = new User();
-        user.setFullName(request.getFullName());
-        user.setUsername(request.getUsername());
+        user.setFullName(request.getFullName().trim());
+        user.setUsername(normalizedUsername); // به‌جای request.getUsername().trim()
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setPhoneNumber(request.getPhoneNumber());
-        user.setEmail(request.getEmail());
+        user.setPhoneNumber(normalizedPhone);
+        user.setEmail(normalizedEmail);
         user.setRole(Role.USER);
         user.setBlocked(false);
         user.setActive(true);
@@ -116,7 +164,11 @@ public class UserService {
         if (password == null || password.trim().isEmpty())
             throw new BadRequestException("رمز عبور الزامی است!");
 
-        User user = userRepository.findByUsername(username)
+        // FIX: حذف فاصله‌های اضافی احتمالی قبل از جستجو (مثلاً درخواست مستقیم به API بدون فرانت)
+        String normalizedUsername = username.trim();
+
+        // FIX: پیدا کردن کاربر بدون توجه به بزرگی/کوچکی حروف نام کاربری
+        User user = userRepository.findByUsernameIgnoreCase(normalizedUsername)
                 .orElseThrow(() -> new UnauthorizedException("نام کاربری یا رمز عبور اشتباه است"));
 
         if (!user.isActive())

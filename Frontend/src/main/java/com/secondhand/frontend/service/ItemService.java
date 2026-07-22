@@ -17,22 +17,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
-/**
- * سرویس آگهی‌ها — مسیرها دقیقاً مطابق ItemController بک‌اند:
- *   GET  /api/items/approved            لیست آگهی‌های تاییدشده
- *   POST /api/items/search/advanced     جست‌وجوی پیشرفته (keyword/categoryId/cityId/minPrice/maxPrice)
- *   GET  /api/items/pending             آگهی‌های در انتظار (ادمین)
- *   PUT  /api/items/{id}/status         تایید/رد (ادمین، با پارامتر status و rejectionReason)
- *   GET  /api/items/user                آگهی‌های من
- *   GET  /api/items/purchased           خریدهای من
- *   PUT  /api/items/{id}/purchase       خرید کالا
- *   PUT  /api/items/{id}/sold           اعلام فروخته‌شدن
- *   DELETE /api/items/{id}              حذف آگهی
- *   PUT  /api/items/{id}                ویرایش آگهی (JSON)
- *   POST /api/items/create              ثبت آگهی (multipart با فیلد images)
- *   GET  /api/items/{id}                دریافت یک آگهی
- *   GET  /api/items/admin/user/{userId} همه آگهی‌های یک کاربر (ادمین)
- */
 public class ItemService {
     private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
@@ -160,16 +144,23 @@ public class ItemService {
         return objectMapper.readValue(res.body(), Item.class);
     }
 
-    /** ویرایش آگهی — JSON مطابق PUT /api/items/{id} */
+    /** ویرایش آگهی — multipart/form-data مطابق PUT /api/items/{id} (شامل حذف/افزودن تصویر) */
     public static Item updateItem(Long id, ItemUpdateRequest request) throws Exception {
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("title", request.title);
-        body.put("description", request.description);
-        body.put("price", request.price);
-        body.put("categoryId", request.categoryId);
-        body.put("cityId", request.cityId);
+        Map<String, String> fields = new LinkedHashMap<>();
+        fields.put("title", request.title);
+        fields.put("description", request.description);
+        fields.put("price", String.valueOf(request.price));
+        fields.put("categoryId", String.valueOf(request.categoryId));
+        fields.put("cityId", String.valueOf(request.cityId));
 
-        HttpResponse<String> res = ApiClient.put("/items/" + id, body);
+        List<File> files = new ArrayList<>();
+        if (request.newImagePaths != null) {
+            for (String path : request.newImagePaths) {
+                if (path != null && !path.isBlank()) files.add(new File(path));
+            }
+        }
+
+        HttpResponse<String> res = ApiClient.putMultipart("/items/" + id, fields, request.removedImageIds, "images", files);
         ensureSuccess(res, "خطا در ویرایش آگهی");
         return objectMapper.readValue(res.body(), Item.class);
     }
@@ -238,12 +229,17 @@ public class ItemService {
     }
 
     public static class ItemUpdateRequest {
-        public String title, description, status;
+        public String title, description;
         public Long price, categoryId, cityId;
+        public List<Long> removedImageIds;
+        public List<String> newImagePaths;
 
-        public ItemUpdateRequest(String t, String d, Long p, Long cat, Long city, String s) {
+        // FIX (مورد ۲): پارامتر status حذف شد. این مقدار قبلاً هرگز واقعاً به سرور ارسال
+        // نمی‌شد (updateItem فقط title/description/price/categoryId/cityId را می‌فرستد) و
+        // صرفاً وضعیت قدیمی و گمراه‌کننده‌ی آگهی (مثلاً "REJECTED") را بی‌مصرف حمل می‌کرد.
+        public ItemUpdateRequest(String t, String d, Long p, Long cat, Long city) {
             this.title = t; this.description = d; this.price = p;
-            this.categoryId = cat; this.cityId = city; this.status = s;
+            this.categoryId = cat; this.cityId = city;
         }
     }
 }

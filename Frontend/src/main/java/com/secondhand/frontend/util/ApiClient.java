@@ -126,6 +126,62 @@ public class ApiClient {
         return client.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
+    // ===== PUT Multipart (برای ویرایش آگهی همراه با تغییر تصویر) =====
+    public static HttpResponse<String> putMultipart(String endpoint,
+                                                    Map<String, String> fields,
+                                                    List<Long> removedImageIds,
+                                                    String fileFieldName,
+                                                    List<File> files) throws Exception {
+        String boundary = "----SecondHandBoundary" + System.currentTimeMillis();
+        String CRLF = "\r\n";
+        List<byte[]> byteArrays = new ArrayList<>();
+
+        // فیلدهای متنی
+        for (Map.Entry<String, String> field : fields.entrySet()) {
+            String part = "--" + boundary + CRLF +
+                    "Content-Disposition: form-data; name=\"" + field.getKey() + "\"" + CRLF +
+                    "Content-Type: text/plain; charset=UTF-8" + CRLF + CRLF +
+                    field.getValue() + CRLF;
+            byteArrays.add(part.getBytes(StandardCharsets.UTF_8));
+        }
+
+        // شناسه‌های تصاویری که باید در ویرایش حذف شوند
+        if (removedImageIds != null) {
+            for (Long imageId : removedImageIds) {
+                String part = "--" + boundary + CRLF +
+                        "Content-Disposition: form-data; name=\"removedImageIds\"" + CRLF +
+                        "Content-Type: text/plain; charset=UTF-8" + CRLF + CRLF +
+                        imageId + CRLF;
+                byteArrays.add(part.getBytes(StandardCharsets.UTF_8));
+            }
+        }
+
+        // فایل‌های تصویر جدید
+        if (files != null) {
+            for (File file : files) {
+                if (file == null || !file.exists()) continue;
+                String mimeType = Files.probeContentType(file.toPath());
+                if (mimeType == null) mimeType = "application/octet-stream";
+                String header = "--" + boundary + CRLF +
+                        "Content-Disposition: form-data; name=\"" + fileFieldName + "\"; filename=\"" + file.getName() + "\"" + CRLF +
+                        "Content-Type: " + mimeType + CRLF + CRLF;
+                byteArrays.add(header.getBytes(StandardCharsets.UTF_8));
+                byteArrays.add(Files.readAllBytes(file.toPath()));
+                byteArrays.add(CRLF.getBytes(StandardCharsets.UTF_8));
+            }
+        }
+
+        byteArrays.add(("--" + boundary + "--" + CRLF).getBytes(StandardCharsets.UTF_8));
+
+        HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(BASE_URL + endpoint))
+                .header("Authorization", getAuthHeader())
+                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                .method("PUT", HttpRequest.BodyPublishers.ofByteArrays(byteArrays))
+                .build();
+        return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
     // ===== PUT =====
     public static HttpResponse<String> put(String endpoint, Object body) throws Exception {
         String jsonBody = body != null ? mapper.writeValueAsString(body) : "";

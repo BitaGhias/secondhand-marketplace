@@ -10,11 +10,13 @@ public class CommentResponse {
     private Long userId;
     private String username;
     private LocalDateTime createdAt;
+    // FIX (مورد ۴): نشانگر ویرایش‌شدن کامنت
+    private boolean edited;
 
     public CommentResponse() {}
 
     public CommentResponse(Long id, String text, Long itemId, String itemTitle,
-                           Long userId, String username, LocalDateTime createdAt) {
+                           Long userId, String username, LocalDateTime createdAt, boolean edited) {
         this.id = id;
         this.text = text;
         this.itemId = itemId;
@@ -22,6 +24,7 @@ public class CommentResponse {
         this.userId = userId;
         this.username = username;
         this.createdAt = createdAt;
+        this.edited = edited;
     }
 
     public Long getId() { return id; }
@@ -31,6 +34,7 @@ public class CommentResponse {
     public Long getUserId() { return userId; }
     public String getUsername() { return username; }
     public LocalDateTime getCreatedAt() { return createdAt; }
+    public boolean isEdited() { return edited; }
 
     public void setId(Long id) { this.id = id; }
     public void setText(String text) { this.text = text; }
@@ -39,4 +43,5 @@ public class CommentResponse {
     public void setUserId(Long userId) { this.userId = userId; }
     public void setUsername(String username) { this.username = username; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    public void setEdited(boolean edited) { this.edited = edited; }
 }

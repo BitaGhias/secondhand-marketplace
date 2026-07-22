@@ -74,8 +74,11 @@ public class LoginController extends BaseController {
 
     private void handleLoginResponse(HttpResponse<String> response) {
         int status = response.statusCode();
-        if (status == 401 || status == 403) { showErrorLabel("نام کاربری یا رمز عبور اشتباه است"); return; }
+        // FIX: به‌جای نمایش پیام یکسان برای 401 و 403، پیام واقعی سرور (مثلاً مسدود بودن کاربر) نمایش داده شود
+        if (status == 401) { showErrorLabel(extractServerMessage(response.body(), "نام کاربری یا رمز عبور اشتباه است")); return; }
+        if (status == 403) { showErrorLabel(extractServerMessage(response.body(), "حساب کاربری شما مسدود یا غیرفعال است")); return; }
         if (status != 200) { showErrorLabel("خطای سرور: " + status); return; }
+
 
         try {
             ObjectMapper mapper = ApiClient.getMapper();
@@ -106,6 +109,17 @@ public class LoginController extends BaseController {
         } catch (Exception e) {
             showErrorLabel("خطا در پردازش پاسخ سرور");
         }
+    }
+
+    // FIX: استخراج پیام دقیق خطا (مثلاً مسدود بودن کاربر) از پاسخ سرور
+    private String extractServerMessage(String responseBody, String fallback) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> errorMap = ApiClient.getMapper().readValue(responseBody, Map.class);
+            Object message = errorMap.get("message");
+            if (message != null && !message.toString().trim().isEmpty()) return message.toString();
+        } catch (Exception ignored) {}
+        return fallback;
     }
 
     private void navigateAfterLogin() throws Exception {

@@ -59,8 +59,14 @@ public class CreateAdController extends BaseController {
     @FXML private VBox   dropZone;
 
     private static final List<String> IMAGE_EXTENSIONS = List.of(".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp");
+    // FIX: محدودیت‌های تصویر هم‌راستا با بک‌اند که اکنون سمت کلاینت هم بررسی می‌شود
+    private static final int  MAX_IMAGES = 5;
+    private static final long MAX_IMAGE_SIZE_BYTES = 5L * 1024 * 1024;
 
     private List<String>   imagePaths      = new ArrayList<>();
+    // FIX: تصاویر موجود آگهی هنگام ویرایش و شناسه تصاویری که قرار است حذف شوند
+    private List<com.secondhand.frontend.model.Image> existingImages = new ArrayList<>();
+    private List<Long>     removedImageIds = new ArrayList<>();
     private List<Category> allCategories   = new ArrayList<>();
     private Category       selectedCategory;
     private Item           editingItem;
@@ -96,6 +102,13 @@ public class CreateAdController extends BaseController {
                     cityComboBox.setValue(city);
                     break;
                 }
+            }
+        }
+        // FIX: تصاویر فعلی آگهی در حالت ویرایش بارگذاری و قابل حذف می‌شوند
+        if (editingItem.getImages() != null) {
+            existingImages = new ArrayList<>(editingItem.getImages());
+            for (com.secondhand.frontend.model.Image img : existingImages) {
+                addExistingImagePreview(img);
             }
         }
     }
@@ -205,7 +218,6 @@ public class CreateAdController extends BaseController {
                 List<Category> categories = CategoryService.getAllCategories();
                 Platform.runLater(() -> {
                     allCategories = categories;
-                    // فلای‌اوت مشترک دسته‌بندی (زیردسته‌ها در زیرمنو)
                     CategoryPicker.populate(categoryMenuButton, categories, null, cat -> selectedCategory = cat);
                     applyPendingCategorySelection();
                 });
@@ -310,9 +322,24 @@ public class CreateAdController extends BaseController {
         return false;
     }
 
+    // FIX: تعداد کل تصاویر (موجود + جدید) را برای بررسی محدودیت محاسبه می‌کند
+    private int totalImageCount() {
+        return existingImages.size() + imagePaths.size();
+    }
+
     private void addImageFile(File file) {
         String imagePath = file.getAbsolutePath();
         if (imagePaths.contains(imagePath)) return;
+        // FIX: محدودیت حداکثر ۵ تصویر اکنون سمت کلاینت هم قبل از ارسال به سرور بررسی می‌شود
+        if (totalImageCount() >= MAX_IMAGES) {
+            showErrorLabel("حداکثر " + MAX_IMAGES + " تصویر مجاز است!");
+            return;
+        }
+        // FIX: محدودیت حجم ۵ مگابایتی اکنون سمت کلاینت هم قبل از ارسال به سرور بررسی می‌شود
+        if (file.length() > MAX_IMAGE_SIZE_BYTES) {
+            showErrorLabel("حجم تصویر «" + file.getName() + "» نباید بیشتر از ۵ مگابایت باشد!");
+            return;
+        }
         imagePaths.add(imagePath);
         addImagePreview(imagePath);
     }
@@ -326,6 +353,26 @@ public class CreateAdController extends BaseController {
             imageView.setStyle("-fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-cursor: hand;");
             imageView.setOnMouseClicked(e -> {
                 imagePaths.remove(imagePath);
+                imagePreviewContainer.getChildren().remove(imageView);
+            });
+            Tooltip.install(imageView, new Tooltip("برای حذف کلیک کنید"));
+            imagePreviewContainer.getChildren().add(imageView);
+        } catch (Exception e) {
+            showErrorLabel("خطا در بارگذاری تصویر: " + e.getMessage());
+        }
+    }
+
+    // FIX: نمایش تصاویر موجود آگهی در حالت ویرایش به همراه امکان حذف
+    private void addExistingImagePreview(com.secondhand.frontend.model.Image img) {
+        try {
+            ImageView imageView = new ImageView(new Image(img.getFullUrl()));
+            imageView.setFitHeight(80);
+            imageView.setFitWidth(80);
+            imageView.setPreserveRatio(true);
+            imageView.setStyle("-fx-border-color: #cbd5e1; -fx-border-radius: 8; -fx-cursor: hand;");
+            imageView.setOnMouseClicked(e -> {
+                existingImages.remove(img);
+                if (img.getId() != null) removedImageIds.add(img.getId());
                 imagePreviewContainer.getChildren().remove(imageView);
             });
             Tooltip.install(imageView, new Tooltip("برای حذف کلیک کنید"));
@@ -362,7 +409,10 @@ public class CreateAdController extends BaseController {
         try {
             if (isEditMode && editingItem != null) {
                 ItemService.ItemUpdateRequest req = new ItemService.ItemUpdateRequest(
-                        title, description, price, selectedCategory.getId(), city.getId(), editingItem.getStatus());
+                        title, description, price, selectedCategory.getId(), city.getId());
+                // FIX: تصاویر حذف‌شده و تصاویر تازه هم همراه ویرایش ارسال می‌شوند
+                req.removedImageIds = removedImageIds;
+                req.newImagePaths = imagePaths;
                 ItemService.updateItem(editingItem.getId(), req);
                 showSuccessLabel("آگهی با موفقیت ویرایش شد");
             } else {

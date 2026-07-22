@@ -12,7 +12,12 @@ public interface UserRepository extends JpaRepository<User,Long>
     boolean existsByEmail(String email);
     boolean existsByPhoneNumber(String phoneNumber);
 
+    // FIX: بررسی تکراری بودن نام کاربری بدون توجه به بزرگی/کوچکی حروف (Ali == ali)
+    boolean existsByUsernameIgnoreCase(String username);
+
     Optional<User> findByUsername(String username);//برای خطا ندادن برنامه در صورت پیدا نکردن
+    // FIX: پیدا کردن کاربر بدون توجه به بزرگی/کوچکی حروف برای لاگین یکسان با هر حالتی از حروف
+    Optional<User> findByUsernameIgnoreCase(String username);
     Optional<User> findByEmail(String email);
     Optional<User> findByPhoneNumber(String phoneNumber);
 }

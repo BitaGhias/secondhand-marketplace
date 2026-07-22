@@ -35,7 +35,8 @@ public class RegisterController extends BaseController {
         String fullName         = fullNameField.getText().trim();
         String username         = usernameField.getText().trim();
         String email            = emailField.getText().trim();
-        String phone            = phoneField.getText().trim();
+        // FIX: تبدیل ارقام فارسی/عربی احتمالی شماره تلفن به انگلیسی قبل از اعتبارسنجی و ارسال
+        String phone            = ValidationUtil.normalizeDigits(phoneField.getText().trim());
         String password         = passwordField.getText();
         String confirmPassword  = confirmPasswordField.getText();
 
@@ -43,7 +44,7 @@ public class RegisterController extends BaseController {
 
         setLoadingState(true);
 
-        AuthService.register(fullName, username, email, phone, password)
+        AuthService.register(fullName, username, email, phone, password, confirmPassword)
                 .thenAccept(responseBody -> handleRegisterSuccess(username, password))
                 .exceptionally(ex -> {
                     String errorMsg = ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage();
@@ -54,12 +55,25 @@ public class RegisterController extends BaseController {
 
     private boolean validateForm(String fullName, String username, String email,
                                  String phone, String password, String confirmPassword) {
-        if (fullName.isEmpty())                           return showValidationError("لطفاً نام کامل را وارد کنید");
-        if (username.isEmpty())                           return showValidationError("لطفاً نام کاربری را وارد کنید");
-        if (!ValidationUtil.isValidEmail(email))          return showValidationError("لطفاً ایمیل معتبر وارد کنید");
-        if (!ValidationUtil.isValidIranianPhone(phone))   return showValidationError("شماره تلفن باید با 09 شروع شود و 11 رقم باشد");
-        if (!ValidationUtil.isValidPassword(password, 6)) return showValidationError("رمز عبور باید حداقل ۶ کاراکتر باشد");
-        if (!password.equals(confirmPassword))            return showValidationError("رمز عبور و تکرار آن مطابقت ندارند");
+        if (fullName.isEmpty())                              return showValidationError("نام کامل الزامی است!");
+        if (!ValidationUtil.isValidFullName(fullName))       return showValidationError("نام کامل باید بین ۳ تا ۵۰ حرف باشد و فقط شامل حروف باشد!");
+
+        if (username.isEmpty())                              return showValidationError("نام کاربری الزامی است!");
+        if (!ValidationUtil.isValidUsername(username))       return showValidationError("نام کاربری باید بین ۳ تا ۲۰ کاراکتر باشد و فقط شامل حروف انگلیسی، عدد و _ باشد!");
+
+        if (password.isEmpty())                              return showValidationError("رمز عبور الزامی است!");
+        if (!ValidationUtil.isValidPassword(password, 6))    return showValidationError("رمز عبور باید حداقل ۶ کاراکتر باشد!");
+        // FIX: بررسی حداکثر طول رمز عبور
+        if (ValidationUtil.isPasswordTooLong(password, 100)) return showValidationError("رمز عبور نباید بیشتر از ۱۰۰ کاراکتر باشد!");
+        // FIX: بررسی عدم وجود فاصله در رمز عبور
+        if (ValidationUtil.containsSpace(password))          return showValidationError("رمز عبور نباید شامل فاصله باشد!");
+        if (!password.equals(confirmPassword))               return showValidationError("رمز عبور و تکرار آن مطابقت ندارند!");
+
+        if (email.isEmpty())                                 return showValidationError("ایمیل الزامی است!");
+        if (!ValidationUtil.isValidEmail(email))             return showValidationError("فرمت ایمیل نامعتبر است!");
+
+        if (phone.isEmpty())                                 return showValidationError("شماره تلفن الزامی است!");
+        if (!ValidationUtil.isValidIranianPhone(phone))      return showValidationError("فرمت شماره تلفن نامعتبر است! باید با 09 شروع شود و 11 رقم باشد.");
         return true;
     }
 
