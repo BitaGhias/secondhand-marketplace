@@ -18,6 +18,8 @@ import java.nio.file.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -175,9 +177,10 @@ public class ItemService {
                         String originalFileName = file.getOriginalFilename();
                         String extension = "";
                         if (originalFileName != null && originalFileName.contains("."))
-                            extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                            extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase(Locale.ROOT);
 
-                        String fileName = System.currentTimeMillis() + extension;
+                        // UUID prevents collisions when several images are uploaded concurrently.
+                        String fileName = UUID.randomUUID() + extension;
                         Path filePath = uploadPath.resolve(fileName);
                         Files.write(filePath, file.getBytes());
 
@@ -409,15 +412,15 @@ public class ItemService {
                 Path uploadPath = Paths.get(uploadDir);
                 if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
 
-                int index = 0;
                 for (MultipartFile file : newImages) {
                     if (!file.isEmpty()) {
                         String originalFileName = file.getOriginalFilename();
                         String extension = "";
                         if (originalFileName != null && originalFileName.contains("."))
-                            extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                            extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase(Locale.ROOT);
 
-                        String fileName = System.currentTimeMillis() + "_" + (index++) + extension;
+                        // UUID keeps filenames unique across concurrent edit requests.
+                        String fileName = UUID.randomUUID() + extension;
                         Path filePath = uploadPath.resolve(fileName);
                         Files.write(filePath, file.getBytes());
 

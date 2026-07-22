@@ -20,6 +20,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 @Service
 public class UserService {
@@ -315,9 +317,13 @@ public class UserService {
             String originalFileName = image.getOriginalFilename();
             String extension = "";
             if (originalFileName != null && originalFileName.contains("."))
-                extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase(Locale.ROOT);
 
-            String fileName = "profile_" + userId + "_" + System.currentTimeMillis() + extension;
+            if (!List.of(".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp").contains(extension))
+                throw new BadRequestException("فرمت فایل تصویر مجاز نیست!");
+
+            // UUID avoids overwriting a profile image during rapid successive uploads.
+            String fileName = "profile_" + userId + "_" + UUID.randomUUID() + extension;
             Path filePath = uploadPath.resolve(fileName);
             Files.write(filePath, image.getBytes());
 
