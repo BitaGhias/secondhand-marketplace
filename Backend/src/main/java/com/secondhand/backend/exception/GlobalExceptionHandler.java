@@ -6,6 +6,7 @@ import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.exception.custom.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -81,6 +82,19 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request);
+    }
+
+    // 409 Conflict - جلوگیری از تکمیل هم‌زمان خرید یک آگهی
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLockingFailure(
+            OptimisticLockingFailureException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "این آگهی هم‌زمان توسط کاربر دیگری تغییر کرده است. لطفاً دوباره وضعیت آگهی را بررسی کنید.",
+                HttpStatus.CONFLICT,
+                request
+        );
     }
 
     // 409 Conflict - برای خطاهای constraint دیتابیس
