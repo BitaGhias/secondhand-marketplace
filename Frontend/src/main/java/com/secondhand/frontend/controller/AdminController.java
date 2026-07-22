@@ -23,6 +23,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
@@ -327,28 +328,127 @@ public class AdminController extends BaseController {
     private void setupCategoriesPane() {
         if (categoriesListView == null) return;
 
+        // افزودن style class مخصوص برای CSS targeting
+        categoriesListView.getStyleClass().add("categories-list-view");
+
         categoriesListView.setCellFactory(listView -> new ListCell<>() {
+            private final Label nameLabel = new Label();
+            private final Label metaLabel = new Label();
+            private final VBox container = new VBox(2, nameLabel, metaLabel);
+            private final Region indent = new Region();
+            private final HBox root = new HBox(8, indent, container);
+
+            {
+                nameLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
+                metaLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+                container.setStyle("-fx-padding: 10 12; -fx-background-radius: 8;");
+                indent.setPrefWidth(24);
+                indent.setMaxWidth(24);
+                indent.setMinWidth(24);
+                root.setAlignment(Pos.CENTER_LEFT);
+                setGraphic(root);
+            }
+
             @Override protected void updateItem(Category c, boolean empty) {
                 super.updateItem(c, empty);
-                if (empty || c == null) { setText(null); setStyle("-fx-background-color: transparent;"); }
-                else {
-                    String parentInfo = (c.getParentName() != null && !c.getParentName().isBlank())
-                            ? "   ← زیرشاخهٔ «" + c.getParentName() + "»" : "   (دستهٔ اصلی)";
-                    long count = c.getItemCount() != null ? c.getItemCount() : 0;
-                    setText("📂 " + c.getName() + parentInfo + "\n🗃 " + count + " آگهی");
-                    setStyle("-fx-background-color: transparent; -fx-text-fill: #0f172a; -fx-font-size: 13px; -fx-padding: 10;");
+                if (empty || c == null) {
+                    setText(null);
+                    setGraphic(null);
+                    getStyleClass().removeAll("editing", "subcategory");
+                    return;
                 }
+
+                // اعمال استایل‌ها از طریق CSS classes (بدون inline style)
+                getStyleClass().removeAll("editing", "subcategory");
+                getStyleClass().add("categories-list-cell");
+
+                // تورفتگی برای زیردسته‌ها
+                if (c.getParentId() != null) {
+                    getStyleClass().add("subcategory");
+                    indent.setVisible(true);
+                    indent.setManaged(true);
+                } else {
+                    indent.setVisible(false);
+                    indent.setManaged(false);
+                }
+
+                // چک کردن آیا این آیتم در حال ویرایش است
+                boolean isEditing = (selectedCategoryForEdit != null
+                        && selectedCategoryForEdit.getId() != null
+                        && selectedCategoryForEdit.getId().equals(c.getId()));
+                if (isEditing) getStyleClass().add("editing");
+
+                String parentInfo = (c.getParentName() != null && !c.getParentName().isBlank())
+                        ? "زیرشاخهٔ «" + c.getParentName() + "»" : "دستهٔ اصلی";
+                long count = c.getItemCount() != null ? c.getItemCount() : 0;
+
+                nameLabel.setText("📂 " + c.getName() + (isEditing ? "  ✏️" : ""));
+                metaLabel.setText(parentInfo + "  •  " + count + " آگهی");
+
+                setGraphic(root);
             }
         });
 
+        // Tooltip برای دکمه حذف
+        Tooltip deleteTooltip = new Tooltip("ابتدا یک دسته را از لیست انتخاب کنید");
+        deleteTooltip.setStyle("-fx-font-size: 11px;");
+        deleteCategoryButton.setTooltip(deleteTooltip);
+
         categoriesListView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, selected) -> {
             selectedCategoryForEdit = selected;
-            if (selected == null) { resetCategoryForm(); return; }
+            if (selected == null) {
+                resetCategoryForm();
+                deleteCategoryButton.setDisable(true);
+                deleteCategoryButton.setTooltip(new Tooltip("ابتدا یک دسته را از لیست انتخاب کنید"));
+                return;
+            }
             categoryNameField.setText(selected.getName());
             selectedParentCategory = findCategoryById(selected.getParentId());
             refreshParentMenu();
             addCategoryButton.setText("💾 ذخیره تغییرات");
             deleteCategoryButton.setDisable(false);
+            deleteCategoryButton.setTooltip(new Tooltip("حذف دسته «" + selected.getName() + "»"));
+            // فوکوس روی فیلد نام برای ویرایش سریع
+            categoryNameField.requestFocus();
+            categoryNameField.selectAll();
+        });
+
+        // Keyboard Navigation برای لیست دسته‌بندی‌ها
+        categoriesListView.setOnKeyPressed(event -> {
+            switch (event.getCode()) {
+                case ENTER -> {
+                    Category selected = categoriesListView.getSelectionModel().getSelectedItem();
+                    if (selected != null) {
+                        categoryNameField.requestFocus();
+                        categoryNameField.selectAll();
+                    }
+                }
+                case DELETE -> {
+                    Category selected = categoriesListView.getSelectionModel().getSelectedItem();
+                    if (selected != null) deleteCategory();
+                }
+                case ESCAPE -> cancelCategoryEdit();
+                default -> {}
+            }
+        });
+
+        // Real-time validation برای فیلد نام دسته‌بندی
+        categoryNameField.textProperty().addListener((obs, oldVal, newVal) -> {
+            boolean hasText = newVal != null && !newVal.trim().isEmpty();
+            addCategoryButton.setDisable(!hasText);
+            if (hasText) {
+                categoryNameField.setStyle("-fx-border-color: #dbe3ea;");
+            } else {
+                categoryNameField.setStyle("-fx-border-color: #fca5a5;");
+            }
+        });
+        // پیش‌فرض غیرفعال تا زمانی که متن وارد شود
+        addCategoryButton.setDisable(true);
+
+        // Keyboard shortcuts برای فیلد نام
+        categoryNameField.setOnKeyPressed(e -> {
+            if (e.getCode() == KeyCode.ENTER) addOrUpdateCategory();
+            if (e.getCode() == KeyCode.ESCAPE) cancelCategoryEdit();
         });
 
         deleteCategoryButton.setDisable(true);
@@ -404,9 +504,17 @@ public class AdminController extends BaseController {
         CategoryPicker.populate(parentCategoryMenuButton, options, NO_PARENT_LABEL,
                 cat -> selectedParentCategory = cat);
 
-        parentCategoryMenuButton.setText(selectedParentCategory == null
+        String displayText = selectedParentCategory == null
                 ? NO_PARENT_LABEL
-                : "📂 " + CategoryPicker.displayName(selectedParentCategory));
+                : "📂 " + CategoryPicker.displayName(selectedParentCategory);
+        parentCategoryMenuButton.setText(displayText);
+
+        // اعمال فیدبک بصری روی MenuButton وقتی والد انتخاب شده است
+        if (selectedParentCategory != null) {
+            parentCategoryMenuButton.setStyle("-fx-background-color: #fff1e6; -fx-background-radius: 10; -fx-border-color: #f97316; -fx-border-radius: 10; -fx-border-width: 1.5px; -fx-padding: 8 12; -fx-cursor: hand; -fx-text-fill: #0f172a;");
+        } else {
+            parentCategoryMenuButton.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 10; -fx-border-color: #dbe3ea; -fx-border-radius: 10; -fx-padding: 8 12; -fx-cursor: hand; -fx-text-fill: #0f172a;");
+        }
     }
 
     private Category findCategoryById(Long id) {
@@ -463,8 +571,14 @@ public class AdminController extends BaseController {
         selectedCategoryForEdit = null;
         selectedParentCategory = null;
         categoryNameField.clear();
+        categoryNameField.setStyle("-fx-border-color: #dbe3ea;"); // ریست border
         refreshParentMenu();
+        // ریست استایل MenuButton والد به حالت پیش‌فرض
+        if (parentCategoryMenuButton != null) {
+            parentCategoryMenuButton.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 10; -fx-border-color: #dbe3ea; -fx-border-radius: 10; -fx-padding: 8 12; -fx-cursor: hand; -fx-text-fill: #0f172a;");
+        }
         addCategoryButton.setText("➕ افزودن دسته‌بندی");
+        addCategoryButton.setDisable(true); // غیرفعال تا وارد کردن متن
         deleteCategoryButton.setDisable(true);
     }
 

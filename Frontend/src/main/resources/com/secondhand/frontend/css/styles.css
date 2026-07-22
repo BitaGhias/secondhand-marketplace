@@ -257,6 +257,36 @@
     -fx-text-fill: -brand-orange-deep;
 }
 
+/* ============ Admin Categories ListView ============ */
+.categories-list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -text-strong;
+    -fx-padding: 10 12;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+}
+.categories-list-view .list-cell:filled:hover {
+    -fx-background-color: #fff1e6;
+    -fx-text-fill: #c2410c;
+}
+.categories-list-view .list-cell:filled:selected {
+    -fx-background-color: -brand-orange;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+/* برای آیتم در حال ویرایش */
+.categories-list-view .list-cell.editing {
+    -fx-background-color: #fff1e6;
+    -fx-border-color: -brand-orange;
+    -fx-border-width: 1 0 1 3;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
+}
+/* تورفتگی برای زیردسته‌ها */
+.categories-list-view .list-cell.subcategory {
+    -fx-padding: 10 12 10 36;
+}
+
 /* ============ TableView (خریدها) ============ */
 .table-view {
     -fx-background-color: #ffffff;
