@@ -34,7 +34,7 @@
     <HBox VBox.vgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
 
         <!-- سایدبار نفتی -->
-        <VBox spacing="6" minWidth="230" maxWidth="230"
+        <VBox styleClass="admin-sidebar" spacing="6" minWidth="230" maxWidth="230"
               style="-fx-background-color: #0e2433; -fx-background-radius: 0 0 0 24; -fx-padding: 22 14;">
 
             <HBox alignment="CENTER_LEFT" spacing="10" style="-fx-padding: 0 4 14 4;">

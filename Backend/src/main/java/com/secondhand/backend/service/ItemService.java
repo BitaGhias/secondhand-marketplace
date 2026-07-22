@@ -18,6 +18,8 @@ import java.nio.file.*;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +27,9 @@ import org.slf4j.LoggerFactory;
 public class ItemService {
 
     private static final Logger logger = LoggerFactory.getLogger(ItemService.class);
+    private static final int MAX_TITLE_LENGTH = 100;
+    private static final int MAX_DESCRIPTION_LENGTH = 5000;
+    private static final long MAX_PRICE = 999_999_999_999L;
 
     @Autowired
     private RatingRepository ratingRepository;
@@ -39,13 +44,26 @@ public class ItemService {
     private void validateItemPrice(Long price) {
         if (price == null) throw new BadRequestException("قیمت آگهی الزامی است!");
         if (price <= 0) throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
+        if (price > MAX_PRICE) throw new BadRequestException("قیمت آگهی بیش از حد مجاز است!");
+    }
+
+    private void validateItemTitle(String title) {
+        if (title == null || title.trim().isEmpty())
+            throw new BadRequestException("عنوان آگهی نمی‌تواند خالی باشد!");
+        if (title.trim().length() > MAX_TITLE_LENGTH)
+            throw new BadRequestException("عنوان آگهی نباید بیشتر از ۱۰۰ کاراکتر باشد!");
+    }
+
+    private void validateItemDescription(String description) {
+        if (description == null || description.trim().isEmpty())
+            throw new BadRequestException("توضیحات آگهی نمی‌تواند خالی باشد!");
+        if (description.trim().length() > MAX_DESCRIPTION_LENGTH)
+            throw new BadRequestException("توضیحات آگهی نباید بیشتر از ۵۰۰۰ کاراکتر باشد!");
     }
 
     private void validateItemTitleAndDescription(String title, String description) {
-        if (title == null || title.trim().isEmpty())
-            throw new BadRequestException("عنوان آگهی نمی‌تواند خالی باشد!");
-        if (description == null || description.trim().isEmpty())
-            throw new BadRequestException("توضیحات آگهی نمی‌تواند خالی باشد!");
+        validateItemTitle(title);
+        validateItemDescription(description);
     }
 
     private void validateUserIsAdmin(User user) {
@@ -136,6 +154,17 @@ public class ItemService {
         return responses;
     }
 
+    /** Remove files created by a failed database/file operation. */
+    private void cleanupCreatedFiles(List<Path> createdFiles) {
+        for (Path file : createdFiles) {
+            try {
+                Files.deleteIfExists(file);
+            } catch (IOException cleanupError) {
+                logger.warn("خطا در پاک‌سازی فایل موقت: {} - {}", file, cleanupError.getMessage());
+            }
+        }
+    }
+
     // FIX: @Transactional اضافه شد - ذخیره آگهی و تصویر اتمیک است
     @Transactional
     public ItemResponse addItem(ItemCreateRequest request, Long userId) {
@@ -147,14 +176,19 @@ public class ItemService {
         validateItemPrice(request.getPrice());
         validateImages(request.getImages());
 
+        if (request.getCategoryId() == null)
+            throw new BadRequestException("دسته‌بندی آگهی الزامی است!");
+        if (request.getCityId() == null)
+            throw new BadRequestException("شهر آگهی الزامی است!");
+
         Category category = categoryRepository.findById(request.getCategoryId())
                 .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی یافت نشد"));
         City city = cityRepository.findById(request.getCityId())
                 .orElseThrow(() -> new ResourceNotFoundException("شهر یافت نشد"));
 
         Item item = new Item();
-        item.setTitle(request.getTitle());
-        item.setDescription(request.getDescription());
+        item.setTitle(request.getTitle().trim());
+        item.setDescription(request.getDescription().trim());
         item.setPrice(request.getPrice());
         item.setStatus(ItemStatus.PENDING);
         item.setUser(user);
@@ -162,6 +196,7 @@ public class ItemService {
         item.setCity(city);
 
         Item savedItem = itemRepository.save(item);
+        List<Path> createdFiles = new ArrayList<>();
 
         List<MultipartFile> images = request.getImages();
         if (images != null && !images.isEmpty()) {
@@ -175,11 +210,13 @@ public class ItemService {
                         String originalFileName = file.getOriginalFilename();
                         String extension = "";
                         if (originalFileName != null && originalFileName.contains("."))
-                            extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                            extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase(Locale.ROOT);
 
-                        String fileName = System.currentTimeMillis() + extension;
+                        // UUID prevents collisions when several images are uploaded concurrently.
+                        String fileName = UUID.randomUUID() + extension;
                         Path filePath = uploadPath.resolve(fileName);
                         Files.write(filePath, file.getBytes());
+                        createdFiles.add(filePath);
 
                         Image image = new Image();
                         image.setImagePath(filePath.toString().replace("\\", "/"));
@@ -187,7 +224,9 @@ public class ItemService {
                         imageRepository.save(image);
                     }
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
+                cleanupCreatedFiles(createdFiles);
+                if (e instanceof BadRequestException badRequest) throw badRequest;
                 throw new BadRequestException("خطا در ذخیره تصویر: " + e.getMessage());
             }
         }
@@ -351,12 +390,16 @@ public class ItemService {
         if (item.getStatus() == ItemStatus.SOLD || item.getStatus() == ItemStatus.DELETED)
             throw new BadRequestException("این آگهی قابل ویرایش نیست!");
 
-        if (request.getTitle() != null && !request.getTitle().trim().isEmpty())
-            item.setTitle(request.getTitle());
-        if (request.getDescription() != null && !request.getDescription().trim().isEmpty())
-            item.setDescription(request.getDescription());
+        if (request.getTitle() != null && !request.getTitle().trim().isEmpty()) {
+            validateItemTitle(request.getTitle());
+            item.setTitle(request.getTitle().trim());
+        }
+        if (request.getDescription() != null && !request.getDescription().trim().isEmpty()) {
+            validateItemDescription(request.getDescription());
+            item.setDescription(request.getDescription().trim());
+        }
         if (request.getPrice() != null) {
-            if (request.getPrice() <= 0) throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
+            validateItemPrice(request.getPrice());
             item.setPrice(request.getPrice());
         }
         if (request.getCategoryId() != null) {
@@ -398,6 +441,7 @@ public class ItemService {
         }
 
         // FIX: پشتیبانی از افزودن تصاویر جدید در ویرایش
+        List<Path> createdFiles = new ArrayList<>();
         List<MultipartFile> newImages = request.getImages();
         if (newImages != null && !newImages.isEmpty()) {
             validateImages(newImages);
@@ -409,17 +453,18 @@ public class ItemService {
                 Path uploadPath = Paths.get(uploadDir);
                 if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
 
-                int index = 0;
                 for (MultipartFile file : newImages) {
                     if (!file.isEmpty()) {
                         String originalFileName = file.getOriginalFilename();
                         String extension = "";
                         if (originalFileName != null && originalFileName.contains("."))
-                            extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+                            extension = originalFileName.substring(originalFileName.lastIndexOf(".")).toLowerCase(Locale.ROOT);
 
-                        String fileName = System.currentTimeMillis() + "_" + (index++) + extension;
+                        // UUID keeps filenames unique across concurrent edit requests.
+                        String fileName = UUID.randomUUID() + extension;
                         Path filePath = uploadPath.resolve(fileName);
                         Files.write(filePath, file.getBytes());
+                        createdFiles.add(filePath);
 
                         Image image = new Image();
                         image.setImagePath(filePath.toString().replace("\\", "/"));
@@ -427,7 +472,9 @@ public class ItemService {
                         imageRepository.save(image);
                     }
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
+                cleanupCreatedFiles(createdFiles);
+                if (e instanceof BadRequestException badRequest) throw badRequest;
                 throw new BadRequestException("خطا در ذخیره تصویر: " + e.getMessage());
             }
         }

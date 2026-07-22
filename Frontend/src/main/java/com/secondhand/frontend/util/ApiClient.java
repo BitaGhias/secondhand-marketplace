@@ -19,7 +19,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class ApiClient {
 
-    private static final String BASE_URL = "http://127.0.0.1:8080/api";
+    private static final String DEFAULT_BASE_URL = "http://127.0.0.1:8080/api";
+    private static final String BASE_URL = resolveBaseUrl();
     private static final HttpClient client = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
@@ -30,6 +31,19 @@ public class ApiClient {
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     private static String token = null;
+
+    private static String resolveBaseUrl() {
+        String configured = System.getProperty("secondhand.api.url");
+        if (configured == null || configured.isBlank()) {
+            configured = System.getenv("SECONDHAND_API_URL");
+        }
+        if (configured == null || configured.isBlank()) {
+            return DEFAULT_BASE_URL;
+        }
+
+        String normalized = configured.trim().replaceAll("/+$", "");
+        return normalized.endsWith("/api") ? normalized : normalized + "/api";
+    }
 
     public static String getBaseUrl() { return BASE_URL; }
     public static String getToken() { return token; }
@@ -214,6 +228,30 @@ public class ApiClient {
                 .method("DELETE", HttpRequest.BodyPublishers.ofString(jsonBody))
                 .build();
         return client.send(request, HttpResponse.BodyHandlers.ofString());
+    }
+
+    /**
+     * Extract the backend's standard Persian error message instead of exposing
+     * the complete JSON response to the user.
+     */
+    public static String extractErrorMessage(String body) {
+        if (body == null || body.isBlank()) return "خطای نامشخص از سرور دریافت شد.";
+        try {
+            var node = mapper.readTree(body);
+            if (node.hasNonNull("message") && !node.get("message").asText().isBlank()) {
+                return node.get("message").asText();
+            }
+        } catch (Exception ignored) {
+            // Some network/proxy errors are plain text rather than JSON.
+        }
+        return body.trim();
+    }
+
+    /** Throw a user-readable exception for any non-2xx response. */
+    public static void ensureSuccess(HttpResponse<String> response) throws Exception {
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new Exception(extractErrorMessage(response.body()));
+        }
     }
 
     public static <T> T parseResponse(String json, Class<T> clazz) throws Exception {

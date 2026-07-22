@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Category;
 import com.secondhand.frontend.model.City;
@@ -163,14 +165,14 @@ public class AdListController extends BaseController {
                     }
                     if (statCategoriesLabel != null) statCategoriesLabel.setText(String.valueOf(categories.size()));
                 });
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
             try {
                 List<City> cities = CityService.getAllCities();
                 Platform.runLater(() -> {
                     if (cityFilterComboBox != null) cityFilterComboBox.getItems().setAll(cities);
                     if (statCitiesLabel != null) statCitiesLabel.setText(String.valueOf(cities.size()));
                 });
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         }).start();
     }
 
@@ -344,13 +346,13 @@ public class AdListController extends BaseController {
                 index++;
             } catch (Exception e) {
                 System.err.println("❌ خطا در رندر کارت آگهی:");
-                e.printStackTrace();
+                FrontendErrorHandler.log(e);
             }
         }
     }
 
     private void showLoadError(Exception e) {
-        e.printStackTrace();
+        FrontendErrorHandler.log(e);
         Platform.runLater(() -> {
             if (loadingContainer != null) loadingContainer.setVisible(false);
             if (adsFlowPane != null) {
@@ -376,14 +378,14 @@ public class AdListController extends BaseController {
                         bellBadgeLabel.setManaged(unread > 0);
                     }
                 });
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         }).start();
     }
 
     @FXML
     private void goToNotifications() {
         try { MainApplication.changeScene(Routes.NOTIFICATIONS, "اعلان‌ها"); }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 
     // ===================== ناوبری =====================
@@ -416,17 +418,17 @@ public class AdListController extends BaseController {
         }
     }
 
-    @FXML private void goToMyAds()      { try { MainApplication.changeScene(Routes.MY_ADS,      "آگهی‌های من");     } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToFavorites()  { try { MainApplication.changeScene(Routes.FAVORITES,   "علاقه‌مندی‌ها");  } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToChats()      { try { MainApplication.changeScene(Routes.CHATS,        "پیام‌ها");         } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToPurchases()  { try { MainApplication.changeScene(Routes.PURCHASES,   "خریدها");          } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToCreateAd()   { try { MainApplication.changeScene(Routes.CREATE_AD,   "ثبت آگهی جدید");  } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToAdminPanel() { try { MainApplication.changeScene(Routes.ADMIN_PANEL, "پنل مدیریت");      } catch (Exception e) { e.printStackTrace(); } }
-    @FXML private void goToProfile()    { try { MainApplication.changeScene(Routes.PROFILE,     "پروفایل من");      } catch (Exception e) { e.printStackTrace(); } }
+    @FXML private void goToMyAds()      { try { MainApplication.changeScene(Routes.MY_ADS,      "آگهی‌های من");     } catch (Exception e) { FrontendErrorHandler.log(e); } }
+    @FXML private void goToFavorites()  { try { MainApplication.changeScene(Routes.FAVORITES,   "علاقه‌مندی‌ها");  } catch (Exception e) { FrontendErrorHandler.log(e); } }
+    @FXML private void goToChats()      { try { MainApplication.changeScene(Routes.CHATS,        "پیام‌ها");         } catch (Exception e) { FrontendErrorHandler.log(e); } }
+    @FXML private void goToPurchases()  { try { MainApplication.changeScene(Routes.PURCHASES,   "خریدها");          } catch (Exception e) { FrontendErrorHandler.log(e); } }
+    @FXML private void goToCreateAd()   { try { MainApplication.changeScene(Routes.CREATE_AD,   "ثبت آگهی جدید");  } catch (Exception e) { FrontendErrorHandler.log(e); } }
+    @FXML private void goToAdminPanel() { try { MainApplication.changeScene(Routes.ADMIN_PANEL, "پنل مدیریت");      } catch (Exception e) { FrontendErrorHandler.log(e); } }
+    @FXML private void goToProfile()    { try { MainApplication.changeScene(Routes.PROFILE,     "پروفایل من");      } catch (Exception e) { FrontendErrorHandler.log(e); } }
 
     private void handleLogout() {
         SessionManager.logout();
         try { MainApplication.changeScene(Routes.LOGIN, "ورود"); }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 }

@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.FavoriteService;
@@ -104,7 +106,7 @@ public class AdItemController {
             try {
                 boolean fav = FavoriteService.isFavorite(item.getId());
                 Platform.runLater(() -> applyHeart(fav));
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         }).start();
     }
 

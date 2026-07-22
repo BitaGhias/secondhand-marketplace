@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.ChatMessage;
 import com.secondhand.frontend.model.Conversation;
@@ -213,7 +215,7 @@ public class ChatsController extends BaseController {
         dialog.setTitle("ویرایش پیام");
         dialog.setHeaderText(null);
         dialog.setContentText("متن جدید:");
-        try { dialog.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) {}
+        try { dialog.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         Optional<String> result = dialog.showAndWait();
         if (result.isEmpty()) return;
         String newText = result.get().trim();
@@ -238,7 +240,7 @@ public class ChatsController extends BaseController {
         confirm.setTitle("حذف پیام");
         confirm.setHeaderText(null);
         confirm.setContentText("از حذف این پیام اطمینان دارید؟");
-        try { confirm.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) {}
+        try { confirm.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
         final Long conversationId = currentConversation != null ? currentConversation.getId() : null;
@@ -286,7 +288,7 @@ public class ChatsController extends BaseController {
     private void goBack() {
         stopPolling();
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 
     private void startPolling() {

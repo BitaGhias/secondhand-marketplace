@@ -17,13 +17,13 @@
 
 ## 🏗️ معماری و تکنولوژی‌ها
 
-| بخش | تکنولوژی |
-|------|-----------|
-| Backend | Java 21 + Spring Boot (REST API) |
-| Frontend | JavaFX 21 (FXML) |
+| بخش | تکنولوژی                                        |
+|------|-------------------------------------------------|
+| Backend | Java 25 + Spring Boot (REST API)                |
+| Frontend | JavaFX 25 (FXML)                                |
 | دیتابیس | SQLite (فایل `secondhand.sqlite` در ریشه پروژه) |
-| احراز هویت | JWT (Bearer Token) |
-| ارتباط | HTTP/JSON روی پورت 8080 |
+| احراز هویت | JWT (Bearer Token)                              |
+| ارتباط | HTTP/JSON روی پورت 8080                         |
 
 ## 🚀 نحوه اجرا
 
@@ -46,6 +46,28 @@ mvn clean javafx:run
 ```
 
 > ⚠️ ابتدا بک‌اند را اجرا کنید، سپس فرانت‌اند را.
+
+### تنظیم آدرس Backend در Frontend
+
+به‌صورت پیش‌فرض، Frontend به آدرس زیر وصل می‌شود:
+
+```text
+http://127.0.0.1:8080/api
+```
+
+برای اجرای Backend روی آدرس دیگر، می‌توانید هنگام اجرای Frontend یکی از این تنظیمات را بدهید:
+
+```bash
+mvn javafx:run -Dsecondhand.api.url=http://localhost:8080/api
+```
+
+یا متغیر محیطی تنظیم کنید:
+
+```bash
+SECONDHAND_API_URL=http://localhost:8080/api
+```
+
+اگر آدرس بدون `/api` داده شود، Frontend آن را به‌صورت خودکار اضافه می‌کند.
 
 ## 🔑 حساب‌های تست
 
@@ -125,3 +147,69 @@ secondhand-marketplace/
 - JWT secret از متغیر محیطی `JWT_SECRET` خوانده می‌شود. مقدار داخل `application.properties` صرفاً یک fallback توسعه برای اجرای سریع پروژه است و در محیط واقعی باید حتماً از طریق متغیر محیطی تنظیم شود.
 - برای پاک کردن دیتابیس و شروع مجدد، فایل `secondhand.sqlite` را حذف کنید.
 - فرمت‌های مجاز تصویر: JPG، JPEG، PNG، GIF، BMP، WEBP
+- نسخه اصلی توسعه Backend: **Java 25**. برای اجرای پروژه از JDK 25 استفاده کنید.
+- آدرس Frontend قابل تنظیم است؛ مقدار پیش‌فرض `http://127.0.0.1:8080/api` است.
+
+## 🛠️ تنظیمات توسعه
+
+### اجرای Backend با Java 25
+
+```bash
+cd Backend
+./mvnw spring-boot:run
+```
+
+### اجرای تست و build
+
+```bash
+cd Backend
+./mvnw clean test
+
+cd ../Frontend
+./mvnw clean package
+```
+
+اگر Maven نتوانست dependencyها را دانلود کند، اتصال اینترنت، تنظیمات proxy و trust store مربوط به JDK 25 را بررسی کنید. خطای `handshake_failure` مربوط به ارتباط TLS با Maven Central است، نه خطای کد پروژه.
+
+### تنظیم آدرس API در Frontend
+
+به‌صورت پیش‌فرض Frontend از این آدرس استفاده می‌کند:
+
+```text
+http://127.0.0.1:8080/api
+```
+
+با system property:
+
+```bash
+cd Frontend
+./mvnw javafx:run -Dsecondhand.api.url=http://localhost:8080/api
+```
+
+یا با environment variable:
+
+```bash
+export SECONDHAND_API_URL=http://localhost:8080/api
+```
+
+اگر مقدار تنظیم‌شده `/api` نداشته باشد، Frontend آن را خودکار اضافه می‌کند.
+
+### پاک‌سازی دیتابیس توسعه
+
+قبل از حذف دیتابیس از اطلاعات آن backup بگیرید:
+
+```bash
+cp Backend/secondhand.sqlite Backend/secondhand.sqlite.backup
+rm Backend/secondhand.sqlite
+```
+
+با اجرای دوباره Backend، SQLite و داده‌های اولیه ساخته می‌شوند.
+
+## ✅ وضعیت فنی فعلی
+
+- خرید هم‌زمان با optimistic locking کنترل می‌شود.
+- نام فایل‌های آپلودی با UUID ساخته می‌شود.
+- خطاهای API در Frontend از پاسخ استاندارد Backend استخراج می‌شوند.
+- خطاهای غیرقابل‌توجه Frontend در log مرکزی ثبت می‌شوند.
+- برای جست‌وجوهای پرتکرار دیتابیس index اضافه شده است.
+- تست‌های JUnit فعلاً تا رفع مشکل resolve شدن dependencyهای Maven اجرا نمی‌شوند.

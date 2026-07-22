@@ -1,6 +1,9 @@
 package com.secondhand.backend.dto.favorite;
 
+import jakarta.validation.constraints.NotNull;
+
 public class FavoriteRequest {
+    @NotNull(message = "شناسه آگهی الزامی است")
     private Long itemId;
 
     public FavoriteRequest() {}

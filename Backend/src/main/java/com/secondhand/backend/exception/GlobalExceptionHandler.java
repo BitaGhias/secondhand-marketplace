@@ -6,6 +6,9 @@ import com.secondhand.backend.exception.custom.ResourceNotFoundException;
 import com.secondhand.backend.exception.custom.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -56,6 +59,32 @@ public class GlobalExceptionHandler {
         return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request);
     }
 
+    // 401 - خطاهای احراز هویت که از Spring Security می‌آیند
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleSecurityAuthentication(
+            AuthenticationException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "برای انجام این عملیات باید وارد حساب کاربری شوید.",
+                HttpStatus.UNAUTHORIZED,
+                request
+        );
+    }
+
+    // 403 - دسترسی احراز شده ولی مجاز نیست
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleSecurityAccessDenied(
+            AccessDeniedException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "شما اجازه انجام این عملیات را ندارید.",
+                HttpStatus.FORBIDDEN,
+                request
+        );
+    }
+
     // 403 Forbidden
     @ExceptionHandler(ForbiddenException.class)
     public ResponseEntity<ErrorResponse> handleForbidden(
@@ -81,6 +110,19 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.CONFLICT, request);
+    }
+
+    // 409 Conflict - جلوگیری از تکمیل هم‌زمان خرید یک آگهی
+    @ExceptionHandler(OptimisticLockingFailureException.class)
+    public ResponseEntity<ErrorResponse> handleOptimisticLockingFailure(
+            OptimisticLockingFailureException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "این آگهی هم‌زمان توسط کاربر دیگری تغییر کرده است. لطفاً دوباره وضعیت آگهی را بررسی کنید.",
+                HttpStatus.CONFLICT,
+                request
+        );
     }
 
     // 409 Conflict - برای خطاهای constraint دیتابیس

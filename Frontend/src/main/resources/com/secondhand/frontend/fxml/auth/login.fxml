@@ -83,7 +83,7 @@
                 <Label fx:id="errorLabel" visible="false" text=""
                        style="-fx-text-fill: #dc2626; -fx-font-size: 12px; -fx-font-weight: bold;"/>
 
-                <Button fx:id="loginButton" text="ورود به حساب" maxWidth="Infinity" onAction="#handleLogin"
+                <Button fx:id="loginButton" styleClass="auth-primary-button" text="ورود به حساب" maxWidth="Infinity" onAction="#handleLogin"
                         style="-fx-background-color: #f97316;
                                -fx-background-radius: 12;
                                -fx-text-fill: white;

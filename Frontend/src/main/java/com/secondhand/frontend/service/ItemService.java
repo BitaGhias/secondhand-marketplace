@@ -1,7 +1,6 @@
 package com.secondhand.frontend.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.util.ApiClient;
@@ -201,18 +200,11 @@ public class ItemService {
     }
 
     private static void ensureSuccess(HttpResponse<String> res, String prefix) throws Exception {
-        if (res.statusCode() < 200 || res.statusCode() >= 300) {
-            throw new Exception(prefix + ": " + extractMessage(res.body()));
-        }
-    }
-
-    private static String extractMessage(String body) {
         try {
-            JsonNode node = objectMapper.readTree(body);
-            if (node.has("message")) return node.get("message").asText();
-        } catch (Exception ignored) {
+            ApiClient.ensureSuccess(res);
+        } catch (Exception ex) {
+            throw new Exception(prefix + ": " + ex.getMessage(), ex);
         }
-        return body != null && !body.isBlank() ? body : "خطای ناشناخته";
     }
 
     // ================= کلاس‌های درخواست =================

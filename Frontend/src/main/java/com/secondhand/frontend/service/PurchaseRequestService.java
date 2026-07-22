@@ -1,7 +1,6 @@
 package com.secondhand.frontend.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.PurchaseRequest;
 import com.secondhand.frontend.util.ApiClient;
@@ -79,8 +78,7 @@ public class PurchaseRequestService {
     }
 
     private static void ensureOk(HttpResponse<String> res) throws Exception {
-        if (res.statusCode() < 200 || res.statusCode() >= 300)
-            throw new Exception(extractMessage(res.body()));
+        ApiClient.ensureSuccess(res);
     }
 
     private static Exception unwrap(Exception e) {
@@ -92,11 +90,4 @@ public class PurchaseRequestService {
         catch (CompletionException e) { throw e.getCause() instanceof Exception c ? c : e; }
     }
 
-    private static String extractMessage(String body) {
-        try {
-            JsonNode node = mapper.readTree(body);
-            if (node.has("message")) return node.get("message").asText();
-        } catch (Exception ignored) {}
-        return body != null && !body.isBlank() ? body : "خطا در عملیات درخواست خرید";
-    }
 }

@@ -54,7 +54,7 @@
                 <HBox spacing="20" alignment="TOP_LEFT">
 
                     <!-- کارت گالری تصاویر -->
-                    <VBox spacing="14" alignment="TOP_CENTER" prefWidth="430" minWidth="430"
+                    <VBox styleClass="detail-card" spacing="14" alignment="TOP_CENTER" prefWidth="430" minWidth="430"
                           style="-fx-background-color: #ffffff;
                                  -fx-background-radius: 18;
                                  -fx-border-color: #e7ecf2;

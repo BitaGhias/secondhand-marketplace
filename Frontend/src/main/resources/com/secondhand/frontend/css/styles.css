@@ -74,6 +74,33 @@
     -fx-scale-y: 0.98;
 }
 
+/* ============ حالت‌های تعاملی عمومی ============ */
+.button:disabled {
+    -fx-opacity: 0.55;
+    -fx-cursor: default;
+}
+.text-field:disabled,
+.password-field:disabled,
+.text-area:disabled,
+.combo-box:disabled {
+    -fx-opacity: 0.70;
+    -fx-background-color: #f1f5f9;
+}
+.progress-indicator {
+    -fx-progress-color: -brand-orange;
+}
+.progress-indicator .percentage {
+    -fx-fill: -text-soft;
+    -fx-font-size: 11px;
+}
+.tooltip {
+    -fx-background-color: -brand-navy;
+    -fx-background-radius: 7px;
+    -fx-text-fill: #ffffff;
+    -fx-font-size: 12px;
+    -fx-padding: 7px 10px;
+}
+
 /* ============ ComboBox ============ */
 .combo-box {
     -fx-background-color: #ffffff;
@@ -166,6 +193,46 @@
 }
 .separator-menu-item .line {
     -fx-border-color: -line transparent transparent transparent;
+}
+
+/* ============ ScrollBar ============ */
+.scroll-bar:vertical,
+.scroll-bar:horizontal {
+    -fx-background-color: transparent;
+    -fx-padding: 2px;
+}
+.scroll-bar .thumb {
+    -fx-background-color: #cbd5e1;
+    -fx-background-radius: 8px;
+}
+.scroll-bar .thumb:hover {
+    -fx-background-color: #94a3b8;
+}
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-padding: 0;
+}
+
+/* ============ کارت آگهی ============ */
+.ad-card {
+}
+.ad-card:hover {
+    -fx-border-color: rgba(249, 115, 22, 0.45);
+    -fx-translate-y: -2px;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.16), 18, 0, 0, 7);
+}
+.card-favorite:hover {
+    -fx-background-color: -brand-orange-soft;
+    -fx-text-fill: -brand-orange-deep;
+}
+.card-price {
+    -fx-text-fill: -brand-orange-dark;
+    -fx-font-weight: bold;
 }
 
 /* ============ ListView ============ */
@@ -345,6 +412,117 @@
 }
 .hyperlink:hover {
     -fx-underline: true;
+}
+
+/* ============ پنل مدیریت ============ */
+.admin-page {
+    -fx-background-color: -bg-app;
+    -fx-background-radius: 24px;
+    -fx-border-color: -line;
+    -fx-border-radius: 24px;
+}
+.admin-sidebar {
+    -fx-background-color: -brand-navy;
+}
+.admin-sidebar .button:hover {
+    -fx-background-color: rgba(255,255,255,0.10);
+    -fx-text-fill: #ffffff;
+}
+
+/* ============ صفحه جزئیات آگهی ============ */
+.detail-page {
+    -fx-background-color: -bg-app;
+}
+.detail-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 18px;
+    -fx-border-color: -line;
+    -fx-border-radius: 18px;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 16, 0, 0, 5);
+}
+.detail-card:hover {
+    -fx-border-color: rgba(249,115,22,0.28);
+}
+
+/* ============ صفحات اصلی کاربر ============ */
+.chats-page,
+.favorites-page,
+.notifications-page,
+.profile-page,
+.purchases-page,
+.create-ad-page,
+.my-ads-page,
+.filter-dialog-page,
+.admin-user-ads-page {
+    -fx-background-color: -bg-app;
+}
+
+.chats-page .list-view,
+.favorites-page .list-view,
+.notifications-page .list-view,
+.profile-page .list-view,
+.my-ads-page .list-view,
+.admin-user-ads-page .list-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14px;
+    -fx-border-color: -line;
+    -fx-border-radius: 14px;
+}
+
+.profile-page .text-field:focused,
+.profile-page .password-field:focused,
+.create-ad-page .text-field:focused,
+.create-ad-page .text-area:focused,
+.create-ad-page .combo-box:focused,
+.filter-dialog-page .text-field:focused,
+.filter-dialog-page .combo-box:focused {
+    -fx-border-color: -brand-orange;
+    -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.18), 8, 0, 0, 0);
+}
+
+.purchases-page .table-view,
+.admin-user-ads-page .table-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14px;
+    -fx-border-color: -line;
+    -fx-border-radius: 14px;
+}
+
+.chats-page .button:hover,
+.favorites-page .button:hover,
+.notifications-page .button:hover,
+.profile-page .button:hover,
+.purchases-page .button:hover,
+.create-ad-page .button:hover,
+.my-ads-page .button:hover,
+.filter-dialog-page .button:hover,
+.admin-user-ads-page .button:hover {
+    -fx-opacity: 0.90;
+}
+
+/* ============ Auth screens ============ */
+.auth-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 24px;
+    -fx-border-color: -line;
+    -fx-border-radius: 24px;
+}
+.auth-primary-button {
+    -fx-background-color: -brand-orange;
+    -fx-text-fill: #ffffff;
+    -fx-background-radius: 12px;
+    -fx-font-weight: bold;
+}
+.auth-primary-button:hover {
+    -fx-background-color: -brand-orange-dark;
+    -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.45), 14, 0, 0, 4);
+}
+.auth-primary-button:pressed {
+    -fx-background-color: -brand-orange-deep;
+}
+.auth-primary-button:disabled {
+    -fx-background-color: #fdba74;
+    -fx-text-fill: #ffffff;
 }
 
 /* ============ Auth Switch Link (ثبت‌نام کنید / وارد شوید) ============ */

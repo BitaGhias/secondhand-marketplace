@@ -18,7 +18,7 @@
            style="-fx-background-color: transparent; -fx-padding: 0;">
 
     <!-- کارت اصلی دوپنلی -->
-    <VBox maxWidth="820" maxHeight="-Infinity" spacing="0"
+    <VBox styleClass="auth-card" maxWidth="820" maxHeight="-Infinity" spacing="0"
           style="-fx-background-color: #ffffff;
                  -fx-background-radius: 24;
                  -fx-border-color: #e7ecf2;
@@ -102,7 +102,7 @@
                 <Label fx:id="errorLabel" visible="false" text="" wrapText="true"
                        style="-fx-text-fill: #dc2626; -fx-font-size: 12px; -fx-font-weight: bold;"/>
 
-                <Button fx:id="registerButton" text="ثبت‌نام و ورود" maxWidth="Infinity" onAction="#handleRegister"
+                <Button fx:id="registerButton" styleClass="auth-primary-button" text="ثبت‌نام و ورود" maxWidth="Infinity" onAction="#handleRegister"
                         style="-fx-background-color: #f97316;
                                -fx-background-radius: 12;
                                -fx-text-fill: white;

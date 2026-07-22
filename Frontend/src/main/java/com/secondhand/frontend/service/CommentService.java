@@ -16,8 +16,10 @@ public class CommentService {
      */
     public static List<Comment> getComments(Long itemId) throws Exception {
         HttpResponse<String> response = ApiClient.get("/comments/item/" + itemId);
-        if (response.statusCode() != 200) {
-            throw new RuntimeException("خطا در دریافت نظرات: کد " + response.statusCode());
+        try {
+            ApiClient.ensureSuccess(response);
+        } catch (Exception ex) {
+            throw new RuntimeException("خطا در دریافت نظرات: " + ex.getMessage(), ex);
         }
         return ApiClient.getMapper().readValue(
                 response.body(),
@@ -33,10 +35,7 @@ public class CommentService {
             try {
                 Map<String, Object> body = Map.of("itemId", itemId, "text", text);
                 HttpResponse<String> response = ApiClient.post("/comments/add", body);
-                if (response.statusCode() != 201) {
-                    String msg = extractErrorMessage(response.body());
-                    throw new RuntimeException(msg);
-                }
+                ApiClient.ensureSuccess(response);
                 return ApiClient.getMapper().readValue(response.body(), Comment.class);
             } catch (RuntimeException e) {
                 throw e;
@@ -53,10 +52,7 @@ public class CommentService {
         return CompletableFuture.runAsync(() -> {
             try {
                 HttpResponse<String> response = ApiClient.delete("/comments/" + commentId);
-                if (response.statusCode() != 204 && response.statusCode() != 200) {
-                    String msg = extractErrorMessage(response.body());
-                    throw new RuntimeException(msg);
-                }
+                ApiClient.ensureSuccess(response);
             } catch (RuntimeException e) {
                 throw e;
             } catch (Exception e) {
@@ -75,10 +71,7 @@ public class CommentService {
                         "/comments/" + commentId + "?text=" + java.net.URLEncoder.encode(newText, "UTF-8"),
                         null
                 );
-                if (response.statusCode() != 200) {
-                    String msg = extractErrorMessage(response.body());
-                    throw new RuntimeException(msg);
-                }
+                ApiClient.ensureSuccess(response);
                 return ApiClient.getMapper().readValue(response.body(), Comment.class);
             } catch (RuntimeException e) {
                 throw e;
@@ -88,12 +81,4 @@ public class CommentService {
         });
     }
 
-    private static String extractErrorMessage(String responseBody) {
-        try {
-            Map<?, ?> map = ApiClient.getMapper().readValue(responseBody, Map.class);
-            Object msg = map.get("message");
-            if (msg != null) return msg.toString();
-        } catch (Exception ignored) {}
-        return responseBody;
-    }
 }

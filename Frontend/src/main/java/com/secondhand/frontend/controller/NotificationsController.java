@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.util.NotificationCenter;
@@ -154,7 +156,7 @@ public class NotificationsController extends BaseController {
         try {
             ItemDetailController.setItemId(itemId);
             MainApplication.changeScene(Routes.ITEM_DETAIL, "جزئیات آگهی");
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ex) { FrontendErrorHandler.log(ex); }
     }
 
     private void goToEdit(Item item) {
@@ -169,12 +171,12 @@ public class NotificationsController extends BaseController {
             scene.getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm());
             stage.setScene(scene);
             stage.setTitle("ویرایش آگهی");
-        } catch (Exception ex) { ex.printStackTrace(); }
+        } catch (Exception ex) { FrontendErrorHandler.log(ex); }
     }
 
     @FXML
     private void goBack() {
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 }

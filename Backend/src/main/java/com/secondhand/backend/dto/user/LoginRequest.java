@@ -1,7 +1,12 @@
 package com.secondhand.backend.dto.user;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class LoginRequest {
+    @NotBlank(message = "نام کاربری الزامی است")
     private String username;
+
+    @NotBlank(message = "رمز عبور الزامی است")
     private String password;
 
     public LoginRequest() {}

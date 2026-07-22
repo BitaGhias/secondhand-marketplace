@@ -4,6 +4,7 @@ import com.secondhand.backend.dto.rating.RatingCreateRequest;
 import com.secondhand.backend.dto.rating.RatingResponse;
 import com.secondhand.backend.security.CurrentUserService;
 import com.secondhand.backend.service.RatingService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +19,7 @@ public class RatingController {
     @Autowired private CurrentUserService currentUserService;
 
     @PostMapping("/add")
-    public ResponseEntity<RatingResponse> addRating(@RequestBody RatingCreateRequest request) {
+    public ResponseEntity<RatingResponse> addRating(@Valid @RequestBody RatingCreateRequest request) {
         RatingResponse response = ratingService.addRating(request, currentUserService.getCurrentUserId());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

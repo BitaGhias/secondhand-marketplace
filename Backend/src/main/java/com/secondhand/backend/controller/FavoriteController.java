@@ -4,6 +4,7 @@ import com.secondhand.backend.dto.favorite.FavoriteRequest;
 import com.secondhand.backend.dto.favorite.FavoriteResponse;
 import com.secondhand.backend.security.CurrentUserService;
 import com.secondhand.backend.service.FavoriteService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class FavoriteController {
     private CurrentUserService currentUserService;
 
     @PostMapping("/add")
-    public ResponseEntity<FavoriteResponse> addFavorite(@RequestBody FavoriteRequest request) {
+    public ResponseEntity<FavoriteResponse> addFavorite(@Valid @RequestBody FavoriteRequest request) {
         Long userId = currentUserService.getCurrentUserId();
         FavoriteResponse response = favoriteService.addFavorite(request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);

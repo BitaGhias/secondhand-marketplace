@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.User;
@@ -32,7 +34,7 @@ public class LoginController extends BaseController {
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         if (SessionManager.isLoggedIn()) {
-            try { navigateAfterLogin(); } catch (Exception e) { e.printStackTrace(); }
+            try { navigateAfterLogin(); } catch (Exception e) { FrontendErrorHandler.log(e); }
             return;
         }
         usernameField.setOnKeyPressed(e -> { if (e.getCode() == KeyCode.ENTER) passwordField.requestFocus(); });
@@ -118,7 +120,7 @@ public class LoginController extends BaseController {
             Map<String, Object> errorMap = ApiClient.getMapper().readValue(responseBody, Map.class);
             Object message = errorMap.get("message");
             if (message != null && !message.toString().trim().isEmpty()) return message.toString();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         return fallback;
     }
 

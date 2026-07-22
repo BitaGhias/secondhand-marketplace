@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.service.AuthService;
 import com.secondhand.frontend.util.Routes;
@@ -90,7 +92,7 @@ public class RegisterController extends BaseController {
                         SessionManager.setCurrentUser(loginResponse.getUser());
                     setLoadingState(false);
                     try { MainApplication.changeScene(Routes.AD_LIST, "دست‌دوم مارکت - لیست آگهی‌ها"); }
-                    catch (Exception e) { e.printStackTrace(); goToLogin(); }
+                    catch (Exception e) { FrontendErrorHandler.log(e); goToLogin(); }
                 }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> { setLoadingState(false); showSuccessLabel("✅ ثبت‌نام انجام شد! لطفاً وارد شوید."); goToLogin(); });

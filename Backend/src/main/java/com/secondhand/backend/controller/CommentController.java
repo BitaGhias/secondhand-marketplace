@@ -4,6 +4,7 @@ import com.secondhand.backend.dto.comment.CommentCreateRequest;
 import com.secondhand.backend.dto.comment.CommentResponse;
 import com.secondhand.backend.security.CurrentUserService;
 import com.secondhand.backend.service.CommentService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,7 +22,7 @@ public class CommentController {
     private CurrentUserService currentUserService;
 
     @PostMapping("/add")
-    public ResponseEntity<CommentResponse> addComment(@RequestBody CommentCreateRequest request) {
+    public ResponseEntity<CommentResponse> addComment(@Valid @RequestBody CommentCreateRequest request) {
         CommentResponse response = commentService.addComment(
                 request, currentUserService.getCurrentUserId()
         );

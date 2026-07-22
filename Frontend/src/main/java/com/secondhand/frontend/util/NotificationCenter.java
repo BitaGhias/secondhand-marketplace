@@ -1,5 +1,7 @@
 package com.secondhand.frontend.util;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.model.PurchaseRequest;
 import com.secondhand.frontend.service.ItemService;
@@ -74,7 +76,7 @@ public final class NotificationCenter {
                 }
                 out.add(e);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
 
         // درخواست‌های خرید رسیده (برای فروشنده)
         try {
@@ -90,7 +92,7 @@ public final class NotificationCenter {
                 e.openableItem = true;
                 out.add(e);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
 
         // پاسخ درخواست‌های من (برای خریدار)
         try {
@@ -112,7 +114,7 @@ public final class NotificationCenter {
                 }
                 out.add(e);
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
 
         return out;
     }

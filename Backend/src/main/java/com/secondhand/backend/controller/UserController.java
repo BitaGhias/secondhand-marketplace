@@ -8,6 +8,7 @@ import com.secondhand.backend.dto.user.UserUpdateRequest;
 import com.secondhand.backend.security.CurrentUserService;
 import com.secondhand.backend.service.UserService;
 import com.secondhand.backend.util.JwtUtil;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -31,7 +32,7 @@ public class UserController {
     private CurrentUserService currentUserService;
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> registerUser(@RequestBody UserRegisterRequest request) {
+    public ResponseEntity<UserResponse> registerUser(@Valid @RequestBody UserRegisterRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(request));
     }
 
@@ -41,7 +42,7 @@ public class UserController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponse> loginUser(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> loginUser(@Valid @RequestBody LoginRequest request) {
         UserResponse userResponse = userService.loginUser(request.getUsername(), request.getPassword());
         String token = jwtUtil.generateToken(
                 userResponse.getUsername(),
@@ -62,7 +63,7 @@ public class UserController {
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<UserResponse> updateMyProfile(@RequestBody UserUpdateRequest request) {
+    public ResponseEntity<UserResponse> updateMyProfile(@Valid @RequestBody UserUpdateRequest request) {
         return ResponseEntity.ok(
                 userService.updateUserProfile(currentUserService.getCurrentUserId(), request)
         );

@@ -5,12 +5,27 @@ import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "items")
+@Table(name = "items", indexes = {
+        @Index(name = "idx_items_status", columnList = "status"),
+        @Index(name = "idx_items_category", columnList = "category_id"),
+        @Index(name = "idx_items_city", columnList = "city_id"),
+        @Index(name = "idx_items_user", columnList = "user_id"),
+        @Index(name = "idx_items_buyer", columnList = "buyer_id"),
+        @Index(name = "idx_items_status_created", columnList = "status, created_at")
+})
 public class Item {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
+    /**
+     * Optimistic locking prevents two buyers from completing a purchase
+     * against the same version of an item at the same time.
+     */
+    @Version
+    @Column(name = "lock_version")
+    private Long version;
 
     @Column(nullable = false)
     private String title;
@@ -65,6 +80,7 @@ public class Item {
     }
 
     public Long getId() { return id; }
+    public Long getVersion() { return version; }
     public String getTitle() { return title; }
     public String getDescription() { return description; }
     public Long getPrice() { return price; }
@@ -77,6 +93,7 @@ public class Item {
     public User getBuyer() { return buyer; }
 
     public void setId(Long id) { this.id = id; }
+    public void setVersion(Long version) { this.version = version; }
     public void setTitle(String title) { this.title = title; }
     public void setDescription(String description) { this.description = description; }
     public void setPrice(Long price) { this.price = price; }

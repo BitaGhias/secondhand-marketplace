@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.ItemService;
@@ -121,7 +123,7 @@ public class PurchasesController extends BaseController {
         try {
             dialog.getDialogPane().getStylesheets().add(
                     getClass().getResource(Routes.STYLESHEET).toExternalForm());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
 
         VBox content = new VBox(10);
@@ -168,6 +170,6 @@ public class PurchasesController extends BaseController {
     private void goBack() {
         try {
             MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها");
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 }

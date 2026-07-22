@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+<VBox styleClass="notifications-page" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.NotificationsController"
       stylesheets="@../../css/styles.css"
       style="-fx-background-color: #f6f8fa; -fx-background-radius: 24; -fx-border-color: #e7ecf2; -fx-border-radius: 24; -fx-border-width: 1;">

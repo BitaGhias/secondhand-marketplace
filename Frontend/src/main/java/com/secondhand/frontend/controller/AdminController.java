@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Category;
 import com.secondhand.frontend.model.Item;
@@ -47,11 +49,11 @@ public class AdminController extends BaseController {
 
     private static final String NAV_ACTIVE =
             "-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; "
-          + "-fx-background-radius: 10; -fx-padding: 11 16; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; "
-          + "-fx-effect: dropshadow(gaussian, rgba(249,115,22,0.35), 10, 0, 0, 2);";
+                    + "-fx-background-radius: 10; -fx-padding: 11 16; -fx-cursor: hand; -fx-alignment: CENTER_LEFT; "
+                    + "-fx-effect: dropshadow(gaussian, rgba(249,115,22,0.35), 10, 0, 0, 2);";
     private static final String NAV_IDLE =
             "-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.72); -fx-font-weight: bold; "
-          + "-fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 11 16; -fx-cursor: hand; -fx-alignment: CENTER_LEFT;";
+                    + "-fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 11 16; -fx-cursor: hand; -fx-alignment: CENTER_LEFT;";
 
     @FXML private HBox titleBar;
 
@@ -210,7 +212,7 @@ public class AdminController extends BaseController {
                 Platform.runLater(() -> {
                     if (dashActiveLabel != null) dashActiveLabel.setText(String.valueOf(active.size()));
                 });
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         }).start();
     }
 
@@ -236,7 +238,7 @@ public class AdminController extends BaseController {
         dialog.getDialogPane().setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
         try {
             dialog.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         Optional<String> result = dialog.showAndWait();
         if (result.isEmpty()) return;
         String reason = result.get().trim();
@@ -315,7 +317,7 @@ public class AdminController extends BaseController {
             stage.setScene(scene);
             stage.setTitle("آگهی‌های کاربر " + user.getUsername());
         } catch (Exception e) {
-            e.printStackTrace();
+            FrontendErrorHandler.log(e);
             showError("خطا در باز کردن صفحه کاربر: " + e.getMessage());
         }
     }
@@ -478,7 +480,7 @@ public class AdminController extends BaseController {
         try {
             dialog.getDialogPane().getStylesheets().add(
                     getClass().getResource(Routes.STYLESHEET).toExternalForm());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         DialogPane pane = dialog.getDialogPane();
         pane.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 16;");
         pane.setPrefWidth(580);
@@ -540,7 +542,7 @@ public class AdminController extends BaseController {
                     StackPane imgWrap = new StackPane(imageView);
                     imgWrap.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 10; -fx-border-color: #e7ecf2; -fx-border-radius: 10; -fx-padding: 3;");
                     imagesBox.getChildren().add(imgWrap);
-                } catch (Exception ignored) {}
+                } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
             }
             Label imgCaption = new Label("🖼 تصاویر (" + item.getImages().size() + ")");
             imgCaption.setStyle("-fx-text-fill: #0f172a; -fx-font-size: 12px; -fx-font-weight: bold;");
@@ -583,6 +585,6 @@ public class AdminController extends BaseController {
     @FXML
     private void goBack() {
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 }
