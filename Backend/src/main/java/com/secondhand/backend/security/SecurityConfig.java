@@ -35,8 +35,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/items/*/status").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/items/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/categories/create").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/api/categories/{id}").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/api/categories/{id}").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/categories/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/categories/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/cities/add").hasRole("ADMIN")
 
                         // --- مسیرهای احراز‌شده ---
@@ -49,15 +49,16 @@ public class SecurityConfig {
                                 "/api/items/search",
                                 "/api/items/category/**",
                                 "/api/items/city/**",
-                                "/api/items/{id}",
-                                "/api/items/{id}/images",
+                                // String request matchers use Ant-style patterns; {id} is not a wildcard.
+                                "/api/items/*",
+                                "/api/items/*/images",
                                 "/api/categories/all",
                                 "/api/categories/roots",
                                 "/api/categories/popular",
-                                "/api/categories/{id}/subcategories",
+                                "/api/categories/*/subcategories",
                                 "/api/cities",
                                 // FIX: این‌ها فراموش شده بودند
-                                "/api/categories/{id}",
+                                "/api/categories/*",
                                 "/api/ratings/seller/**",
                                 "/api/comments/item/**",
                                 "/uploads/**"
