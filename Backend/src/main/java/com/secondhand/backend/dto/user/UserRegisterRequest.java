@@ -1,11 +1,30 @@
 package com.secondhand.backend.dto.user;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class UserRegisterRequest {
+    @NotBlank(message = "نام کامل الزامی است")
+    @Size(max = 50, message = "نام کامل نباید بیشتر از ۵۰ کاراکتر باشد")
     private String fullName;
+
+    @NotBlank(message = "نام کاربری الزامی است")
+    @Size(min = 3, max = 20, message = "نام کاربری باید بین ۳ تا ۲۰ کاراکتر باشد")
     private String username;
+
+    @NotBlank(message = "رمز عبور الزامی است")
+    @Size(min = 6, max = 100, message = "رمز عبور باید بین ۶ تا ۱۰۰ کاراکتر باشد")
     private String password;
+
+    @NotBlank(message = "تکرار رمز عبور الزامی است")
     private String confirmPassword;
+
+    @NotBlank(message = "شماره تلفن الزامی است")
     private String phoneNumber;
+
+    @NotBlank(message = "ایمیل الزامی است")
+    @Email(message = "فرمت ایمیل نامعتبر است")
     private String email;
 
     public UserRegisterRequest() {}

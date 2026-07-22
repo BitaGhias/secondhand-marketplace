@@ -1,8 +1,15 @@
 package com.secondhand.backend.dto.user;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
+
 public class UserUpdateRequest {
+    @Size(max = 50, message = "نام کامل نباید بیشتر از ۵۰ کاراکتر باشد")
     private String fullName;
+
     private String phoneNumber;
+
+    @Email(message = "فرمت ایمیل نامعتبر است")
     private String email;
 
     public UserUpdateRequest() {}

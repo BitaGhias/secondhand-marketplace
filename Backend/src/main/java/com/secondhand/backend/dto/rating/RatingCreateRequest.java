@@ -1,8 +1,19 @@
 package com.secondhand.backend.dto.rating;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 public class RatingCreateRequest {
+    @NotNull(message = "شناسه آگهی الزامی است")
     private Long itemId;
+
+    @Min(value = 1, message = "امتیاز حداقل باید ۱ باشد")
+    @Max(value = 5, message = "امتیاز حداکثر باید ۵ باشد")
     private int score;
+
+    @Size(max = 1000, message = "متن امتیاز نباید بیشتر از ۱۰۰۰ کاراکتر باشد")
     private String comment;
 
     public RatingCreateRequest() {}
