@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.service.FavoriteService;
@@ -45,12 +47,12 @@ public class FavoritesController extends BaseController {
                                 controller.setItem(item);
                                 card.setOnMouseClicked(event -> goToItemDetail(item));
                                 favoritesFlowPane.getChildren().add(card);
-                            } catch (Exception e) { e.printStackTrace(); }
+                            } catch (Exception e) { FrontendErrorHandler.log(e); }
                         }
                     }
                 });
             } catch (Exception e) {
-                e.printStackTrace();
+                FrontendErrorHandler.log(e);
                 Platform.runLater(() -> {
                     noFavoritesLabel.setText("خطا در دریافت علاقه‌مندی‌ها: " + e.getMessage());
                     noFavoritesLabel.setVisible(true);
@@ -67,6 +69,6 @@ public class FavoritesController extends BaseController {
     @FXML
     private void goBack() {
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 }

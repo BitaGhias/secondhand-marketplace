@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.ChatMessage;
 import com.secondhand.frontend.model.Conversation;
@@ -286,7 +288,7 @@ public class ChatsController extends BaseController {
     private void goBack() {
         stopPolling();
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 
     private void startPolling() {

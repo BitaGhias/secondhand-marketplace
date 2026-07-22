@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.model.User;
@@ -161,6 +163,6 @@ public class AdminUserAdListController extends BaseController {
     @FXML
     private void goBack() {
         try { MainApplication.changeScene(Routes.ADMIN_PANEL, "پنل مدیریت"); }
-        catch (Exception e) { e.printStackTrace(); }
+        catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 }

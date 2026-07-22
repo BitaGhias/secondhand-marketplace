@@ -3,6 +3,7 @@ module com.secondhand.frontend {
     requires javafx.fxml;
 
     requires java.net.http;
+    requires java.logging;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.datatype.jsr310;
     requires com.fasterxml.jackson.annotation;

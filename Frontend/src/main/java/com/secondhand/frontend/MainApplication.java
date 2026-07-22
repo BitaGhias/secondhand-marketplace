@@ -1,5 +1,7 @@
 package com.secondhand.frontend;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.controller.ItemDetailController;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.model.User;
@@ -122,7 +124,7 @@ public class MainApplication extends Application {
                 } else {
                     showMainWindow(Routes.LOGIN, "دست‌دوم مارکت — ورود");
                 }
-            } catch (Exception ex) { ex.printStackTrace(); }
+            } catch (Exception ex) { FrontendErrorHandler.log(ex); }
         });
         sequence.play();
     }
