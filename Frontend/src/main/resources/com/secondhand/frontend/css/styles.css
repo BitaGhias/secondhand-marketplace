@@ -414,6 +414,31 @@
     -fx-underline: true;
 }
 
+/* ============ Auth screens ============ */
+.auth-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 24px;
+    -fx-border-color: -line;
+    -fx-border-radius: 24px;
+}
+.auth-primary-button {
+    -fx-background-color: -brand-orange;
+    -fx-text-fill: #ffffff;
+    -fx-background-radius: 12px;
+    -fx-font-weight: bold;
+}
+.auth-primary-button:hover {
+    -fx-background-color: -brand-orange-dark;
+    -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.45), 14, 0, 0, 4);
+}
+.auth-primary-button:pressed {
+    -fx-background-color: -brand-orange-deep;
+}
+.auth-primary-button:disabled {
+    -fx-background-color: #fdba74;
+    -fx-text-fill: #ffffff;
+}
+
 /* ============ Auth Switch Link (ثبت‌نام کنید / وارد شوید) ============ */
 .auth-link {
     -fx-text-fill: #ea580c;
