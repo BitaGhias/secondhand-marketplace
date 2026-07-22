@@ -222,7 +222,7 @@ public class ItemDetailController extends BaseController {
         confirm.setContentText("\ud83d\udcb0 قیمت: " + currentItem.getFormattedPrice()
                 + "\n\ud83d\udc64 فروشنده: " + currentItem.getOwnerUsername()
                 + "\n\nدرخواست شما برای فروشنده ارسال می‌شود و پس از تایید او، خرید قطعی می‌شود.");
-        try { confirm.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) {}
+        try { confirm.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         confirm.getDialogPane().setStyle("-fx-background-color: #ffffff;");
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isEmpty() || result.get() != ButtonType.OK) return;
@@ -347,7 +347,7 @@ public class ItemDetailController extends BaseController {
                     if (node.hasNonNull("phoneNumber")) phone = node.get("phoneNumber").asText();
                     if (node.hasNonNull("email")) email = node.get("email").asText();
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
             final String fFull = fullName;
             final String fPhone = phone;
             final String fEmail = email;
@@ -454,7 +454,7 @@ public class ItemDetailController extends BaseController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("حذف آگهی"); confirm.setHeaderText("آیا از حذف این آگهی اطمینان دارید؟");
         confirm.setContentText("این عمل قابل بازگشت نیست!");
-        try { confirm.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) {}
+        try { confirm.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         confirm.getDialogPane().setStyle("-fx-background-color: #ffffff;");
         Optional<ButtonType> result = confirm.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
@@ -619,7 +619,7 @@ public class ItemDetailController extends BaseController {
     }
 
     private void styleDialog(Dialog<?> dialog) {
-        try { dialog.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) {}
+        try { dialog.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
     }
 

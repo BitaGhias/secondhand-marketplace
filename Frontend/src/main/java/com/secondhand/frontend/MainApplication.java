@@ -52,7 +52,7 @@ public class MainApplication extends Application {
         try {
             javafx.scene.text.Font.loadFont(MainApplication.class.getResourceAsStream("fonts/Vazirmatn-Regular.ttf"), 13);
             javafx.scene.text.Font.loadFont(MainApplication.class.getResourceAsStream("fonts/Vazirmatn-Bold.ttf"), 13);
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
     }
 
     private void showSplash() {
@@ -116,8 +116,7 @@ public class MainApplication extends Application {
             boolean restored = false;
             try {
                 restored = autoLogin.get(1500, TimeUnit.MILLISECONDS);
-            } catch (Exception ignored) {
-            }
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
             try {
                 if (restored) {
                     showMainWindow(Routes.AD_LIST, "دست‌دوم مارکت — آگهی‌ها");

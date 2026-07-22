@@ -165,14 +165,14 @@ public class AdListController extends BaseController {
                     }
                     if (statCategoriesLabel != null) statCategoriesLabel.setText(String.valueOf(categories.size()));
                 });
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
             try {
                 List<City> cities = CityService.getAllCities();
                 Platform.runLater(() -> {
                     if (cityFilterComboBox != null) cityFilterComboBox.getItems().setAll(cities);
                     if (statCitiesLabel != null) statCitiesLabel.setText(String.valueOf(cities.size()));
                 });
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         }).start();
     }
 
@@ -378,7 +378,7 @@ public class AdListController extends BaseController {
                         bellBadgeLabel.setManaged(unread > 0);
                     }
                 });
-            } catch (Exception ignored) { }
+            } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         }).start();
     }
 

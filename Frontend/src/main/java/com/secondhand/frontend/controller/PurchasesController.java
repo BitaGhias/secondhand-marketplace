@@ -123,7 +123,7 @@ public class PurchasesController extends BaseController {
         try {
             dialog.getDialogPane().getStylesheets().add(
                     getClass().getResource(Routes.STYLESHEET).toExternalForm());
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
 
         VBox content = new VBox(10);

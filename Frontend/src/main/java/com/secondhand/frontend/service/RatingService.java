@@ -1,7 +1,5 @@
 package com.secondhand.frontend.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.util.ApiClient;
 
 import java.net.http.HttpResponse;
@@ -15,16 +13,13 @@ import java.util.concurrent.CompletionException;
  *   GET  /api/ratings/seller/{sellerId}/average
  */
 public class RatingService {
-    private static final ObjectMapper mapper = ApiClient.getMapper();
-
     // ─── ثبت امتیاز ───
     public static CompletableFuture<Void> rateSellerAsync(Long itemId, int score, String comment) {
         return CompletableFuture.runAsync(() -> {
             try {
                 RatingRequest req = new RatingRequest(itemId, score, comment == null ? "" : comment);
                 HttpResponse<String> res = ApiClient.post("/ratings/add", req);
-                if (res.statusCode() < 200 || res.statusCode() >= 300)
-                    throw new Exception(extractMessage(res.body()));
+                ApiClient.ensureSuccess(res);
             } catch (Exception e) {
                 throw new CompletionException(e);
             }
@@ -36,10 +31,8 @@ public class RatingService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 HttpResponse<String> res = ApiClient.get("/ratings/item/" + itemId + "/rated");
-                if (res.statusCode() == 200) {
-                    return Boolean.parseBoolean(res.body().trim());
-                }
-                return false;
+                ApiClient.ensureSuccess(res);
+                return Boolean.parseBoolean(res.body().trim());
             } catch (Exception e) {
                 return false;
             }
@@ -51,23 +44,12 @@ public class RatingService {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 HttpResponse<String> res = ApiClient.get("/ratings/seller/" + sellerId + "/average");
-                if (res.statusCode() == 200) {
-                    return Double.parseDouble(res.body().trim());
-                }
-                return 0.0;
+                ApiClient.ensureSuccess(res);
+                return Double.parseDouble(res.body().trim());
             } catch (Exception e) {
                 return 0.0;
             }
         });
-    }
-
-    // ─── Helpers ───
-    private static String extractMessage(String body) {
-        try {
-            JsonNode node = mapper.readTree(body);
-            if (node.has("message")) return node.get("message").asText();
-        } catch (Exception ignored) {}
-        return body != null && !body.isBlank() ? body : "خطا در ثبت امتیاز";
     }
 
     public static class RatingRequest {

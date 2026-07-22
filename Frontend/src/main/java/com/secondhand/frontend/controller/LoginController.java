@@ -120,7 +120,7 @@ public class LoginController extends BaseController {
             Map<String, Object> errorMap = ApiClient.getMapper().readValue(responseBody, Map.class);
             Object message = errorMap.get("message");
             if (message != null && !message.toString().trim().isEmpty()) return message.toString();
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         return fallback;
     }
 

@@ -99,7 +99,7 @@ public class ProfileController extends BaseController {
                 avatarImageView.setImage(new Image(
                         getClass().getResourceAsStream("/com/secondhand/frontend/images/default-item.png")));
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
     }
 
     @FXML

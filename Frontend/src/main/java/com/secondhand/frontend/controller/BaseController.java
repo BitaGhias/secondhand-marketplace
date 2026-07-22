@@ -1,5 +1,7 @@
 package com.secondhand.frontend.controller;
 
+import com.secondhand.frontend.util.FrontendErrorHandler;
+
 import com.secondhand.frontend.util.WindowUtil;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -60,6 +62,6 @@ public abstract class BaseController {
             alert.getDialogPane().getStylesheets().add(
                     getClass().getResource("/com/secondhand/frontend/css/styles.css").toExternalForm());
             alert.getDialogPane().setStyle("-fx-background-color: #ffffff;");
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
     }
 }
