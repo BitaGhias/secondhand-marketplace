@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+<VBox styleClass="filter-dialog-page" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.FilterDialogController"
       stylesheets="@../../css/styles.css"
       nodeOrientation="RIGHT_TO_LEFT" spacing="16" prefWidth="420"

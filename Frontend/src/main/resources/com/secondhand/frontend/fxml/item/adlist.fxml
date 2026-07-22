@@ -1,132 +1,122 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<?import javafx.scene.shape.*?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
-<VBox style="-fx-background-color: #f6f8fa; -fx-background-radius: 24; -fx-border-color: #e7ecf2; -fx-border-radius: 24; -fx-border-width: 1;" stylesheets="@../../css/styles.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.secondhand.frontend.controller.AdListController">
+<VBox styleClass="create-ad-page" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.secondhand.frontend.controller.CreateAdController"
+      stylesheets="@../../css/styles.css"
+      style="-fx-background-color: #f6f8fa; -fx-background-radius: 24; -fx-border-color: #e7ecf2; -fx-border-radius: 24; -fx-border-width: 1;">
 
-    <!-- ===== نوار پنجره ===== -->
-    <HBox fx:id="titleBar" alignment="CENTER_LEFT" nodeOrientation="LEFT_TO_RIGHT" spacing="10" style="-fx-background-color: #0e2433; -fx-background-radius: 24 24 0 0; -fx-padding: 10 16;">
-        <Label style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;" text="دست‌دوم مارکت" />
-        <HBox HBox.hgrow="ALWAYS" />
-        <Button onAction="#minimizeWindow" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" text="─" />
-        <Button onAction="#maximizeWindow" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" text="☐" />
-        <Button onAction="#closeWindow" style="-fx-background-color: transparent; -fx-text-fill: #f87171; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" text="✕" />
+    <!-- ===== نوار پنجره (نفتی) ===== -->
+    <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
+          style="-fx-background-color: #0e2433; -fx-background-radius: 24 24 0 0; -fx-padding: 12 16;">
+        <Label text="دست‌دوم مارکت" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+        <HBox HBox.hgrow="ALWAYS"/>
+        <Button text="─" onAction="#minimizeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+        <Button text="✕" onAction="#closeWindow"
+                style="-fx-background-color: transparent; -fx-text-fill: #f87171; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
     </HBox>
 
-    <!-- ===== نوبار نفتی ===== -->
-    <HBox alignment="CENTER_LEFT" nodeOrientation="RIGHT_TO_LEFT" spacing="12" style="-fx-background-color: #0e2433; -fx-padding: 10 22 16 22;">
-        <StackPane>
-            <Region style="-fx-background-color: linear-gradient(to bottom right, #1b4460, #0e2433); -fx-background-radius: 10; -fx-min-width: 34; -fx-min-height: 34; -fx-max-width: 34; -fx-max-height: 34; -fx-border-color: rgba(249,115,22,0.55); -fx-border-radius: 10; -fx-border-width: 1;" />
-            <SVGPath content="M5.6 8 H18.4 L19.5 18.9 A2.3 2.3 0 0 1 17.2 21.4 H6.8 A2.3 2.3 0 0 1 4.5 18.9 Z M9 9.6 V7.4 A3 3 0 0 1 15 7.4 V9.6 H13.6 V7.4 A1.6 1.6 0 0 0 10.4 7.4 V9.6 Z" scaleX="1.15" scaleY="1.15" style="-fx-fill: #ffffff;" />
-            <SVGPath content="M8.7 14.4 L11.1 16.8 L15.6 12.1" scaleX="1.15" scaleY="1.15" style="-fx-fill: transparent; -fx-stroke: #f97316; -fx-stroke-width: 1.8;" />
-        </StackPane>
-        <Label style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="دست‌دوم مارکت" />
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
+        <VBox alignment="TOP_CENTER" nodeOrientation="RIGHT_TO_LEFT" style="-fx-padding: 26 0 30 0;">
 
-        <MenuButton fx:id="categoryQuickMenuButton" style="-fx-background-color: #143449; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 7 14; -fx-cursor: hand;" styleClass="nav-flyout" text="🗂 همه دسته‌ها" />
+            <!-- کارت فرم ویزارد -->
+            <VBox maxWidth="640" spacing="18"
+                  style="-fx-background-color: #ffffff; -fx-background-radius: 18; -fx-border-color: #e7ecf2; -fx-border-radius: 18; -fx-border-width: 1; -fx-padding: 28 32; -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 16, 0, 0, 5);">
 
-        <TextField fx:id="searchField" promptText="دنبال چه چیزی می‌گردی؟" style="-fx-background-color: #143449; -fx-text-fill: white; -fx-prompt-text-fill: #7d94a8; -fx-background-radius: 10; -fx-border-color: transparent; -fx-padding: 8 14;" HBox.hgrow="ALWAYS" />
-        <Button onAction="#handleSearchClick" style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 10; -fx-padding: 8 18; -fx-cursor: hand;" text="🔍 جست‌وجو" />
+                <!-- هدر -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Label fx:id="pageTitle" text="➕ ثبت آگهی جدید" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: #0f172a;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="←" onAction="#goBack"
+                            style="-fx-background-color: #f1f5f9; -fx-text-fill: #475569; -fx-background-radius: 10; -fx-padding: 7 14; -fx-cursor: hand; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                </HBox>
 
-        <StackPane>
-            <Button onAction="#goToNotifications" style="-fx-background-color: #143449; -fx-background-radius: 10; -fx-font-size: 14px; -fx-padding: 6 11; -fx-cursor: hand;" text="🔔" textFill="WHITE" />
-            <Label fx:id="bellBadgeLabel" managed="false" style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-size: 9px; -fx-font-weight: bold; -fx-background-radius: 999; -fx-padding: 1 5; -fx-translate-x: -4; -fx-translate-y: -4;" text="0" visible="false" StackPane.alignment="TOP_LEFT" />
-        </StackPane>
+                <!-- نشانگر مراحل ویزارد -->
+                <ProgressBar fx:id="wizardProgressBar" progress="0.33" maxWidth="Infinity" prefHeight="7" style="-fx-accent: #f97316; -fx-control-inner-background: #eef2f6; -fx-background-color: transparent;"/>
+                <HBox alignment="CENTER" spacing="8">
+                    <Label fx:id="stepLabel1" text="۱. مشخصات"/>
+                    <Label text="←" style="-fx-text-fill: #cbd5e1;"/>
+                    <Label fx:id="stepLabel2" text="۲. توضیحات و قیمت"/>
+                    <Label text="←" style="-fx-text-fill: #cbd5e1;"/>
+                    <Label fx:id="stepLabel3" text="۳. تصاویر و ثبت"/>
+                </HBox>
 
-        <MenuButton fx:id="userMenuButton" style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 7 14; -fx-cursor: hand;" styleClass="nav-flyout" text="👤 کاربر">
-            <items>
-                <MenuItem text="➕ ثبت آگهی جدید" />
-                <MenuItem text="📝 آگهی‌های من" />
-                <MenuItem text="❤️ علاقه‌مندی‌ها" />
-                <MenuItem text="💬 گفت‌وگوها" />
-                <MenuItem text="🛒 خریدها" />
-                <MenuItem text="🔔 اعلان‌ها" />
-                <MenuItem text="👤 پروفایل" />
-                <SeparatorMenuItem />
-                <MenuItem text="خروج" />
-            </items>
-        </MenuButton>
-    </HBox>
+                <StackPane>
+                    <!-- مرحله ۱: مشخصات -->
+                    <VBox fx:id="step1Box" spacing="14">
+                        <VBox spacing="6">
+                            <Label text="عنوان آگهی" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                            <TextField fx:id="titleField" promptText="مثلاً گوشی آیفون ۱۳ در حد نو"/>
+                        </VBox>
+                        <VBox spacing="6">
+                            <Label text="دسته‌بندی" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                            <MenuButton fx:id="categoryMenuButton" text="📂 انتخاب دسته‌بندی" maxWidth="Infinity"
+                                        style="-fx-background-color: #ffffff; -fx-background-radius: 10; -fx-border-color: #dbe3ea; -fx-border-radius: 10; -fx-padding: 9 12; -fx-cursor: hand; -fx-text-fill: #0f172a;"/>
+                        </VBox>
+                        <VBox spacing="6">
+                            <Label text="شهر" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                            <ComboBox fx:id="cityComboBox" maxWidth="Infinity"/>
+                        </VBox>
+                    </VBox>
 
-    <!-- ===== Hero با آمار زنده ===== -->
-    <HBox alignment="CENTER_LEFT" nodeOrientation="RIGHT_TO_LEFT" spacing="18" style="-fx-background-color: linear-gradient(to bottom, #0e2433, #143449); -fx-padding: 6 26 24 26;">
-        <VBox spacing="5" HBox.hgrow="ALWAYS">
-            <Label style="-fx-text-fill: white; -fx-font-size: 22px; -fx-font-weight: bold;" text="بخر، بفروش، پس‌انداز کن ✨" />
-            <Label style="-fx-text-fill: #fdba74; -fx-font-size: 12px;" text="بزرگ‌ترین بازار خرید و فروش کالای دست‌دوم — مطمئن، سریع و بی‌واسطه" />
+                    <!-- مرحله ۲: توضیحات و قیمت -->
+                    <VBox fx:id="step2Box" spacing="14" visible="false" managed="false">
+                        <VBox spacing="6">
+                            <Label text="توضیحات" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                            <TextArea fx:id="descriptionArea" promptText="جزئیات کالا، وضعیت سلامت، مدت استفاده و..." prefRowCount="6" wrapText="true"/>
+                        </VBox>
+                        <VBox spacing="6">
+                            <Label text="قیمت (تومان)" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                            <TextField fx:id="priceField" promptText="مثلاً 25000000"/>
+                        </VBox>
+                    </VBox>
+
+                    <!-- مرحله ۳: تصاویر -->
+                    <VBox fx:id="step3Box" spacing="14" visible="false" managed="false">
+                        <Label text="تصاویر آگهی (اختیاری)" style="-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;"/>
+                        <VBox fx:id="dropZone" alignment="CENTER" spacing="10" minHeight="180">
+                            <padding><Insets top="18" right="18" bottom="18" left="18"/></padding>
+                            <Label text="🖼️ تصاویر را اینجا بکشید و رها کنید" style="-fx-text-fill: #64748b; -fx-font-size: 13px;"/>
+                            <Label text="یا" style="-fx-text-fill: #94a3b8; -fx-font-size: 11px;"/>
+                            <Button text="📁 انتخاب از فایل‌ها" onAction="#addImage"
+                                    style="-fx-background-color: #ffffff; -fx-text-fill: #ea580c; -fx-font-weight: bold; -fx-background-radius: 10; -fx-border-color: #f97316; -fx-border-radius: 10; -fx-padding: 8 18; -fx-cursor: hand; -fx-font-size: 12px;"/>
+                            <FlowPane fx:id="imagePreviewContainer" hgap="10" vgap="10" alignment="CENTER"/>
+                        </VBox>
+                        <Label text="پس از ثبت، آگهی شما توسط ادمین بررسی و سپس منتشر می‌شود." wrapText="true"
+                               style="-fx-background-color: #fff1e6; -fx-text-fill: #c2410c; -fx-background-radius: 10; -fx-padding: 10 14; -fx-font-size: 12px;"/>
+                    </VBox>
+                </StackPane>
+
+                <Label fx:id="errorLabel" visible="false" text="" wrapText="true"
+                       style="-fx-text-fill: #dc2626; -fx-font-size: 13px;"/>
+
+                <!-- ناوبری ویزارد -->
+                <HBox spacing="10">
+                    <Button fx:id="backStepButton" text="→ مرحله قبل" onAction="#prevStep" visible="false" managed="false"
+                            style="-fx-background-color: #ffffff; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-background-radius: 12; -fx-border-color: #dbe3ea; -fx-border-radius: 12; -fx-padding: 11 22; -fx-cursor: hand; -fx-font-size: 13px;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="nextStepButton" text="مرحله بعد ←" onAction="#nextStep"
+                            style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-padding: 11 26; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.30), 10, 0, 0, 3);"/>
+                    <Button fx:id="submitButton" text="✅ ثبت نهایی آگهی" onAction="#submitAd" visible="false" managed="false"
+                            style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-weight: bold; -fx-background-radius: 12; -fx-padding: 11 26; -fx-cursor: hand; -fx-font-size: 13px; -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.30), 10, 0, 0, 3);"/>
+                </HBox>
+            </VBox>
         </VBox>
-        <HBox alignment="CENTER" spacing="12">
-            <VBox alignment="CENTER" spacing="2" style="-fx-background-color: rgba(255,255,255,0.07); -fx-background-radius: 14; -fx-padding: 10 22;">
-                <Label fx:id="statAdsLabel" style="-fx-text-fill: #fdba74; -fx-font-size: 20px; -fx-font-weight: bold;" text="—" />
-                <Label style="-fx-text-fill: rgba(255,255,255,0.65); -fx-font-size: 10px;" text="آگهی فعال" />
-            </VBox>
-            <VBox alignment="CENTER" spacing="2" style="-fx-background-color: rgba(255,255,255,0.07); -fx-background-radius: 14; -fx-padding: 10 22;">
-                <Label fx:id="statCategoriesLabel" style="-fx-text-fill: #fdba74; -fx-font-size: 20px; -fx-font-weight: bold;" text="—" />
-                <Label style="-fx-text-fill: rgba(255,255,255,0.65); -fx-font-size: 10px;" text="دسته‌بندی" />
-            </VBox>
-            <VBox alignment="CENTER" spacing="2" style="-fx-background-color: rgba(255,255,255,0.07); -fx-background-radius: 14; -fx-padding: 10 22;">
-                <Label fx:id="statCitiesLabel" style="-fx-text-fill: #fdba74; -fx-font-size: 20px; -fx-font-weight: bold;" text="—" />
-                <Label style="-fx-text-fill: rgba(255,255,255,0.65); -fx-font-size: 10px;" text="شهر فعال" />
-            </VBox>
-        </HBox>
-    </HBox>
-
-    <!-- ===== بدنه: سایدبار فیلتر + نتایج ===== -->
-    <HBox nodeOrientation="RIGHT_TO_LEFT" spacing="16" VBox.vgrow="ALWAYS">
-        <padding>
-            <Insets bottom="18" left="18" right="18" top="16" />
-        </padding>
-
-        <!-- سایدبار فیلتر -->
-        <VBox maxWidth="242" minWidth="242" spacing="12" style="-fx-background-color: #ffffff; -fx-background-radius: 16; -fx-border-color: #e7ecf2; -fx-border-radius: 16; -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 14, 0, 0, 4); -fx-padding: 16;">
-            <HBox alignment="CENTER_LEFT" spacing="8">
-                <Label style="-fx-text-fill: #0f172a; -fx-font-size: 14px; -fx-font-weight: bold;" text="⚙ فیلترها" HBox.hgrow="ALWAYS" />
-                <Label fx:id="resultsCountLabel" style="-fx-background-color: #fff1e6; -fx-text-fill: #c2410c; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 999; -fx-padding: 2 9;" text="" />
-            </HBox>
-
-            <Label style="-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold;" text="📂 دسته‌بندی‌ها" />
-            <ScrollPane fitToWidth="true" maxHeight="185" prefHeight="185" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: #eef2f6; -fx-border-radius: 10;">
-                <content>
-                    <VBox fx:id="categoryChecksVBox" spacing="7" style="-fx-padding: 10; -fx-background-color: #ffffff;" />
-                </content>
-            </ScrollPane>
-
-            <Separator style="-fx-opacity: 0.6;" />
-
-            <HBox alignment="CENTER_LEFT" spacing="6">
-                <Label style="-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold;" text="💰 سقف قیمت" HBox.hgrow="ALWAYS" />
-                <Label fx:id="priceValueLabel" style="-fx-text-fill: #ea580c; -fx-font-size: 10px; -fx-font-weight: bold;" text="بدون محدودیت" />
-            </HBox>
-            <Slider fx:id="maxPriceSlider" max="100000000" min="0" value="100000000" />
-
-            <VBox spacing="6">
-                <Label style="-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold;" text="📍 شهر" />
-                <ComboBox fx:id="cityFilterComboBox" maxWidth="Infinity" promptText="همهٔ شهرها" />
-            </VBox>
-
-            <VBox spacing="6">
-                <Label style="-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold;" text="↕ مرتب‌سازی" />
-                <ComboBox fx:id="sortFilterComboBox" maxWidth="Infinity" />
-            </VBox>
-
-            <Region VBox.vgrow="ALWAYS" />
-
-            <Button maxWidth="Infinity" onAction="#applyFilters" style="-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 13px; -fx-background-radius: 10; -fx-padding: 9 0; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.30), 8, 0, 0, 2);" text="اعمال فیلترها" />
-            <Button maxWidth="Infinity" onAction="#clearFilters" style="-fx-background-color: #f1f5f9; -fx-text-fill: #475569; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 10; -fx-padding: 8 0; -fx-cursor: hand;" text="پاک کردن همه" />
-        </VBox>
-
-        <!-- نتایج -->
-        <StackPane HBox.hgrow="ALWAYS">
-            <ScrollPane fitToWidth="true" style="-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;">
-                <content>
-                    <FlowPane fx:id="adsFlowPane" hgap="14" style="-fx-padding: 4;" vgap="14" />
-                </content>
-            </ScrollPane>
-            <VBox fx:id="loadingContainer" alignment="CENTER" spacing="12" style="-fx-background-color: rgba(246,248,250,0.85);">
-                <ProgressIndicator prefHeight="46" prefWidth="46" />
-                <Label style="-fx-text-fill: #64748b; -fx-font-size: 13px;" text="در حال بارگذاری آگهی‌ها..." />
-            </VBox>
-        </StackPane>
-    </HBox>
+    </ScrollPane>
 </VBox>

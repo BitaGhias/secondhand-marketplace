@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="700.0" prefWidth="1000.0" spacing="0"
+<VBox styleClass="my-ads-page" prefHeight="700.0" prefWidth="1000.0" spacing="0"
       style="-fx-background-color: #f5f7fa;"
       stylesheets="@../../css/styles.css"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"

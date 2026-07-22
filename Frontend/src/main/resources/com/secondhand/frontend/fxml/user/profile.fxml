@@ -5,7 +5,7 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 
-<VBox prefHeight="790.0" prefWidth="1119.0" spacing="0"
+<VBox styleClass="profile-page" prefHeight="790.0" prefWidth="1119.0" spacing="0"
       style="-fx-background-color: #f5f7fa;"
       stylesheets="@../../css/styles.css"
       xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"

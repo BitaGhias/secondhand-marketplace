@@ -444,6 +444,62 @@
     -fx-border-color: rgba(249,115,22,0.28);
 }
 
+/* ============ صفحات اصلی کاربر ============ */
+.chats-page,
+.favorites-page,
+.notifications-page,
+.profile-page,
+.purchases-page,
+.create-ad-page,
+.my-ads-page,
+.filter-dialog-page,
+.admin-user-ads-page {
+    -fx-background-color: -bg-app;
+}
+
+.chats-page .list-view,
+.favorites-page .list-view,
+.notifications-page .list-view,
+.profile-page .list-view,
+.my-ads-page .list-view,
+.admin-user-ads-page .list-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14px;
+    -fx-border-color: -line;
+    -fx-border-radius: 14px;
+}
+
+.profile-page .text-field:focused,
+.profile-page .password-field:focused,
+.create-ad-page .text-field:focused,
+.create-ad-page .text-area:focused,
+.create-ad-page .combo-box:focused,
+.filter-dialog-page .text-field:focused,
+.filter-dialog-page .combo-box:focused {
+    -fx-border-color: -brand-orange;
+    -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.18), 8, 0, 0, 0);
+}
+
+.purchases-page .table-view,
+.admin-user-ads-page .table-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14px;
+    -fx-border-color: -line;
+    -fx-border-radius: 14px;
+}
+
+.chats-page .button:hover,
+.favorites-page .button:hover,
+.notifications-page .button:hover,
+.profile-page .button:hover,
+.purchases-page .button:hover,
+.create-ad-page .button:hover,
+.my-ads-page .button:hover,
+.filter-dialog-page .button:hover,
+.admin-user-ads-page .button:hover {
+    -fx-opacity: 0.90;
+}
+
 /* ============ Auth screens ============ */
 .auth-card {
     -fx-background-color: #ffffff;
