@@ -138,6 +138,17 @@ public class ItemService {
         return responses;
     }
 
+    /** Remove files created by a failed database/file operation. */
+    private void cleanupCreatedFiles(List<Path> createdFiles) {
+        for (Path file : createdFiles) {
+            try {
+                Files.deleteIfExists(file);
+            } catch (IOException cleanupError) {
+                logger.warn("خطا در پاک‌سازی فایل موقت: {} - {}", file, cleanupError.getMessage());
+            }
+        }
+    }
+
     // FIX: @Transactional اضافه شد - ذخیره آگهی و تصویر اتمیک است
     @Transactional
     public ItemResponse addItem(ItemCreateRequest request, Long userId) {
@@ -164,6 +175,7 @@ public class ItemService {
         item.setCity(city);
 
         Item savedItem = itemRepository.save(item);
+        List<Path> createdFiles = new ArrayList<>();
 
         List<MultipartFile> images = request.getImages();
         if (images != null && !images.isEmpty()) {
@@ -183,6 +195,7 @@ public class ItemService {
                         String fileName = UUID.randomUUID() + extension;
                         Path filePath = uploadPath.resolve(fileName);
                         Files.write(filePath, file.getBytes());
+                        createdFiles.add(filePath);
 
                         Image image = new Image();
                         image.setImagePath(filePath.toString().replace("\\", "/"));
@@ -190,7 +203,9 @@ public class ItemService {
                         imageRepository.save(image);
                     }
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
+                cleanupCreatedFiles(createdFiles);
+                if (e instanceof BadRequestException badRequest) throw badRequest;
                 throw new BadRequestException("خطا در ذخیره تصویر: " + e.getMessage());
             }
         }
@@ -401,6 +416,7 @@ public class ItemService {
         }
 
         // FIX: پشتیبانی از افزودن تصاویر جدید در ویرایش
+        List<Path> createdFiles = new ArrayList<>();
         List<MultipartFile> newImages = request.getImages();
         if (newImages != null && !newImages.isEmpty()) {
             validateImages(newImages);
@@ -423,6 +439,7 @@ public class ItemService {
                         String fileName = UUID.randomUUID() + extension;
                         Path filePath = uploadPath.resolve(fileName);
                         Files.write(filePath, file.getBytes());
+                        createdFiles.add(filePath);
 
                         Image image = new Image();
                         image.setImagePath(filePath.toString().replace("\\", "/"));
@@ -430,7 +447,9 @@ public class ItemService {
                         imageRepository.save(image);
                     }
                 }
-            } catch (IOException e) {
+            } catch (IOException | RuntimeException e) {
+                cleanupCreatedFiles(createdFiles);
+                if (e instanceof BadRequestException badRequest) throw badRequest;
                 throw new BadRequestException("خطا در ذخیره تصویر: " + e.getMessage());
             }
         }

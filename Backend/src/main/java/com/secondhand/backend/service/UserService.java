@@ -310,6 +310,11 @@ public class UserService {
         if (image.getSize() > 5L * 1024 * 1024)
             throw new BadRequestException("حجم تصویر نباید بیشتر از ۵ مگابایت باشد!");
 
+        Path oldPath = user.getProfileImagePath() != null && !user.getProfileImagePath().isBlank()
+                ? Paths.get(user.getProfileImagePath())
+                : null;
+        Path newPath = null;
+
         try {
             Path uploadPath = Paths.get("uploads/");
             if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
@@ -324,22 +329,32 @@ public class UserService {
 
             // UUID avoids overwriting a profile image during rapid successive uploads.
             String fileName = "profile_" + userId + "_" + UUID.randomUUID() + extension;
-            Path filePath = uploadPath.resolve(fileName);
-            Files.write(filePath, image.getBytes());
+            newPath = uploadPath.resolve(fileName);
+            Files.write(newPath, image.getBytes());
 
-            if (user.getProfileImagePath() != null && !user.getProfileImagePath().isBlank()) {
+            user.setProfileImagePath(newPath.toString().replace("\\", "/"));
+            UserResponse response = convertToResponse(userRepository.save(user));
+
+            // Delete the old file only after the database points to the new one.
+            if (oldPath != null) {
                 try {
-                    Path oldPath = Paths.get(user.getProfileImagePath());
-                    if (Files.exists(oldPath)) Files.delete(oldPath);
-                } catch (IOException ignored) {}
+                    Files.deleteIfExists(oldPath);
+                } catch (IOException ignored) {
+                    // The new profile is already saved; an old-file cleanup failure is non-fatal.
+                }
             }
-
-            user.setProfileImagePath(filePath.toString().replace("\\", "/"));
-        } catch (IOException e) {
+            return response;
+        } catch (IOException | RuntimeException e) {
+            if (newPath != null) {
+                try {
+                    Files.deleteIfExists(newPath);
+                } catch (IOException cleanupError) {
+                    // Keep the original failure; cleanup failure is logged below.
+                }
+            }
+            if (e instanceof BadRequestException badRequest) throw badRequest;
             throw new BadRequestException("خطا در ذخیره تصویر پروفایل: " + e.getMessage());
         }
-
-        return convertToResponse(userRepository.save(user));
     }
 
     public boolean isAdmin(Long userId) {
