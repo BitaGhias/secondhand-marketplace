@@ -17,13 +17,13 @@
 
 ## 🏗️ معماری و تکنولوژی‌ها
 
-| بخش | تکنولوژی |
-|------|-----------|
-| Backend | Java 21 + Spring Boot (REST API) |
-| Frontend | JavaFX 21 (FXML) |
+| بخش | تکنولوژی                                        |
+|------|-------------------------------------------------|
+| Backend | Java 25 + Spring Boot (REST API)                |
+| Frontend | JavaFX 25 (FXML)                                |
 | دیتابیس | SQLite (فایل `secondhand.sqlite` در ریشه پروژه) |
-| احراز هویت | JWT (Bearer Token) |
-| ارتباط | HTTP/JSON روی پورت 8080 |
+| احراز هویت | JWT (Bearer Token)                              |
+| ارتباط | HTTP/JSON روی پورت 8080                         |
 
 ## 🚀 نحوه اجرا
 
@@ -46,6 +46,28 @@ mvn clean javafx:run
 ```
 
 > ⚠️ ابتدا بک‌اند را اجرا کنید، سپس فرانت‌اند را.
+
+### تنظیم آدرس Backend در Frontend
+
+به‌صورت پیش‌فرض، Frontend به آدرس زیر وصل می‌شود:
+
+```text
+http://127.0.0.1:8080/api
+```
+
+برای اجرای Backend روی آدرس دیگر، می‌توانید هنگام اجرای Frontend یکی از این تنظیمات را بدهید:
+
+```bash
+mvn javafx:run -Dsecondhand.api.url=http://localhost:8080/api
+```
+
+یا متغیر محیطی تنظیم کنید:
+
+```bash
+SECONDHAND_API_URL=http://localhost:8080/api
+```
+
+اگر آدرس بدون `/api` داده شود، Frontend آن را به‌صورت خودکار اضافه می‌کند.
 
 ## 🔑 حساب‌های تست
 
