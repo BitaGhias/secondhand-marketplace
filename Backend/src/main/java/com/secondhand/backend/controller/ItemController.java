@@ -88,11 +88,27 @@ public class ItemController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{id}")
+    // FIX: پشتیبانی از تغییر تصاویر هنگام ویرایش - ایندپوینت اکنون multipart/form-data می‌گیرد
+    @PutMapping(value = "/{id}", consumes = "multipart/form-data")
     public ResponseEntity<ItemResponse> updateItem(
             @PathVariable Long id,
-            @RequestBody ItemUpdateRequest request
+            @RequestParam("title") String title,
+            @RequestParam("description") String description,
+            @RequestParam("price") Long price,
+            @RequestParam("categoryId") Long categoryId,
+            @RequestParam("cityId") Long cityId,
+            @RequestParam(value = "removedImageIds", required = false) List<Long> removedImageIds,
+            @RequestParam(value = "images", required = false) List<MultipartFile> images
     ) {
+        ItemUpdateRequest request = new ItemUpdateRequest();
+        request.setTitle(title);
+        request.setDescription(description);
+        request.setPrice(price);
+        request.setCategoryId(categoryId);
+        request.setCityId(cityId);
+        request.setRemovedImageIds(removedImageIds);
+        request.setImages(images);
+
         return ResponseEntity.ok(
                 itemService.updateItem(id, currentUserService.getCurrentUserId(), request)
         );

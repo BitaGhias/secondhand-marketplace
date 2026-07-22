@@ -363,6 +363,62 @@ public class ItemService {
             item.setRejectionReason(null);
         }
 
+        // FIX: پشتیبانی از حذف تصاویر قبلی در ویرایش
+        List<Image> currentImages = imageRepository.findByItemId(itemId);
+        int remainingCount = currentImages.size();
+
+        if (request.getRemovedImageIds() != null && !request.getRemovedImageIds().isEmpty()) {
+            for (Long imageId : request.getRemovedImageIds()) {
+                Image image = imageRepository.findById(imageId)
+                        .orElseThrow(() -> new ResourceNotFoundException("تصویر یافت نشد"));
+                if (image.getItem() == null || !image.getItem().getId().equals(itemId))
+                    throw new ForbiddenException("این تصویر متعلق به این آگهی نیست!");
+                try {
+                    Path filePath = Paths.get(image.getImagePath());
+                    if (Files.exists(filePath)) Files.delete(filePath);
+                } catch (IOException e) {
+                    logger.warn("خطا در حذف فایل تصویر: {} - {}", image.getImagePath(), e.getMessage());
+                }
+                imageRepository.delete(image);
+                remainingCount--;
+            }
+        }
+
+        // FIX: پشتیبانی از افزودن تصاویر جدید در ویرایش
+        List<MultipartFile> newImages = request.getImages();
+        if (newImages != null && !newImages.isEmpty()) {
+            validateImages(newImages);
+            if (remainingCount + newImages.size() > 5)
+                throw new BadRequestException("حداکثر ۵ تصویر مجاز است!");
+
+            try {
+                String uploadDir = "uploads/";
+                Path uploadPath = Paths.get(uploadDir);
+                if (!Files.exists(uploadPath)) Files.createDirectories(uploadPath);
+
+                int index = 0;
+                for (MultipartFile file : newImages) {
+                    if (!file.isEmpty()) {
+                        String originalFileName = file.getOriginalFilename();
+                        String extension = "";
+                        if (originalFileName != null && originalFileName.contains("."))
+                            extension = originalFileName.substring(originalFileName.lastIndexOf("."));
+
+                        String fileName = System.currentTimeMillis() + "_" + (index++) + extension;
+                        Path filePath = uploadPath.resolve(fileName);
+                        Files.write(filePath, file.getBytes());
+
+                        Image image = new Image();
+                        image.setImagePath(filePath.toString().replace("\\", "/"));
+                        image.setItem(item);
+                        imageRepository.save(image);
+                    }
+                }
+            } catch (IOException e) {
+                throw new BadRequestException("خطا در ذخیره تصویر: " + e.getMessage());
+            }
+        }
+
         return convertToResponse(itemRepository.save(item));
     }
 
