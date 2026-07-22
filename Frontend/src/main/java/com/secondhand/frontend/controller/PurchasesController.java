@@ -26,6 +26,8 @@ public class PurchasesController extends BaseController {
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
+        // اضافه کردن style class مخصوص برای CSS targeting
+        if (purchasesTable != null) purchasesTable.getStyleClass().add("purchases-table");
         setupColumns();
         setupRowDoubleClick();
         loadPurchases();
@@ -75,8 +77,8 @@ public class PurchasesController extends BaseController {
             private final Button rateBtn  = new Button("\u2B50 ثبت امتیاز");
             private final Label  ratedLbl = new Label("\u2705 امتیاز داده شده");
             {
-                rateBtn.setStyle("-fx-background-color: #f97316; -fx-text-fill: white;"
-                        + " -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 12;");
+                // استفاده از CSS class برای hover/pressed
+                rateBtn.getStyleClass().add("rate-btn");
                 ratedLbl.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 12px;");
                 rateBtn.setOnAction(e -> {
                     Item item = getTableView().getItems().get(getIndex());

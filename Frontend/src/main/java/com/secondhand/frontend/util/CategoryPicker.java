@@ -97,6 +97,8 @@ public final class CategoryPicker {
 
     private static void select(MenuButton button, Category cat, Consumer<Category> onSelect) {
         button.setText("📂 " + displayName(cat));
+        // فیدبک بصری: تغییر رنگ border و background هنگام انتخاب
+        button.setStyle("-fx-background-color: #fff1e6; -fx-background-radius: 10; -fx-border-color: #f97316; -fx-border-radius: 10; -fx-border-width: 1.5px; -fx-padding: 8 12; -fx-cursor: hand; -fx-text-fill: #0f172a;");
         if (onSelect != null) onSelect.accept(cat);
     }
 
