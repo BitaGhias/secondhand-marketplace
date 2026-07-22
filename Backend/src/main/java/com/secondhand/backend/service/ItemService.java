@@ -1,6 +1,7 @@
 package com.secondhand.backend.service;
 
 import com.secondhand.backend.constant.ItemStatus;
+import com.secondhand.backend.constant.PurchaseRequestStatus;
 import com.secondhand.backend.constant.Role;
 import com.secondhand.backend.dto.item.*;
 import com.secondhand.backend.entity.*;
@@ -33,6 +34,7 @@ public class ItemService {
     @Autowired private CityRepository cityRepository;
     @Autowired private CategoryRepository categoryRepository;
     @Autowired private ImageRepository imageRepository;
+    @Autowired private PurchaseRequestRepository purchaseRequestRepository;
 
     private void validateItemPrice(Long price) {
         if (price == null) throw new BadRequestException("قیمت آگهی الزامی است!");
@@ -288,6 +290,8 @@ public class ItemService {
         return convertToResponseList(itemRepository.findByStatusAndCityId(ItemStatus.APPROVED, cityId));
     }
 
+    // FIX: @Transactional اضافه شد - علامت‌گذاری فروش و رد درخواست‌های معلق باید اتمیک باشند
+    @Transactional
     public ItemResponse markAsSold(Long itemId, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -304,7 +308,17 @@ public class ItemService {
             throw new BadRequestException("آگهی حذف شده است!");
 
         item.setStatus(ItemStatus.SOLD);
-        return convertToResponse(itemRepository.save(item));
+        ItemResponse response = convertToResponse(itemRepository.save(item));
+
+        // FIX: رد خودکار درخواست‌های خرید در انتظار این آگهی، تا برای همیشه در وضعیت «در انتظار» معلق نمانند
+        // (این کار مشابه چیزی است که در تایید یک درخواست خرید خاص هم انجام می‌شود)
+        for (PurchaseRequest pending : purchaseRequestRepository.findByItemIdAndStatus(itemId, PurchaseRequestStatus.PENDING)) {
+            pending.setStatus(PurchaseRequestStatus.DECLINED);
+            pending.setRespondedAt(java.time.LocalDateTime.now());
+            purchaseRequestRepository.save(pending);
+        }
+
+        return response;
     }
 
     public ItemResponse getItemById(Long itemId) {

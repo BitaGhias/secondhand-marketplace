@@ -63,6 +63,29 @@ public class ChatService {
         }
     }
 
+    // FIX: ویرایش پیام ارسالی (مطابق بک‌اند: PUT /api/chat/message/{id}?text=...) - قبلاً این قابلیت از فرانت قابل دسترس نبود
+    public static ChatMessage editMessage(Long messageId, String newText) throws Exception {
+        HttpResponse<String> response = ApiClient.put(
+                "/chat/message/" + messageId + "?text=" + java.net.URLEncoder.encode(newText, "UTF-8"),
+                null
+        );
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(), ChatMessage.class);
+        } else {
+            throw new Exception("خطا در ویرایش پیام: " + response.body());
+        }
+    }
+
+    // FIX: حذف پیام ارسالی (مطابق بک‌اند: DELETE /api/chat/message/{id}) - قبلاً این قابلیت از فرانت قابل دسترس نبود
+    public static ChatMessage deleteMessage(Long messageId) throws Exception {
+        HttpResponse<String> response = ApiClient.delete("/chat/message/" + messageId);
+        if (response.statusCode() == 200) {
+            return objectMapper.readValue(response.body(), ChatMessage.class);
+        } else {
+            throw new Exception("خطا در حذف پیام: " + response.body());
+        }
+    }
+
     public static class SendMessageRequest {
         public Long conversationId;
         public String text;
