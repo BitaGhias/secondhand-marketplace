@@ -4,29 +4,31 @@ import com.secondhand.frontend.model.Category;
 import com.secondhand.frontend.model.City;
 import com.secondhand.frontend.service.CategoryService;
 import com.secondhand.frontend.service.CityService;
+import com.secondhand.frontend.util.CategoryPicker;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
+import javafx.scene.control.MenuButton;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * کنترلر دیالوگ فیلتر جست‌وجو — مطابق filter_dialogue.fxml
- * (دسته‌بندی، شهر، محدوده قیمت و مرتب‌سازی). نتیجه از طریق FilterListener به AdListController برمی‌گردد
+ * دسته‌بندی مانند فرم ثبت آگهی با منوی فلای‌اوت تو در تو (CategoryPicker) انتخاب می‌شود،
+ * نه ComboBox تخت. نتیجه از طریق FilterListener به AdListController برمی‌گردد
  * و جست‌وجو با POST /api/items/search/advanced انجام می‌شود.
  */
 public class FilterDialogController {
 
-    @FXML private ComboBox<Category> filterCategoryComboBox;
+    private static final String ALL_CATEGORIES_LABEL = "🗂 همه دسته‌بندی‌ها";
+
+    @FXML private MenuButton filterCategoryMenuButton;
     @FXML private ComboBox<City> filterCityComboBox;
     @FXML private TextField minPriceField;
     @FXML private TextField maxPriceField;
@@ -36,6 +38,7 @@ public class FilterDialogController {
     @FXML private Button clearFilterButton;
 
     private FilterListener listener;
+    private Category selectedCategory;
 
     /** برچسب فارسی مرتب‌سازی ← کد مورد انتظار بک‌اند (ItemSearchRequest.sortBy) */
     private static final Map<String, String> SORT_OPTIONS = new LinkedHashMap<>();
@@ -58,7 +61,6 @@ public class FilterDialogController {
 
     @FXML
     public void initialize() {
-        setupCategoryComboDisplay();
         setupSortComboBox();
         loadOptionsInBackground();
     }
@@ -69,57 +71,16 @@ public class FilterDialogController {
         sortComboBox.setValue(DEFAULT_SORT_LABEL);
     }
 
-    /** نمایش سلسله‌مراتبی دسته‌بندی‌ها (زیردسته‌ها با نام والد) */
-    private void setupCategoryComboDisplay() {
-        filterCategoryComboBox.setCellFactory(cb -> new ListCell<>() {
-            @Override
-            protected void updateItem(Category item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : displayName(item));
-            }
-        });
-        filterCategoryComboBox.setButtonCell(new ListCell<>() {
-            @Override
-            protected void updateItem(Category item, boolean empty) {
-                super.updateItem(item, empty);
-                setText(empty || item == null ? null : displayName(item));
-            }
-        });
-    }
-
-    private String displayName(Category c) {
-        if (c.getParentName() != null && !c.getParentName().isBlank()) {
-            return c.getParentName() + " › " + c.getName();
-        }
-        return c.getName();
-    }
-
     private void loadOptionsInBackground() {
         new Thread(() -> {
             try {
                 List<Category> categories = CategoryService.getAllCategories();
                 List<City> cities = CityService.getAllCities();
 
-                // مرتب‌سازی: ابتدا دسته‌های اصلی، سپس زیردسته‌ها کنار والد خودشان
-                List<Category> ordered = new ArrayList<>();
-                List<Category> roots = categories.stream()
-                        .filter(Category::isRoot)
-                        .sorted(Comparator.comparing(Category::getName))
-                        .toList();
-                for (Category root : roots) {
-                    ordered.add(root);
-                    categories.stream()
-                            .filter(c -> !c.isRoot() && root.getId().equals(c.getParentId()))
-                            .sorted(Comparator.comparing(Category::getName))
-                            .forEach(ordered::add);
-                }
-                // دسته‌هایی که در سلسله‌مراتب جا نماندند
-                for (Category c : categories) {
-                    if (!ordered.contains(c)) ordered.add(c);
-                }
-
                 Platform.runLater(() -> {
-                    filterCategoryComboBox.getItems().setAll(ordered);
+                    // فلای‌اوت مشترک دسته‌بندی — زیردسته‌ها در زیرمنوی کناری باز می‌شوند
+                    CategoryPicker.populate(filterCategoryMenuButton, categories, ALL_CATEGORIES_LABEL,
+                            cat -> selectedCategory = cat);
                     filterCityComboBox.getItems().setAll(cities);
                 });
             } catch (Exception e) {
@@ -150,7 +111,6 @@ public class FilterDialogController {
             return;
         }
 
-        Category selectedCategory = filterCategoryComboBox.getValue();
         City selectedCity = filterCityComboBox.getValue();
         String sortBy = sortComboBox != null
                 ? SORT_OPTIONS.getOrDefault(sortComboBox.getValue(), "newest")
@@ -170,8 +130,8 @@ public class FilterDialogController {
 
     @FXML
     private void clearFilter() {
-        filterCategoryComboBox.getSelectionModel().clearSelection();
-        filterCategoryComboBox.setValue(null);
+        selectedCategory = null;
+        if (filterCategoryMenuButton != null) filterCategoryMenuButton.setText(ALL_CATEGORIES_LABEL);
         filterCityComboBox.getSelectionModel().clearSelection();
         filterCityComboBox.setValue(null);
         minPriceField.clear();

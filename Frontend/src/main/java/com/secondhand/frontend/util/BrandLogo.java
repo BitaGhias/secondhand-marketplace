@@ -11,8 +11,8 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 
 /**
- * لوگوی برند «بازار سفید» — کیسه خرید سفید با تیک سبز (نماد خرید مطمئن)
- * روی کاشی گرادیان زمردی با گوشه‌های گرد. کاملاً وکتوری و بدون فایل تصویری.
+ * لوگوی برند «دست‌دوم مارکت» — کیسه خرید سفید با تیک نارنجی گرم (نماد خرید مطمئن)
+ * روی کاشی گرادیان نفتی‌تیره با گوشه‌های گرد. کاملاً وکتوری و بدون فایل تصویری.
  */
 public final class BrandLogo {
 
@@ -22,16 +22,16 @@ public final class BrandLogo {
      * ساخت نود لوگو با اندازه دلخواه (طول ضلع کاشی بر حسب پیکسل)
      */
     public static Node create(double size) {
-        // کاشی پس‌زمینه با گرادیان زمردی
+        // کاشی پس‌زمینه با گرادیان نفتی
         Region tile = new Region();
         tile.setMinSize(size, size);
         tile.setMaxSize(size, size);
         tile.setStyle(
-                "-fx-background-color: linear-gradient(to bottom right, #10b981, #047857);" +
+                "-fx-background-color: linear-gradient(to bottom right, #1b4460, #0e2433);" +
                 "-fx-background-radius: " + (size * 0.26) + ";"
         );
         DropShadow shadow = new DropShadow();
-        shadow.setColor(Color.rgb(4, 120, 87, 0.35));
+        shadow.setColor(Color.rgb(14, 36, 51, 0.45));
         shadow.setRadius(size * 0.25);
         shadow.setOffsetY(size * 0.06);
         tile.setEffect(shadow);
@@ -55,11 +55,11 @@ public final class BrandLogo {
         handle.setScaleX(s);
         handle.setScaleY(s);
 
-        // تیک سبز روی بدنه کیسه — نماد اعتماد و تایید
+        // تیک نارنجی روی بدنه کیسه — نماد اعتماد و تایید
         SVGPath check = new SVGPath();
         check.setContent("M8.7 14.4 L11.1 16.8 L15.6 12.1");
         check.setFill(Color.TRANSPARENT);
-        check.setStroke(Color.web("#059669"));
+        check.setStroke(Color.web("#f97316"));
         check.setStrokeWidth(2.0);
         check.setStrokeLineCap(StrokeLineCap.ROUND);
         check.setStrokeLineJoin(StrokeLineJoin.ROUND);

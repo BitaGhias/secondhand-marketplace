@@ -25,6 +25,9 @@ public class ItemService {
 
     private static final Logger logger = LoggerFactory.getLogger(ItemService.class);
 
+    @Autowired
+    private RatingRepository ratingRepository;
+
     @Autowired private ItemRepository itemRepository;
     @Autowired private UserRepository userRepository;
     @Autowired private CityRepository cityRepository;
@@ -117,6 +120,11 @@ public class ItemService {
         }
 
         response.setCreatedAt(item.getCreatedAt());
+        response.setCategoryId(item.getCategory() != null ? item.getCategory().getId() : null);
+        response.setCityId(item.getCity() != null ? item.getCity().getId() : null);
+        if (item.getUser() != null && ratingRepository.countBySellerId(item.getUser().getId()) > 0) {
+            response.setAverageRating(ratingRepository.averageScoreBySellerId(item.getUser().getId()));
+        }
         return response;
     }
 

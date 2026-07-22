@@ -1,103 +1,85 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
 
-<VBox prefHeight="620.0" prefWidth="900.0" spacing="0"
-      style="-fx-background-color: #f5f7fa;"
+<!-- لی‌اوت دوستونهٔ واتساپی: لیست مکالمات چسبیده به محیط گفت‌وگو — بدون کارت‌های جدا -->
+<VBox prefHeight="620.0" prefWidth="940.0" spacing="0"
+      style="-fx-background-color: #ffffff; -fx-background-radius: 24; -fx-border-color: #e7ecf2; -fx-border-radius: 24; -fx-border-width: 1;"
       stylesheets="@../../css/styles.css"
-      xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1"
+      xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="com.secondhand.frontend.controller.ChatsController">
 
     <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
-          style="-fx-background-color: #ffffff;
-                 -fx-padding: 12 16;
-                 -fx-border-color: transparent transparent #e7ecf2 transparent;
-                 -fx-border-width: 0 0 1 0;">
-        <Label text="بازار سفید — گفت‌وگوها" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+          style="-fx-background-color: #0e2433; -fx-background-radius: 24 24 0 0; -fx-padding: 12 16;">
+        <Label text="دست‌دوم مارکت — گفت‌وگوها" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
         <HBox HBox.hgrow="ALWAYS"/>
         <Button text="─" onAction="#minimizeWindow"
                 style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
         <Button text="☐" onAction="#maximizeWindow"
                 style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
         <Button text="✕" onAction="#closeWindow"
-                style="-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+                style="-fx-background-color: transparent; -fx-text-fill: #f87171; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
     </HBox>
 
-    <!-- ===== بدنه ===== -->
-    <HBox spacing="16" VBox.vgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
-        <padding>
-            <Insets top="16" right="18" bottom="18" left="18"/>
-        </padding>
+    <!-- ===== بدنهٔ دوستونه ===== -->
+    <HBox spacing="0" VBox.vgrow="ALWAYS" nodeOrientation="RIGHT_TO_LEFT">
 
-        <!-- سایدبار گفت‌وگوها -->
-        <VBox spacing="12" prefWidth="260" minWidth="260"
-              style="-fx-background-color: #ffffff;
-                     -fx-background-radius: 16;
-                     -fx-border-color: #e7ecf2;
-                     -fx-border-radius: 16;
-                     -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 14, 0, 0, 4);
-                     -fx-padding: 16;">
-            <HBox alignment="CENTER_LEFT" spacing="8">
-                <Label text="💬 گفت‌وگوها" style="-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
+        <!-- ستون مکالمات (مثل واتساپ) -->
+        <VBox spacing="0" prefWidth="280" minWidth="280" maxWidth="280"
+              style="-fx-background-color: #ffffff; -fx-border-color: transparent #e7ecf2 transparent transparent; -fx-border-width: 0 1 0 0; -fx-background-radius: 0 0 0 24;">
+
+            <HBox alignment="CENTER_LEFT" spacing="9" style="-fx-background-color: #143449; -fx-padding: 13 16;">
+                <Label text="💬" style="-fx-background-color: rgba(249,115,22,0.18); -fx-background-radius: 10; -fx-padding: 4 8; -fx-font-size: 13px;"/>
+                <Label text="گفت‌وگوها" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
+                <Button text="←" onAction="#goBack"
+                        style="-fx-background-color: rgba(255,255,255,0.10); -fx-text-fill: #fdba74; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 3 10; -fx-cursor: hand;"/>
             </HBox>
+
             <ListView fx:id="chatUsersListView" VBox.vgrow="ALWAYS"
-                      style="-fx-background-color: transparent; -fx-border-color: transparent;"/>
-            <Button text="→ بازگشت" onAction="#goBack" maxWidth="Infinity"
-                    style="-fx-background-color: #ffffff;
-                           -fx-text-fill: #0e9f6e;
-                           -fx-border-color: #0e9f6e;
-                           -fx-border-width: 1.5;
-                           -fx-border-radius: 10;
-                           -fx-background-radius: 10;
-                           -fx-cursor: hand;
-                           -fx-font-size: 13px;
-                           -fx-font-weight: bold;
-                           -fx-padding: 8 18;"/>
+                      style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-padding: 6;"/>
         </VBox>
 
-        <!-- محیط پیام -->
-        <VBox spacing="0" HBox.hgrow="ALWAYS"
-              style="-fx-background-color: #ffffff;
-                     -fx-background-radius: 16;
-                     -fx-border-color: #e7ecf2;
-                     -fx-border-radius: 16;
-                     -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 14, 0, 0, 4);">
+        <!-- محیط گفت‌وگو -->
+        <VBox spacing="0" HBox.hgrow="ALWAYS" style="-fx-background-color: #e9eef4; -fx-background-radius: 0 0 24 0;">
 
             <!-- هدر مخاطب -->
             <HBox alignment="CENTER_LEFT" spacing="10"
-                  style="-fx-padding: 14 18;
-                         -fx-border-color: transparent transparent #eef2f6 transparent;
-                         -fx-border-width: 0 0 1 0;">
-                <Label text="👤" style="-fx-background-color: #d1f0e2; -fx-background-radius: 50; -fx-padding: 6 9; -fx-font-size: 13px;"/>
-                <Label fx:id="currentChatUserLabel" text="یک گفت‌وگو را انتخاب کنید"
-                       style="-fx-text-fill: #0f172a; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                  style="-fx-background-color: #143449; -fx-padding: 11 18;">
+                <StackPane>
+                    <Circle radius="15" style="-fx-fill: rgba(249,115,22,0.25);"/>
+                    <Label text="👤" style="-fx-font-size: 12px;"/>
+                </StackPane>
+                <VBox spacing="0">
+                    <Label fx:id="currentChatUserLabel" text="یک گفت‌وگو را انتخاب کنید"
+                           style="-fx-text-fill: white; -fx-font-size: 13px; -fx-font-weight: bold;"/>
+                    <Label text="گفت‌وگوی مستقیم خریدار و فروشنده" style="-fx-text-fill: rgba(255,255,255,0.55); -fx-font-size: 10px;"/>
+                </VBox>
             </HBox>
 
-            <!-- پیام‌ها -->
+            <!-- پیام‌ها (پس‌زمینهٔ واتساپی) -->
             <ScrollPane fx:id="messagesScrollPane" fitToWidth="true" VBox.vgrow="ALWAYS"
-                        style="-fx-background-color: #f8fafd; -fx-background: #f8fafd; -fx-border-color: transparent;">
+                        style="-fx-background-color: #e9eef4; -fx-background: #e9eef4; -fx-border-color: transparent;">
                 <content>
-                    <VBox fx:id="messagesVBox" spacing="8" style="-fx-padding: 16; -fx-background-color: #f8fafd;"/>
+                    <VBox fx:id="messagesVBox" spacing="7" style="-fx-padding: 16 20; -fx-background-color: #e9eef4;"/>
                 </content>
             </ScrollPane>
 
-            <!-- نوار ارسال -->
+            <!-- نوار ارسال واتساپی: فیلد کپسولی + دکمهٔ دایره‌ای نارنجی -->
             <HBox spacing="10" alignment="CENTER"
-                  style="-fx-padding: 12 16;
-                         -fx-border-color: #eef2f6 transparent transparent transparent;
-                         -fx-border-width: 1 0 0 0;">
-                <TextField fx:id="messageField" promptText="پیام خود را بنویسید..." HBox.hgrow="ALWAYS" onAction="#sendMessage"/>
-                <Button text="ارسال ➤" onAction="#sendMessage"
-                        style="-fx-background-color: #0e9f6e;
-                               -fx-background-radius: 12;
-                               -fx-text-fill: white;
-                               -fx-font-weight: bold;
-                               -fx-font-size: 13px;
-                               -fx-cursor: hand;
-                               -fx-padding: 10 22;"/>
+                  style="-fx-background-color: #f6f8fa; -fx-padding: 10 14; -fx-border-color: #e7ecf2 transparent transparent transparent; -fx-border-width: 1 0 0 0; -fx-background-radius: 0 0 24 0;">
+                <TextField fx:id="messageField" promptText="پیام خود را بنویسید..." HBox.hgrow="ALWAYS" onAction="#sendMessage"
+                           style="-fx-background-color: #ffffff; -fx-background-radius: 999; -fx-border-color: #dbe3ea; -fx-border-radius: 999; -fx-padding: 9 18; -fx-font-size: 13px;"/>
+                <Button text="➤" onAction="#sendMessage"
+                        style="-fx-background-color: #f97316; -fx-background-radius: 999; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-cursor: hand; -fx-padding: 8 13; -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.35), 8, 0, 0, 2);"/>
             </HBox>
         </VBox>
     </HBox>

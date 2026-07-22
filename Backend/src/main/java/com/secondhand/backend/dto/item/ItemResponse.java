@@ -18,6 +18,9 @@ public class ItemResponse {
     private String rejectionReason;
     private Long buyerId;
     private String buyerUsername;
+    private Long categoryId;
+    private Long cityId;
+    private Double averageRating;
     // تاریخ ثبت آگهی
     private LocalDateTime createdAt;
 
@@ -55,6 +58,9 @@ public class ItemResponse {
     public String getRejectionReason() { return rejectionReason; }
     public Long getBuyerId() { return buyerId; }
     public String getBuyerUsername() { return buyerUsername; }
+    public Long getCategoryId() { return categoryId; }
+    public Long getCityId() { return cityId; }
+    public Double getAverageRating() { return averageRating; }
     public LocalDateTime getCreatedAt() { return createdAt; }
 
     public void setId(Long id) { this.id = id; }
@@ -71,5 +77,8 @@ public class ItemResponse {
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }
     public void setBuyerUsername(String buyerUsername) { this.buyerUsername = buyerUsername; }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+    public void setCityId(Long cityId) { this.cityId = cityId; }
+    public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

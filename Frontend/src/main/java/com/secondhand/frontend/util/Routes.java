@@ -23,9 +23,10 @@ public final class Routes {
     public static final String FILTER_DIALOG = BASE + "/fxml/item/filter_dialogue.fxml";
 
     // ── User ─────────────────────────────────────────────────────────────────
-    public static final String PROFILE   = BASE + "/fxml/user/profile.fxml";
-    public static final String PURCHASES = BASE + "/fxml/user/purchases.fxml";
-    public static final String FAVORITES = BASE + "/fxml/user/favorites.fxml";
+    public static final String PROFILE       = BASE + "/fxml/user/profile.fxml";
+    public static final String PURCHASES     = BASE + "/fxml/user/purchases.fxml";
+    public static final String FAVORITES     = BASE + "/fxml/user/favorites.fxml";
+    public static final String NOTIFICATIONS = BASE + "/fxml/user/notifications.fxml";
 
     // ── Chat ─────────────────────────────────────────────────────────────────
     public static final String CHATS = BASE + "/fxml/chat/chats.fxml";

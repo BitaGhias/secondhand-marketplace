@@ -73,7 +73,7 @@ public class PurchasesController extends BaseController {
             private final Button rateBtn  = new Button("\u2B50 ثبت امتیاز");
             private final Label  ratedLbl = new Label("\u2705 امتیاز داده شده");
             {
-                rateBtn.setStyle("-fx-background-color: #0e9f6e; -fx-text-fill: white;"
+                rateBtn.setStyle("-fx-background-color: #f97316; -fx-text-fill: white;"
                         + " -fx-background-radius: 10; -fx-cursor: hand; -fx-padding: 6 12;");
                 ratedLbl.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 12px;");
                 rateBtn.setOnAction(e -> {

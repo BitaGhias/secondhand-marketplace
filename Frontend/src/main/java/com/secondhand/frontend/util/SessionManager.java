@@ -33,6 +33,8 @@ public class SessionManager {
     public static void logout() {
         currentUser = null;
         ApiClient.clearToken();
+        // حذف نشست ذخیره‌شده روی دیسک تا در اجرای بعدی ورود خودکار انجام نشود
+        SessionStore.clear();
     }
 
     public static boolean isAdmin() {

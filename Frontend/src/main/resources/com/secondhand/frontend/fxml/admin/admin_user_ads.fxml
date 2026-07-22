@@ -12,18 +12,15 @@
 
     <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
-          style="-fx-background-color: #ffffff;
-                 -fx-padding: 12 16;
-                 -fx-border-color: transparent transparent #e7ecf2 transparent;
-                 -fx-border-width: 0 0 1 0;">
-        <Label text="بازار سفید — آگهی‌های کاربر" style="-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+          style="-fx-background-color: #0e2433; -fx-padding: 12 16;">
+        <Label text="دست‌دوم مارکت — آگهی‌های کاربر" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
         <HBox HBox.hgrow="ALWAYS"/>
         <Button text="─" onAction="#minimizeWindow"
                 style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
         <Button text="☐" onAction="#maximizeWindow"
                 style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
         <Button text="✕" onAction="#closeWindow"
-                style="-fx-background-color: transparent; -fx-text-fill: #dc2626; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
+                style="-fx-background-color: transparent; -fx-text-fill: #f87171; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
     </HBox>
 
     <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
@@ -42,10 +39,10 @@
                         <Label fx:id="userInfoLabel" text=""
                                style="-fx-text-fill: #64748b; -fx-font-size: 12px;"/>
                     </VBox>
-                    <Button text="→ بازگشت به پنل مدیریت" onAction="#goBack"
+                    <Button text="←" onAction="#goBack"
                             style="-fx-background-color: #ffffff;
-                                   -fx-text-fill: #0e9f6e;
-                                   -fx-border-color: #0e9f6e;
+                                   -fx-text-fill: #f97316;
+                                   -fx-border-color: #f97316;
                                    -fx-border-width: 1.5;
                                    -fx-border-radius: 10;
                                    -fx-background-radius: 10;
@@ -85,7 +82,7 @@
                                    -fx-cursor: hand;
                                    -fx-padding: 8 18;"/>
                     <Button fx:id="unblockButton" text="🔓 رفع مسدودیت" onAction="#unblockUser" visible="false"
-                            style="-fx-background-color: #0e9f6e;
+                            style="-fx-background-color: #f97316;
                                    -fx-background-radius: 10;
                                    -fx-text-fill: white;
                                    -fx-font-weight: bold;
@@ -96,10 +93,10 @@
 
                 <!-- آگهی‌های ثبت‌شده -->
                 <HBox alignment="CENTER_LEFT" spacing="10">
-                    <Region minWidth="10" minHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #0e9f6e; -fx-background-radius: 50;"/>
+                    <Region minWidth="10" minHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #f97316; -fx-background-radius: 50;"/>
                     <Label text="آگهی‌های ثبت‌شده" style="-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: bold;"/>
                     <Label fx:id="postedCountLabel" text="۰"
-                           style="-fx-background-color: #e6f7f0; -fx-background-radius: 20; -fx-padding: 2 10; -fx-text-fill: #0b7d59; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                           style="-fx-background-color: #fff1e6; -fx-background-radius: 20; -fx-padding: 2 10; -fx-text-fill: #c2410c; -fx-font-size: 11px; -fx-font-weight: bold;"/>
                     <Region style="-fx-background-color: #e7ecf2; -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
                 </HBox>
                 <FlowPane fx:id="postedFlowPane" hgap="20" vgap="20" alignment="TOP_RIGHT" style="-fx-background-color: transparent;"/>

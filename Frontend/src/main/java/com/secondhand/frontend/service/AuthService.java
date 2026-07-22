@@ -3,6 +3,7 @@ package com.secondhand.frontend.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.util.ApiClient;
+import com.secondhand.frontend.util.SessionStore;
 
 import java.net.URI;
 import java.net.http.HttpRequest;
@@ -51,7 +52,8 @@ public class AuthService {
     }
 
     /**
-     * ورود کاربر به صورت ناهمگام (Async)
+     * ورود کاربر به صورت ناهمگام (Async).
+     * پس از ورود موفق، نشست (توکن + کاربر) برای اجراهای بعدی برنامه ذخیره می‌شود.
      */
     public static CompletableFuture<LoginResponse> login(String username, String password) {
         CompletableFuture<LoginResponse> future = new CompletableFuture<>();
@@ -71,6 +73,8 @@ public class AuthService {
                             if (response.statusCode() == 200) {
                                 LoginResponse loginResponse = objectMapper.readValue(response.body(), LoginResponse.class);
                                 ApiClient.setToken(loginResponse.getToken());
+                                // ذخیره نشست برای ورود خودکار در اجراهای بعدی
+                                SessionStore.save(loginResponse.getToken(), loginResponse.getUser());
                                 future.complete(loginResponse);
                             } else {
                                 future.completeExceptionally(new RuntimeException(response.body()));
@@ -103,6 +107,7 @@ public class AuthService {
     // خروج
     public static void logout() {
         ApiClient.clearToken();
+        SessionStore.clear();
     }
 
     // بررسی احراز هویت
