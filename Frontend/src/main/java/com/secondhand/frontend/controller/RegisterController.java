@@ -56,11 +56,17 @@ public class RegisterController extends BaseController {
                                  String phone, String password, String confirmPassword) {
         if (fullName.isEmpty())                             return showValidationError("نام کامل الزامی است!");
         if (username.isEmpty())                             return showValidationError("نام کاربری الزامی است!");
+
+        // ۱) خالی بودن رمز عبور
         if (password.isEmpty())                             return showValidationError("رمز عبور الزامی است!");
         if (!ValidationUtil.isValidPassword(password, 6))   return showValidationError("رمز عبور باید حداقل ۶ کاراکتر باشد!");
         if (!password.equals(confirmPassword))              return showValidationError("رمز عبور و تکرار آن مطابقت ندارند");
+
+        // ۲) خالی بودن ایمیل
         if (email.isEmpty())                                return showValidationError("ایمیل الزامی است!");
         if (!ValidationUtil.isValidEmail(email))            return showValidationError("فرمت ایمیل نامعتبر است!");
+
+        // ۳) خالی بودن شماره تلفن
         if (phone.isEmpty())                                return showValidationError("شماره تلفن الزامی است!");
         if (!ValidationUtil.isValidIranianPhone(phone))     return showValidationError("فرمت شماره تلفن نامعتبر است! باید با 09 شروع شود و 11 رقم باشد.");
         return true;
