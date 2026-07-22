@@ -54,12 +54,15 @@ public class RegisterController extends BaseController {
 
     private boolean validateForm(String fullName, String username, String email,
                                  String phone, String password, String confirmPassword) {
-        if (fullName.isEmpty())                           return showValidationError("لطفاً نام کامل را وارد کنید");
-        if (username.isEmpty())                           return showValidationError("لطفاً نام کاربری را وارد کنید");
-        if (!ValidationUtil.isValidEmail(email))          return showValidationError("لطفاً ایمیل معتبر وارد کنید");
-        if (!ValidationUtil.isValidIranianPhone(phone))   return showValidationError("شماره تلفن باید با 09 شروع شود و 11 رقم باشد");
-        if (!ValidationUtil.isValidPassword(password, 6)) return showValidationError("رمز عبور باید حداقل ۶ کاراکتر باشد");
-        if (!password.equals(confirmPassword))            return showValidationError("رمز عبور و تکرار آن مطابقت ندارند");
+        if (fullName.isEmpty())                             return showValidationError("نام کامل الزامی است!");
+        if (username.isEmpty())                             return showValidationError("نام کاربری الزامی است!");
+        if (password.isEmpty())                             return showValidationError("رمز عبور الزامی است!");
+        if (!ValidationUtil.isValidPassword(password, 6))   return showValidationError("رمز عبور باید حداقل ۶ کاراکتر باشد!");
+        if (!password.equals(confirmPassword))              return showValidationError("رمز عبور و تکرار آن مطابقت ندارند");
+        if (email.isEmpty())                                return showValidationError("ایمیل الزامی است!");
+        if (!ValidationUtil.isValidEmail(email))            return showValidationError("فرمت ایمیل نامعتبر است!");
+        if (phone.isEmpty())                                return showValidationError("شماره تلفن الزامی است!");
+        if (!ValidationUtil.isValidIranianPhone(phone))     return showValidationError("فرمت شماره تلفن نامعتبر است! باید با 09 شروع شود و 11 رقم باشد.");
         return true;
     }
 
