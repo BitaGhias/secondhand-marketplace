@@ -7,6 +7,8 @@ import com.secondhand.backend.exception.custom.UnauthorizedException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.OptimisticLockingFailureException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -55,6 +57,32 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         return buildErrorResponse(ex.getMessage(), HttpStatus.UNAUTHORIZED, request);
+    }
+
+    // 401 - خطاهای احراز هویت که از Spring Security می‌آیند
+    @ExceptionHandler(AuthenticationException.class)
+    public ResponseEntity<ErrorResponse> handleSecurityAuthentication(
+            AuthenticationException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "برای انجام این عملیات باید وارد حساب کاربری شوید.",
+                HttpStatus.UNAUTHORIZED,
+                request
+        );
+    }
+
+    // 403 - دسترسی احراز شده ولی مجاز نیست
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleSecurityAccessDenied(
+            AccessDeniedException ex,
+            HttpServletRequest request
+    ) {
+        return buildErrorResponse(
+                "شما اجازه انجام این عملیات را ندارید.",
+                HttpStatus.FORBIDDEN,
+                request
+        );
     }
 
     // 403 Forbidden
