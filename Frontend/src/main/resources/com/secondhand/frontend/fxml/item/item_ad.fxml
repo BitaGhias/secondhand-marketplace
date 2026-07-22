@@ -13,6 +13,7 @@
       fx:controller="com.secondhand.frontend.controller.AdItemController"
       onMouseClicked="#handleCardClick"
       prefWidth="232" maxWidth="232" spacing="8" nodeOrientation="RIGHT_TO_LEFT"
+      styleClass="ad-card"
       style="-fx-background-color: #ffffff; -fx-background-radius: 16; -fx-border-color: #e7ecf2; -fx-border-radius: 16; -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.07), 12, 0, 0, 4); -fx-padding: 12; -fx-cursor: hand;">
 
     <!-- تصویر + badge وضعیت + قلب علاقه‌مندی -->
@@ -22,7 +23,7 @@
         </VBox>
         <Label fx:id="cardBadgeLabel" text="کارکرده" StackPane.alignment="TOP_RIGHT"
                style="-fx-background-color: #ffedd5; -fx-text-fill: #c2410c; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 999; -fx-padding: 3 10; -fx-translate-x: -8; -fx-translate-y: 8;"/>
-        <Button fx:id="favoriteButton" text="♡" onAction="#toggleFavorite" StackPane.alignment="TOP_LEFT"
+        <Button fx:id="favoriteButton" styleClass="card-favorite" text="♡" onAction="#toggleFavorite" StackPane.alignment="TOP_LEFT"
                 style="-fx-background-color: #ffffff; -fx-background-radius: 999; -fx-text-fill: #94a3b8; -fx-font-size: 13px; -fx-padding: 3 8; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.20), 6, 0, 0, 1); -fx-translate-x: 8; -fx-translate-y: 8;"/>
     </StackPane>
 
@@ -30,7 +31,7 @@
     <Label fx:id="adTitleLabel" text="عنوان آگهی" wrapText="true" maxWidth="208"
            style="-fx-text-fill: #0f172a; -fx-font-size: 13px; -fx-font-weight: bold;"/>
     <HBox alignment="CENTER_LEFT" spacing="6">
-        <Label fx:id="adPriceLabel" text="قیمت" style="-fx-text-fill: #ea580c; -fx-font-size: 14px; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
+        <Label fx:id="adPriceLabel" styleClass="card-price" text="قیمت" style="-fx-text-fill: #ea580c; -fx-font-size: 14px; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
         <Label fx:id="ratingLabel" text="" style="-fx-text-fill: #d97706; -fx-font-size: 11px; -fx-font-weight: bold;"/>
     </HBox>
 

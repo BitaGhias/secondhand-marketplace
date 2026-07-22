@@ -218,6 +218,23 @@
     -fx-padding: 0;
 }
 
+/* ============ کارت آگهی ============ */
+.ad-card {
+}
+.ad-card:hover {
+    -fx-border-color: rgba(249, 115, 22, 0.45);
+    -fx-translate-y: -2px;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.16), 18, 0, 0, 7);
+}
+.card-favorite:hover {
+    -fx-background-color: -brand-orange-soft;
+    -fx-text-fill: -brand-orange-deep;
+}
+.card-price {
+    -fx-text-fill: -brand-orange-dark;
+    -fx-font-weight: bold;
+}
+
 /* ============ ListView ============ */
 .list-view {
     -fx-background-color: #ffffff;
