@@ -127,8 +127,8 @@ public class AdminUserAdListController extends BaseController {
 
         VBox card = new VBox(6, title, price, status, meta);
         card.setPrefWidth(290);
-        card.setStyle("-fx-background-color: #f1f5f9; -fx-background-radius: 14;"
-                + " -fx-border-color: #e7ecf2; -fx-border-radius: 14; -fx-padding: 14;");
+        // استفاده از CSS class به جای inline style
+        card.getStyleClass().add("admin-ad-card");
         return card;
     }
 

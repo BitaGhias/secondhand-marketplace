@@ -287,6 +287,154 @@
     -fx-padding: 10 12 10 36;
 }
 
+/* ============ Admin Users ListView ============ */
+.admin-users-list-view .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -text-strong;
+    -fx-padding: 10 12;
+    -fx-background-radius: 8px;
+    -fx-cursor: hand;
+}
+.admin-users-list-view .list-cell:filled:hover {
+    -fx-background-color: #f8fafc;
+}
+.admin-users-list-view .list-cell:filled:selected {
+    -fx-background-color: -brand-orange-soft;
+    -fx-text-fill: -brand-orange-deep;
+    -fx-font-weight: bold;
+}
+.admin-users-list-view .list-cell.blocked {
+    -fx-text-fill: #dc2626;
+}
+.admin-users-list-view .list-cell.blocked:filled:selected {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #b91c1c;
+}
+
+/* ============ Admin Pending TableView ============ */
+.admin-pending-table .table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #f1f5f9 transparent;
+}
+.admin-pending-table .table-row-cell:odd {
+    -fx-background-color: #fbfcfe;
+}
+.admin-pending-table .table-row-cell:hover {
+    -fx-background-color: #fff8f0;
+}
+.admin-pending-table .table-row-cell:selected {
+    -fx-background-color: -brand-orange-soft;
+}
+.admin-pending-table .table-cell {
+    -fx-text-fill: -text-strong;
+    -fx-padding: 10px 8px;
+    -fx-border-color: transparent;
+}
+
+/* ============ Purchases TableView ============ */
+.purchases-table .table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-border-color: transparent transparent #f1f5f9 transparent;
+}
+.purchases-table .table-row-cell:odd {
+    -fx-background-color: #fbfcfe;
+}
+.purchases-table .table-row-cell:hover {
+    -fx-background-color: #fff8f0;
+}
+.purchases-table .table-row-cell:selected {
+    -fx-background-color: -brand-orange-soft;
+}
+.purchases-table .table-cell {
+    -fx-text-fill: -text-strong;
+    -fx-padding: 10px 8px;
+    -fx-border-color: transparent;
+}
+
+/* ============ Admin User Ads FlowPane Cards ============ */
+.admin-ad-card {
+    -fx-background-color: #f1f5f9;
+    -fx-background-radius: 14;
+    -fx-border-color: #e7ecf2;
+    -fx-border-radius: 14;
+    -fx-padding: 14;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.04), 8, 0, 0, 2);
+}
+.admin-ad-card:hover {
+    -fx-background-color: #fff1e6;
+    -fx-border-color: #f97316;
+    -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.20), 12, 0, 0, 4);
+    -fx-translate-y: -2px;
+}
+.admin-ad-card:pressed {
+    -fx-translate-y: 0;
+}
+
+/* ============ Admin Action Buttons (in pending table) ============ */
+.admin-action-btn {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-background-radius: 8;
+    -fx-padding: 5 12;
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+.admin-action-btn:hover {
+    -fx-opacity: 0.9;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 4, 0, 0, 2);
+}
+.admin-action-btn:pressed {
+    -fx-opacity: 0.8;
+    -fx-scale-x: 0.96;
+    -fx-scale-y: 0.96;
+}
+.admin-action-btn.approve {
+    -fx-background-color: #dcfce7;
+    -fx-text-fill: #15803d;
+}
+.admin-action-btn.approve:hover {
+    -fx-background-color: #bbf7d0;
+}
+.admin-action-btn.reject {
+    -fx-background-color: #fff1e6;
+    -fx-text-fill: #c2410c;
+}
+.admin-action-btn.reject:hover {
+    -fx-background-color: #ffedd5;
+}
+.admin-action-btn.delete {
+    -fx-background-color: #fee2e2;
+    -fx-text-fill: #b91c1c;
+    -fx-padding: 5 10;
+}
+.admin-action-btn.delete:hover {
+    -fx-background-color: #fecaca;
+}
+
+/* ============ Rate Button (in purchases table) ============ */
+.rate-btn {
+    -fx-background-color: -brand-orange;
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-padding: 6 12;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+}
+.rate-btn:hover {
+    -fx-background-color: -brand-orange-dark;
+    -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.45), 10, 0, 0, 3);
+}
+.rate-btn:pressed {
+    -fx-background-color: -brand-orange-deep;
+}
+.rate-btn:disabled {
+    -fx-background-color: #fdba74;
+    -fx-text-fill: #ffffff;
+    -fx-opacity: 0.7;
+}
+
 /* ============ TableView (خریدها) ============ */
 .table-view {
     -fx-background-color: #ffffff;

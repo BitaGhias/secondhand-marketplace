@@ -133,6 +133,9 @@ public class AdminController extends BaseController {
     private void setupPendingTable() {
         if (pendingTable == null) return;
 
+        // افزودن style class مخصوص برای CSS targeting
+        pendingTable.getStyleClass().add("admin-pending-table");
+
         TableColumn<Item, String> titleCol = new TableColumn<>("عنوان آگهی");
         titleCol.setCellValueFactory(new PropertyValueFactory<>("title"));
         titleCol.setPrefWidth(190);
@@ -158,9 +161,10 @@ public class AdminController extends BaseController {
             private final Button remove  = new Button("🗑");
             private final HBox box = new HBox(6, approve, reject, remove);
             {
-                approve.setStyle("-fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-font-weight: bold; -fx-font-size: 11px; -fx-background-radius: 8; -fx-padding: 5 12; -fx-cursor: hand;");
-                reject.setStyle("-fx-background-color: #fff1e6; -fx-text-fill: #c2410c; -fx-font-weight: bold; -fx-font-size: 11px; -fx-background-radius: 8; -fx-padding: 5 12; -fx-cursor: hand;");
-                remove.setStyle("-fx-background-color: #fee2e2; -fx-text-fill: #b91c1c; -fx-font-weight: bold; -fx-font-size: 11px; -fx-background-radius: 8; -fx-padding: 5 10; -fx-cursor: hand;");
+                // استفاده از style class به جای inline برای پشتیبانی از hover/pressed
+                approve.getStyleClass().addAll("admin-action-btn", "approve");
+                reject.getStyleClass().addAll("admin-action-btn", "reject");
+                remove.getStyleClass().addAll("admin-action-btn", "delete");
                 box.setAlignment(Pos.CENTER);
                 approve.setOnAction(e -> { Item it = getTableView().getItems().get(getIndex()); approveItem(it); });
                 reject.setOnAction(e ->  { Item it = getTableView().getItems().get(getIndex()); rejectItemWithPrompt(it); });
@@ -269,20 +273,47 @@ public class AdminController extends BaseController {
 
     private void setupUsersList() {
         if (usersListView == null) return;
+
+        // افزودن style class مخصوص برای CSS targeting
+        usersListView.getStyleClass().add("admin-users-list-view");
+
         usersListView.setCellFactory(listView -> new ListCell<>() {
+            private final Label nameLabel = new Label();
+            private final Label metaLabel = new Label();
+            private final VBox container = new VBox(2, nameLabel, metaLabel);
+            private final HBox root = new HBox(8, container);
+
+            {
+                nameLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
+                metaLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #64748b;");
+                container.setStyle("-fx-padding: 10 12; -fx-background-radius: 8;");
+                root.setAlignment(Pos.CENTER_LEFT);
+                setGraphic(root);
+            }
+
             @Override protected void updateItem(User user, boolean empty) {
                 super.updateItem(user, empty);
-                if (empty || user == null) { setText(null); setStyle("-fx-background-color: transparent;"); }
-                else {
-                    String role    = "ADMIN".equalsIgnoreCase(user.getRole()) ? "🛡️ ادمین" : "👤 کاربر";
-                    String blocked = user.isBlocked() ? "   🔒 مسدود" : "";
-                    setText(user.getUsername() + "  (" + user.getFullName() + ")\n" + role + blocked);
-                    setStyle("-fx-background-color: transparent; -fx-text-fill: "
-                            + (user.isBlocked() ? "#dc2626" : "#0f172a")
-                            + "; -fx-font-size: 13px; -fx-padding: 10;");
+                if (empty || user == null) {
+                    setText(null);
+                    setGraphic(null);
+                    getStyleClass().remove("blocked");
+                    return;
                 }
+
+                // اعمال استایل‌ها از طریق CSS classes
+                getStyleClass().remove("blocked");
+                if (user.isBlocked()) getStyleClass().add("blocked");
+
+                String role    = "ADMIN".equalsIgnoreCase(user.getRole()) ? "🛡️ ادمین" : "👤 کاربر";
+                String blocked = user.isBlocked() ? "   🔒 مسدود" : "";
+
+                nameLabel.setText(user.getUsername() + "  (" + user.getFullName() + ")");
+                metaLabel.setText(role + blocked);
+
+                setGraphic(root);
             }
         });
+
         usersListView.setOnMouseClicked(event -> {
             User selected = usersListView.getSelectionModel().getSelectedItem();
             if (selected != null) goToUserAdsPage(selected);
