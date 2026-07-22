@@ -109,6 +109,8 @@ public class UserService {
         if (!isValidUsername(request.getUsername()))
             throw new BadRequestException("نام کاربری باید بین ۳ تا ۲۰ کاراکتر باشد و فقط شامل حروف انگلیسی، عدد و _ باشد!");
 
+        String normalizedUsername = request.getUsername().trim().toLowerCase();
+
         // FIX: بررسی تکراری بودن نام کاربری بدون توجه به بزرگی/کوچکی حروف
         if (userRepository.existsByUsernameIgnoreCase(request.getUsername().trim()))
             throw new BadRequestException("نام کاربری تکراری است!");
@@ -143,7 +145,7 @@ public class UserService {
 
         User user = new User();
         user.setFullName(request.getFullName().trim());
-        user.setUsername(request.getUsername().trim());
+        user.setUsername(normalizedUsername); // به‌جای request.getUsername().trim()
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setPhoneNumber(normalizedPhone);
         user.setEmail(normalizedEmail);
@@ -162,8 +164,11 @@ public class UserService {
         if (password == null || password.trim().isEmpty())
             throw new BadRequestException("رمز عبور الزامی است!");
 
+        // FIX: حذف فاصله‌های اضافی احتمالی قبل از جستجو (مثلاً درخواست مستقیم به API بدون فرانت)
+        String normalizedUsername = username.trim();
+
         // FIX: پیدا کردن کاربر بدون توجه به بزرگی/کوچکی حروف نام کاربری
-        User user = userRepository.findByUsernameIgnoreCase(username)
+        User user = userRepository.findByUsernameIgnoreCase(normalizedUsername)
                 .orElseThrow(() -> new UnauthorizedException("نام کاربری یا رمز عبور اشتباه است"));
 
         if (!user.isActive())
