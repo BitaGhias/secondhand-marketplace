@@ -414,6 +414,21 @@
     -fx-underline: true;
 }
 
+/* ============ صفحه جزئیات آگهی ============ */
+.detail-page {
+    -fx-background-color: -bg-app;
+}
+.detail-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 18px;
+    -fx-border-color: -line;
+    -fx-border-radius: 18px;
+    -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 16, 0, 0, 5);
+}
+.detail-card:hover {
+    -fx-border-color: rgba(249,115,22,0.28);
+}
+
 /* ============ Auth screens ============ */
 .auth-card {
     -fx-background-color: #ffffff;
