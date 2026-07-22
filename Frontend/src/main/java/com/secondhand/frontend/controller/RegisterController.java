@@ -91,7 +91,7 @@ public class RegisterController extends BaseController {
                     if (loginResponse != null && loginResponse.getUser() != null)
                         SessionManager.setCurrentUser(loginResponse.getUser());
                     setLoadingState(false);
-                    try { MainApplication.changeScene(Routes.AD_LIST, "دست‌دوم مارکت - لیست آگهی‌ها"); }
+                    try { MainApplication.changeScene(Routes.USER_PANEL, "دست‌دوم مارکت - پنل کاربر"); }
                     catch (Exception e) { FrontendErrorHandler.log(e); goToLogin(); }
                 }))
                 .exceptionally(ex -> {

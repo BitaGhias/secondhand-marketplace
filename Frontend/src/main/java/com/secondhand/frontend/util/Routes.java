@@ -16,6 +16,8 @@ public final class Routes {
 
     // ── Item / Ad ────────────────────────────────────────────────────────────
     public static final String AD_LIST       = BASE + "/fxml/item/adlist.fxml";
+    /** Main user panel after a regular user logs in. */
+    public static final String USER_PANEL   = AD_LIST;
     public static final String ITEM_AD       = BASE + "/fxml/item/item_ad.fxml";
     public static final String ITEM_DETAIL   = BASE + "/fxml/item/item_detail.fxml";
     public static final String CREATE_AD     = BASE + "/fxml/item/create_ad.fxml";

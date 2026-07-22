@@ -119,7 +119,7 @@ public class MainApplication extends Application {
             } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
             try {
                 if (restored) {
-                    showMainWindow(Routes.AD_LIST, "دست‌دوم مارکت — آگهی‌ها");
+                    showMainWindow(Routes.USER_PANEL, "دست‌دوم مارکت — پنل کاربر");
                 } else {
                     showMainWindow(Routes.LOGIN, "دست‌دوم مارکت — ورود");
                 }

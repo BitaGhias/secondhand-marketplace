@@ -129,7 +129,8 @@ public class LoginController extends BaseController {
         if (u != null && "ADMIN".equalsIgnoreCase(u.getRole()))
             MainApplication.changeScene(Routes.ADMIN_PANEL, "پنل مدیریت");
         else
-            MainApplication.changeScene(Routes.AD_LIST, "دست‌دوم مارکت — لیست آگهی‌ها");
+            // Regular users must land on the marketplace panel, not the create-ad form.
+            MainApplication.changeScene(Routes.USER_PANEL, "دست‌دوم مارکت — پنل کاربر");
     }
 
     @FXML
