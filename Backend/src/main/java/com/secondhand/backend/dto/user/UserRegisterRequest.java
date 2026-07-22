@@ -4,16 +4,18 @@ public class UserRegisterRequest {
     private String fullName;
     private String username;
     private String password;
+    private String confirmPassword;
     private String phoneNumber;
     private String email;
 
     public UserRegisterRequest() {}
 
-    public UserRegisterRequest(String fullName, String username, String password,
+    public UserRegisterRequest(String fullName, String username, String password, String confirmPassword,
                                String phoneNumber, String email) {
         this.fullName = fullName;
         this.username = username;
         this.password = password;
+        this.confirmPassword = confirmPassword;
         this.phoneNumber = phoneNumber;
         this.email = email;
     }
@@ -21,12 +23,14 @@ public class UserRegisterRequest {
     public String getFullName() { return fullName; }
     public String getUsername() { return username; }
     public String getPassword() { return password; }
+    public String getConfirmPassword() { return confirmPassword; }
     public String getPhoneNumber() { return phoneNumber; }
     public String getEmail() { return email; }
 
     public void setFullName(String fullName) { this.fullName = fullName; }
     public void setUsername(String username) { this.username = username; }
     public void setPassword(String password) { this.password = password; }
+    public void setConfirmPassword(String confirmPassword) { this.confirmPassword = confirmPassword; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public void setEmail(String email) { this.email = email; }
 }

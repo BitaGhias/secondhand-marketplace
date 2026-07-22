@@ -89,11 +89,22 @@ public class GlobalExceptionHandler {
             DataIntegrityViolationException ex,
             HttpServletRequest request
     ) {
-        return buildErrorResponse(
-                "داده تکراری یا نامعتبر است و با محدودیت‌های پایگاه داده سازگار نیست.",
-                HttpStatus.CONFLICT,
-                request
-        );
+        String cause = ex.getMostSpecificCause() != null && ex.getMostSpecificCause().getMessage() != null
+                ? ex.getMostSpecificCause().getMessage().toLowerCase()
+                : "";
+
+        String message;
+        if (cause.contains("username")) {
+            message = "نام کاربری تکراری است!";
+        } else if (cause.contains("email")) {
+            message = "ایمیل تکراری است!";
+        } else if (cause.contains("phone_number") || cause.contains("phonenumber")) {
+            message = "شماره تلفن تکراری است!";
+        } else {
+            message = "داده تکراری یا نامعتبر است و با محدودیت‌های پایگاه داده سازگار نیست.";
+        }
+
+        return buildErrorResponse(message, HttpStatus.CONFLICT, request);
     }
 
     // 400 - وقتی JSON خراب یا body نامعتبر ارسال شود

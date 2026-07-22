@@ -17,11 +17,12 @@ public class AuthService {
     /**
      * ثبت‌نام کاربر به صورت کاملاً ناهمگام (Async)
      */
-    public static CompletableFuture<String> register(String fullName, String username, String email, String phone, String password) {
+    public static CompletableFuture<String> register(String fullName, String username, String email, String phone, String password, String confirmPassword) {
         CompletableFuture<String> future = new CompletableFuture<>();
         try {
-            RegisterRequest requestObj = new RegisterRequest(fullName, username, password, phone, email);
+            RegisterRequest requestObj = new RegisterRequest(fullName, username, password, confirmPassword, phone, email);
             String json = objectMapper.writeValueAsString(requestObj);
+
 
             HttpRequest request = HttpRequest.newBuilder()
                     .uri(URI.create(ApiClient.getBaseUrl() + "/auth/register"))
@@ -117,11 +118,12 @@ public class AuthService {
 
     // ===== کلاس‌های داخلی DTO =====
     public static class RegisterRequest {
-        public String fullName, username, password, phoneNumber, email;
-        public RegisterRequest(String fullName, String username, String password, String phoneNumber, String email) {
+        public String fullName, username, password, confirmPassword, phoneNumber, email;
+        public RegisterRequest(String fullName, String username, String password, String confirmPassword, String phoneNumber, String email) {
             this.fullName = fullName;
             this.username = username;
             this.password = password;
+            this.confirmPassword = confirmPassword;
             this.phoneNumber = phoneNumber;
             this.email = email;
         }

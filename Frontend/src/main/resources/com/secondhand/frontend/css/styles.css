@@ -357,7 +357,7 @@
     -fx-cursor: hand;
 }
 .auth-link:hover {
-    -fx-text-fill: #9a3412;
+    -fx-text-fill: #c2410c;
     -fx-underline: true;
 }
 
