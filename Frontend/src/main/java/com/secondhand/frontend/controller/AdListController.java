@@ -22,13 +22,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Label;
-import javafx.scene.control.MenuButton;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.Slider;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
@@ -64,7 +58,10 @@ public class AdListController extends BaseController {
 
     // سایدبار فیلتر
     @FXML private VBox            categoryChecksVBox;
+    @FXML private Slider          minPriceSlider;
     @FXML private Slider          maxPriceSlider;
+    @FXML private TextField       minPriceInput;
+    @FXML private TextField       maxPriceInput;
     @FXML private Label           priceValueLabel;
     @FXML private ComboBox<City>  cityFilterComboBox;
     @FXML private ComboBox<String> sortFilterComboBox;
@@ -73,6 +70,7 @@ public class AdListController extends BaseController {
     private final PauseTransition searchDebounce = new PauseTransition(Duration.millis(400));
 
     private static final long PRICE_SLIDER_MAX = 100_000_000L;
+    private boolean syncingPrice = false;
 
     /** برچسب فارسی مرتب‌سازی ← کد مورد انتظار بک‌اند (ItemSearchRequest.sortBy) */
     private static final Map<String, String> SORT_OPTIONS = new LinkedHashMap<>();
@@ -122,13 +120,46 @@ public class AdListController extends BaseController {
     // ===================== سایدبار فیلتر =====================
 
     private void setupFilterSidebar() {
-        if (maxPriceSlider != null) {
+        if (minPriceSlider != null && maxPriceSlider != null) {
+            minPriceSlider.setMin(0);
+            minPriceSlider.setMax(PRICE_SLIDER_MAX);
+            minPriceSlider.setValue(0);
+            minPriceSlider.setBlockIncrement(100_000);
+
             maxPriceSlider.setMin(0);
             maxPriceSlider.setMax(PRICE_SLIDER_MAX);
             maxPriceSlider.setValue(PRICE_SLIDER_MAX);
-            maxPriceSlider.setBlockIncrement(1_000_000);
-            maxPriceSlider.valueProperty().addListener((obs, o, v) -> updatePriceLabel(v.longValue()));
-            updatePriceLabel(PRICE_SLIDER_MAX);
+            maxPriceSlider.setBlockIncrement(100_000);
+
+            bindPriceControls(minPriceSlider, minPriceInput, 0);
+            bindPriceControls(maxPriceSlider, maxPriceInput, PRICE_SLIDER_MAX);
+
+            if (minPriceInput != null) {
+                minPriceInput.focusedProperty().addListener((obs, was, focused) -> {
+                    if (!focused && minPriceSlider.getValue() > maxPriceSlider.getValue()) {
+                        maxPriceSlider.setValue(minPriceSlider.getValue());   // حداقل جدید بزرگتره → سقف رو ببر بالا
+                    }
+                });
+            }
+            if (maxPriceInput != null) {
+                maxPriceInput.focusedProperty().addListener((obs, was, focused) -> {
+                    if (!focused && maxPriceSlider.getValue() < minPriceSlider.getValue()) {
+                        minPriceSlider.setValue(maxPriceSlider.getValue());   // سقف جدید کوچکتره → کف رو بیار پایین
+                    }
+                });
+            }
+
+            // نذار حداقل از حداکثر رد شه و برعکس
+            minPriceSlider.valueProperty().addListener((obs, o, v) -> {
+                if (!syncingPrice && v.doubleValue() > maxPriceSlider.getValue()) maxPriceSlider.setValue(v.doubleValue());
+                updatePriceLabel();
+            });
+            maxPriceSlider.valueProperty().addListener((obs, o, v) -> {
+                if (!syncingPrice && v.doubleValue() < minPriceSlider.getValue()) minPriceSlider.setValue(v.doubleValue());
+                updatePriceLabel();
+            });
+
+            updatePriceLabel();
         }
         if (sortFilterComboBox != null) {
             sortFilterComboBox.getItems().setAll(SORT_OPTIONS.keySet());
@@ -142,11 +173,43 @@ public class AdListController extends BaseController {
         }
     }
 
-    private void updatePriceLabel(long value) {
+    private void updatePriceLabel() {
         if (priceValueLabel == null) return;
-        priceValueLabel.setText(value >= PRICE_SLIDER_MAX
-                ? "بدون محدودیت"
-                : String.format("تا %,d تومان", value));
+        long min = minPriceSlider != null ? (long) minPriceSlider.getValue() : 0;
+        long max = maxPriceSlider != null ? (long) maxPriceSlider.getValue() : PRICE_SLIDER_MAX;
+        if (min <= 0 && max >= PRICE_SLIDER_MAX) {
+            priceValueLabel.setText("بدون محدودیت");
+        } else {
+            String from = min <= 0 ? "۰" : String.format("%,d", min);
+            String to   = max >= PRICE_SLIDER_MAX ? "بدون سقف" : String.format("%,d", max);
+            priceValueLabel.setText("از " + from + " تا " + to);
+        }
+    }
+
+    private void bindPriceControls(Slider slider, TextField field, long emptyValue) {
+        if (field == null) return;
+        // فقط رقم قابل تایپ باشه
+        field.setTextFormatter(new TextFormatter<>(change ->
+                change.getControlNewText().matches("[0-9]*") ? change : null));
+
+        // اسلایدر → فیلد
+        slider.valueProperty().addListener((obs, o, v) -> {
+            if (syncingPrice) return;
+            syncingPrice = true;
+            field.setText(String.valueOf(v.longValue()));
+            syncingPrice = false;
+        });
+
+        // فیلد → اسلایدر
+        field.textProperty().addListener((obs, o, v) -> {
+            if (syncingPrice) return;
+            syncingPrice = true;
+            try {
+                long value = (v == null || v.isEmpty()) ? emptyValue : Long.parseLong(v);
+                slider.setValue(Math.min(value, PRICE_SLIDER_MAX));
+            } catch (NumberFormatException ignored) { }
+            syncingPrice = false;
+        });
     }
 
     /** دسته‌ها (چک‌باکس‌های سایدبار + فلای‌اوت نوبار) و شهرها + آمار Hero */
@@ -232,7 +295,10 @@ public class AdListController extends BaseController {
     @FXML
     private void clearFilters() {
         for (CheckBox check : categoryChecks) check.setSelected(false);
+        if (minPriceSlider != null) minPriceSlider.setValue(0);
         if (maxPriceSlider != null) maxPriceSlider.setValue(PRICE_SLIDER_MAX);
+        if (minPriceInput != null) minPriceInput.clear();
+        if (maxPriceInput != null) maxPriceInput.clear();
         if (cityFilterComboBox != null) cityFilterComboBox.setValue(null);
         if (sortFilterComboBox != null) sortFilterComboBox.setValue(DEFAULT_SORT_LABEL);
         if (searchField != null) searchField.clear();
@@ -244,6 +310,11 @@ public class AdListController extends BaseController {
 
     // ===================== دریافت و نمایش آگهی‌ها =====================
 
+    private Long currentMinPrice() {
+        if (minPriceSlider == null) return null;
+        long v = (long) minPriceSlider.getValue();
+        return v <= 0 ? null : v;   // صفر یعنی بدون حداقل → null بفرست
+    }
     private Long currentMaxPrice() {
         if (maxPriceSlider == null) return null;
         long v = (long) maxPriceSlider.getValue();
@@ -291,13 +362,14 @@ public class AdListController extends BaseController {
 
         final String keyword = searchField != null ? searchField.getText() : null;
         final Long cityId = currentCityId();
+        final Long minPrice = currentMinPrice();
         final Long maxPrice = currentMaxPrice();
         final String sortBy = currentSortBy();
         final Set<Long> catIds = selectedCategoryIds();
 
         new Thread(() -> {
             try {
-                List<Item> items = ItemService.searchItems(keyword, quickCategoryId, cityId, null, maxPrice, sortBy);                // فیلتر چنددسته‌ای چک‌باکس‌ها سمت کلاینت اعمال می‌شود
+                List<Item> items = ItemService.searchItems(keyword, quickCategoryId, cityId, minPrice, maxPrice, sortBy);                // فیلتر چنددسته‌ای چک‌باکس‌ها سمت کلاینت اعمال می‌شود
                 // (بک‌اند در هر جست‌وجو فقط یک categoryId می‌پذیرد)
                 final List<Item> visible;
                 if (!catIds.isEmpty()) {
