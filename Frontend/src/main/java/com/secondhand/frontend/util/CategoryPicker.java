@@ -69,7 +69,7 @@ public final class CategoryPicker {
         }
 
         Menu menu = new Menu(cat.getName());
-        MenuItem selfItem = new MenuItem("📂 همه‌ی «" + cat.getName() + "»");
+        MenuItem selfItem = new MenuItem("📂 همه‌ی «" + cat.getName() + "«");
         selfItem.setOnAction(e -> select(button, cat, onSelect));
         menu.getItems().add(selfItem);
         menu.getItems().add(new SeparatorMenuItem());
