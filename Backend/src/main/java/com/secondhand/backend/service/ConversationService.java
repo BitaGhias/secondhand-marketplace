@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -33,19 +34,26 @@ public class ConversationService {
     @Autowired
     private ItemRepository itemRepository;
 
+    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
+
     private ConversationResponse convertToConversationResponse(Conversation conv, Long userId) {
         List<ChatMessage> messages = chatMessageRepository
                 .findByConversationIdAndIsDeletedFalseOrderByTimestampAsc(conv.getId());
 
         String lastMessage = null;
         LocalDateTime lastMessageTime = null;
+        String lastMessageSender = null;
         if (!messages.isEmpty()) {
             ChatMessage last = messages.get(messages.size() - 1);
             lastMessage = last.getText();
             lastMessageTime = last.getTimestamp();
+            lastMessageSender = last.getSender().getUsername();
         }
 
         long unreadCount = chatMessageRepository.countUnreadMessages(conv.getId(), userId);
+
+        User otherUser = conv.getBuyer().getId().equals(userId) ? conv.getSeller() : conv.getBuyer();
 
         return new ConversationResponse(
                 conv.getId(),
@@ -55,8 +63,13 @@ public class ConversationService {
                 conv.getBuyer() != null ? conv.getBuyer().getUsername() : "ناشناس",
                 conv.getSeller() != null ? conv.getSeller().getId() : null,
                 conv.getSeller() != null ? conv.getSeller().getUsername() : "ناشناس",
+                otherUser.getId(),
+                otherUser.getUsername(),
+                otherUser.isBlocked(),
                 lastMessage,
-                lastMessageTime,
+                lastMessageTime != null ? lastMessageTime.format(DateTimeFormatter.ofPattern("HH:mm")) : null,
+                lastMessageTime != null ? lastMessageTime.format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")) : null,
+                lastMessageSender,
                 unreadCount
         );
     }
@@ -69,13 +82,14 @@ public class ConversationService {
                 msg.getSender() != null ? msg.getSender().getUsername() : "ناشناس",
                 msg.isDeleted() ? "این پیام حذف شده است" : msg.getText(),
                 msg.getTimestamp(),
+                msg.getTimestamp() != null ? msg.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm")) : null,
+                msg.getTimestamp() != null ? msg.getTimestamp().format(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm")) : null,
                 msg.isRead(),
                 msg.isDeleted(),
                 msg.isEdited()
         );
     }
 
-    // بررسی عضویت کاربر در مکالمه
     private void validateConversationMembership(Conversation conversation, Long userId) {
         boolean isBuyer = conversation.getBuyer().getId().equals(userId);
         boolean isSeller = conversation.getSeller().getId().equals(userId);
@@ -133,8 +147,9 @@ public class ConversationService {
         User otherUser = conversation.getBuyer().getId().equals(senderId)
                 ? conversation.getSeller()
                 : conversation.getBuyer();
-        if (otherUser.isBlocked()) {
-            throw new ForbiddenException("کاربر مقابل شما مسدود شده است!");
+
+        if (otherUser.isBlocked() || sender.isBlocked()) {
+            throw new ForbiddenException("شما یا طرف مقابل مسدود شده‌اید و امکان ارسال پیام وجود ندارد!");
         }
 
         if (request.getText() == null || request.getText().trim().isEmpty()) {
@@ -154,15 +169,11 @@ public class ConversationService {
         return convertToMessageResponse(saved);
     }
 
-    /**
-     *  FIX: بررسی عضویت کاربر در مکالمه قبل از نمایش پیام‌ها
-     *         قبلاً هر کاربری می‌توانست پیام هر مکالمه‌ای را بخواند
-     */
     public List<ChatMessageResponse> getMessages(Long conversationId, Long userId) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException("مکالمه یافت نشد"));
 
-        validateConversationMembership(conversation, userId);  //  چک عضویت اضافه شد
+        validateConversationMembership(conversation, userId);
 
         chatMessageRepository.markAllAsRead(conversationId, userId);
 

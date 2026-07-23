@@ -1,7 +1,6 @@
 package com.secondhand.frontend.controller;
 
 import com.secondhand.frontend.util.FrontendErrorHandler;
-
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Category;
 import com.secondhand.frontend.model.Item;
@@ -38,12 +37,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-/**
- * پنل مدیریت با لی‌اوت حرفه‌ای:
- * • سایدبار تیره (نفتی) کنار محتوا
- * • داشبورد با کارت‌های آماری
- * • جدول آگهی‌های در انتظار با دکمهٔ تایید/رد/حذف اینلاین داخل هر ردیف
- */
 public class AdminController extends BaseController {
 
     private static final String NO_PARENT_LABEL = "بدون والد (دستهٔ اصلی)";
@@ -80,6 +73,7 @@ public class AdminController extends BaseController {
     // بررسی آگهی‌ها (جدول + اکشن اینلاین)
     @FXML private TableView<Item> pendingTable;
     @FXML private Label pendingCountLabel;
+    @FXML private ComboBox<String> statusFilterComboBox;
 
     // کاربران
     @FXML private ListView<User> usersListView;
@@ -102,6 +96,11 @@ public class AdminController extends BaseController {
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         if (!SessionManager.isAdmin()) { showError("شما دسترسی ادمین ندارید!"); return; }
+        if (statusFilterComboBox != null) {
+            statusFilterComboBox.getItems().setAll("همه", "در انتظار", "تایید شده", "رد شده", "فروخته شده", "حذف شده");
+            statusFilterComboBox.setValue("در انتظار");
+            statusFilterComboBox.setOnAction(e -> loadPendingItems());
+        }
         setupPendingTable();
         setupUsersList();
         setupCategoriesPane();
@@ -133,7 +132,6 @@ public class AdminController extends BaseController {
     private void setupPendingTable() {
         if (pendingTable == null) return;
 
-        // افزودن style class مخصوص برای CSS targeting
         pendingTable.getStyleClass().add("admin-pending-table");
 
         TableColumn<Item, String> titleCol = new TableColumn<>("عنوان آگهی");
@@ -161,7 +159,6 @@ public class AdminController extends BaseController {
             private final Button remove  = new Button("🗑");
             private final HBox box = new HBox(6, approve, reject, remove);
             {
-                // استفاده از style class به جای inline برای پشتیبانی از hover/pressed
                 approve.getStyleClass().addAll("admin-action-btn", "approve");
                 reject.getStyleClass().addAll("admin-action-btn", "reject");
                 remove.getStyleClass().addAll("admin-action-btn", "delete");
@@ -180,7 +177,6 @@ public class AdminController extends BaseController {
         pendingTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_FLEX_LAST_COLUMN);
         pendingTable.setPlaceholder(new Label("🎉 هیچ آگهی در انتظار بررسی نیست"));
 
-        // دابل‌کلیک ← مشاهده جزئیات کامل + تصاویر
         pendingTable.setRowFactory(tv -> {
             TableRow<Item> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
@@ -233,7 +229,6 @@ public class AdminController extends BaseController {
         }).start();
     }
 
-    /** رد اینلاین: دلیل رد همان‌جا با دیالوگ کوچک پرسیده می‌شود و برای کاربر ذخیره می‌گردد */
     private void rejectItemWithPrompt(Item item) {
         if (item == null) return;
         TextInputDialog dialog = new TextInputDialog();
@@ -274,7 +269,6 @@ public class AdminController extends BaseController {
     private void setupUsersList() {
         if (usersListView == null) return;
 
-        // افزودن style class مخصوص برای CSS targeting
         usersListView.getStyleClass().add("admin-users-list-view");
 
         usersListView.setCellFactory(listView -> new ListCell<>() {
@@ -300,7 +294,6 @@ public class AdminController extends BaseController {
                     return;
                 }
 
-                // اعمال استایل‌ها از طریق CSS classes
                 getStyleClass().remove("blocked");
                 if (user.isBlocked()) getStyleClass().add("blocked");
 
@@ -359,7 +352,6 @@ public class AdminController extends BaseController {
     private void setupCategoriesPane() {
         if (categoriesListView == null) return;
 
-        // افزودن style class مخصوص برای CSS targeting
         categoriesListView.getStyleClass().add("categories-list-view");
 
         categoriesListView.setCellFactory(listView -> new ListCell<>() {
@@ -389,11 +381,9 @@ public class AdminController extends BaseController {
                     return;
                 }
 
-                // اعمال استایل‌ها از طریق CSS classes (بدون inline style)
                 getStyleClass().removeAll("editing", "subcategory");
                 getStyleClass().add("categories-list-cell");
 
-                // تورفتگی برای زیردسته‌ها
                 if (c.getParentId() != null) {
                     getStyleClass().add("subcategory");
                     indent.setVisible(true);
@@ -403,7 +393,6 @@ public class AdminController extends BaseController {
                     indent.setManaged(false);
                 }
 
-                // چک کردن آیا این آیتم در حال ویرایش است
                 boolean isEditing = (selectedCategoryForEdit != null
                         && selectedCategoryForEdit.getId() != null
                         && selectedCategoryForEdit.getId().equals(c.getId()));
@@ -420,7 +409,6 @@ public class AdminController extends BaseController {
             }
         });
 
-        // Tooltip برای دکمه حذف
         Tooltip deleteTooltip = new Tooltip("ابتدا یک دسته را از لیست انتخاب کنید");
         deleteTooltip.setStyle("-fx-font-size: 11px;");
         deleteCategoryButton.setTooltip(deleteTooltip);
@@ -439,12 +427,10 @@ public class AdminController extends BaseController {
             addCategoryButton.setText("💾 ذخیره تغییرات");
             deleteCategoryButton.setDisable(false);
             deleteCategoryButton.setTooltip(new Tooltip("حذف دسته «" + selected.getName() + "»"));
-            // فوکوس روی فیلد نام برای ویرایش سریع
             categoryNameField.requestFocus();
             categoryNameField.selectAll();
         });
 
-        // Keyboard Navigation برای لیست دسته‌بندی‌ها
         categoriesListView.setOnKeyPressed(event -> {
             switch (event.getCode()) {
                 case ENTER -> {
@@ -463,7 +449,6 @@ public class AdminController extends BaseController {
             }
         });
 
-        // Real-time validation برای فیلد نام دسته‌بندی
         categoryNameField.textProperty().addListener((obs, oldVal, newVal) -> {
             boolean hasText = newVal != null && !newVal.trim().isEmpty();
             addCategoryButton.setDisable(!hasText);
@@ -473,10 +458,8 @@ public class AdminController extends BaseController {
                 categoryNameField.setStyle("-fx-border-color: #fca5a5;");
             }
         });
-        // پیش‌فرض غیرفعال تا زمانی که متن وارد شود
         addCategoryButton.setDisable(true);
 
-        // Keyboard shortcuts برای فیلد نام
         categoryNameField.setOnKeyPressed(e -> {
             if (e.getCode() == KeyCode.ENTER) addOrUpdateCategory();
             if (e.getCode() == KeyCode.ESCAPE) cancelCategoryEdit();
@@ -503,10 +486,6 @@ public class AdminController extends BaseController {
         }).start();
     }
 
-    /**
-     * بازسازی فلای‌اوت انتخاب والد — دستهٔ در حال ویرایش و زیردسته‌هایش
-     * از گزینه‌ها حذف می‌شوند تا حلقه در درخت ایجاد نشود.
-     */
     private void refreshParentMenu() {
         if (parentCategoryMenuButton == null) return;
 
@@ -540,7 +519,6 @@ public class AdminController extends BaseController {
                 : "📂 " + CategoryPicker.displayName(selectedParentCategory);
         parentCategoryMenuButton.setText(displayText);
 
-        // اعمال فیدبک بصری روی MenuButton وقتی والد انتخاب شده است
         if (selectedParentCategory != null) {
             parentCategoryMenuButton.setStyle("-fx-background-color: #fff1e6; -fx-background-radius: 10; -fx-border-color: #f97316; -fx-border-radius: 10; -fx-border-width: 1.5px; -fx-padding: 8 12; -fx-cursor: hand; -fx-text-fill: #0f172a;");
         } else {
@@ -602,14 +580,13 @@ public class AdminController extends BaseController {
         selectedCategoryForEdit = null;
         selectedParentCategory = null;
         categoryNameField.clear();
-        categoryNameField.setStyle("-fx-border-color: #dbe3ea;"); // ریست border
+        categoryNameField.setStyle("-fx-border-color: #dbe3ea;");
         refreshParentMenu();
-        // ریست استایل MenuButton والد به حالت پیش‌فرض
         if (parentCategoryMenuButton != null) {
             parentCategoryMenuButton.setStyle("-fx-background-color: #ffffff; -fx-background-radius: 10; -fx-border-color: #dbe3ea; -fx-border-radius: 10; -fx-padding: 8 12; -fx-cursor: hand; -fx-text-fill: #0f172a;");
         }
         addCategoryButton.setText("➕ افزودن دسته‌بندی");
-        addCategoryButton.setDisable(true); // غیرفعال تا وارد کردن متن
+        addCategoryButton.setDisable(true);
         deleteCategoryButton.setDisable(true);
     }
 
@@ -634,7 +611,6 @@ public class AdminController extends BaseController {
         content.setNodeOrientation(NodeOrientation.RIGHT_TO_LEFT);
         content.setStyle("-fx-padding: 4 2;");
 
-        // ===== هدر نفتی: عنوان + آگهی‌دهنده + چیپ وضعیت =====
         Label titleLabel = new Label(item.getTitle());
         titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
         titleLabel.setWrapText(true);
@@ -648,7 +624,6 @@ public class AdminController extends BaseController {
         header.setAlignment(Pos.CENTER_LEFT);
         header.setStyle("-fx-background-color: linear-gradient(to left, #143449, #0e2433); -fx-background-radius: 14; -fx-padding: 15 18;");
 
-        // ===== قیمت + چیپ‌های دسته/شهر =====
         Label priceCaption = new Label("قیمت پیشنهادی");
         priceCaption.setStyle("-fx-text-fill: #9a3412; -fx-font-size: 10px; -fx-font-weight: bold;");
         Label priceLabel = new Label(item.getFormattedPrice());
@@ -664,7 +639,6 @@ public class AdminController extends BaseController {
         HBox metaRow = new HBox(12, priceBox, chips);
         metaRow.setAlignment(Pos.CENTER_LEFT);
 
-        // ===== توضیحات =====
         Label descCaption = new Label("📝 توضیحات");
         descCaption.setStyle("-fx-text-fill: #0f172a; -fx-font-size: 12px; -fx-font-weight: bold;");
         Label descLabel = new Label(item.getDescription() != null && !item.getDescription().isBlank() ? item.getDescription() : "—");
@@ -676,7 +650,6 @@ public class AdminController extends BaseController {
 
         content.getChildren().addAll(header, metaRow, descBox);
 
-        // ===== تصاویر =====
         if (item.getImages() != null && !item.getImages().isEmpty()) {
             HBox imagesBox = new HBox(10);
             imagesBox.setAlignment(Pos.CENTER_LEFT);
@@ -696,7 +669,6 @@ public class AdminController extends BaseController {
             content.getChildren().add(imgBox);
         }
 
-        // ===== علت رد (در صورت وجود) =====
         if (item.getRejectionReason() != null && !item.getRejectionReason().isBlank()) {
             Label reason = new Label("⛔ علت رد: " + item.getRejectionReason());
             reason.setWrapText(true);

@@ -1,7 +1,6 @@
 package com.secondhand.frontend.controller;
 
 import com.secondhand.frontend.util.FrontendErrorHandler;
-
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.ChatMessage;
 import com.secondhand.frontend.model.Conversation;
@@ -21,7 +20,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
-
 import java.util.List;
 import java.util.Optional;
 
@@ -58,20 +56,37 @@ public class ChatsController extends BaseController {
                 setText(null);
                 if (empty || c == null) { setGraphic(null); setStyle("-fx-background-color: transparent;"); return; }
 
-                String other = c.getOtherPartyUsername(myId);
-                Label itemLabel = new Label("📦 " + c.getItemTitle());
+                Label itemLabel = new Label("\ud83d\udce6 " + c.getItemTitle());
                 itemLabel.setStyle("-fx-text-fill: #0f172a; -fx-font-size: 13px; -fx-font-weight: bold;");
-                Label userLabel = new Label("👤 " + (other != null ? other : "کاربر"));
+
+                String parties = "👤 " + c.getBuyerUsername() + " ↔ " + c.getSellerUsername();
+                Label userLabel = new Label(parties);
                 userLabel.setStyle("-fx-text-fill: #64748b; -fx-font-size: 11px;");
+
+                Label lastMsgLabel = new Label();
+                if (c.getLastMessage() != null && !c.getLastMessage().isBlank()) {
+                    String preview = c.getLastMessage();
+                    if (preview.length() > 30) preview = preview.substring(0, 30) + "...";
+                    lastMsgLabel.setText("\ud83d\udcac " + preview);
+                    lastMsgLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 10px; -fx-font-style: italic;");
+                }
+
+                Label timeLabel = new Label();
+                if (c.getLastMessageTime() != null) {
+                    timeLabel.setText(c.getLastMessageTime());
+                    timeLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 10px;");
+                }
+
                 VBox texts = new VBox(2, itemLabel, userLabel);
+                if (lastMsgLabel.getText() != null) texts.getChildren().add(lastMsgLabel);
                 HBox.setHgrow(texts, Priority.ALWAYS);
 
                 HBox row = new HBox(8, texts);
+                if (timeLabel.getText() != null) row.getChildren().add(timeLabel);
                 row.setAlignment(Pos.CENTER_LEFT);
                 row.setPadding(new Insets(8, 6, 8, 6));
 
-                // دایرهٔ نارنجی پیام‌های خوانده‌نشده (مثل نوتیف)
-                int unread = c.getUnreadCount() != null ? c.getUnreadCount() : 0;
+                int unread = c.getUnreadCount() != null ? c.getUnreadCount().intValue() : 0;
                 boolean isOpen = currentConversation != null && currentConversation.getId() != null
                         && currentConversation.getId().equals(c.getId());
                 if (unread > 0 && !isOpen) {
@@ -83,14 +98,20 @@ public class ChatsController extends BaseController {
                     row.getChildren().add(badge);
                 }
 
+                if (c.isOtherPartyBlocked()) {
+                    row.setOpacity(0.6);
+                    row.setStyle("-fx-background-color: #fef2f2;");
+                    Tooltip.install(row, new Tooltip("⚠️ شما یا طرف مقابل مسدود شده‌اید"));
+                }
+
                 setGraphic(row);
                 setStyle("-fx-background-color: transparent;");
             }
         });
+
         chatUsersListView.getSelectionModel().selectedItemProperty()
                 .addListener((obs, old, newVal) -> {
                     if (newVal == null) return;
-                    // فقط وقتی گفت‌وگوی دیگری انتخاب شد بازش کن (نه هنگام ریفرش لیست)
                     if (currentConversation == null || currentConversation.getId() == null
                             || !currentConversation.getId().equals(newVal.getId())) {
                         openConversation(newVal);
@@ -138,11 +159,17 @@ public class ChatsController extends BaseController {
         currentConversation = conversation;
         Long myId = SessionManager.getCurrentUserId();
         String other = conversation.getOtherPartyUsername(myId);
-        currentChatUserLabel.setText("💬 " + conversation.getItemTitle()
-                + " — " + (other != null ? other : "کاربر"));
+
+        String title = "\ud83d\udcac " + conversation.getItemTitle() + " — " + (other != null ? other : "کاربر");
+        if (conversation.isOtherPartyBlocked()) {
+            title += " ⚠️ (مسدود)";
+            messageField.setDisable(true);
+        } else {
+            messageField.setDisable(false);
+        }
+        currentChatUserLabel.setText(title);
         lastMessageCount = 0;
         loadMessages(true);
-        // باز کردن گفت‌وگو = خوانده شدن پیام‌ها ← حذف فوری دایرهٔ نارنجی
         conversation.setUnreadCount(0);
         chatUsersListView.refresh();
     }
@@ -170,24 +197,34 @@ public class ChatsController extends BaseController {
         Long myId = SessionManager.getCurrentUserId();
         for (ChatMessage message : messages) {
             boolean mine = myId != null && myId.equals(message.getSenderId());
-            Label bubble = new Label(message.getText());
+            String text = message.isDeleted() ? "این پیام حذف شده است" : message.getText();
+
+            Label bubble = new Label(text);
             bubble.setWrapText(true);
             bubble.setMaxWidth(380);
-            bubble.setStyle(mine
-                    ? "-fx-background-color: #f97316; -fx-text-fill: white; -fx-background-radius: 14 14 2 14; -fx-padding: 9 13; -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.25), 6, 0, 0, 2);"
-                    : "-fx-background-color: #ffffff; -fx-text-fill: #0f172a; -fx-background-radius: 14 14 14 2; -fx-border-color: #e7ecf2; -fx-border-radius: 14 14 14 2; -fx-padding: 9 13;");
 
-            // FIX (مورد ۴): نشانگر «ویرایش شده» زیر حباب پیام‌های ویرایش‌شده
-            VBox bubbleBox = new VBox(2, bubble);
+            VBox bubbleBox = new VBox(2);
             bubbleBox.setAlignment(mine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
-            if (message.isEdited()) {
-                Label editedTag = new Label("ویرایش شده");
-                editedTag.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 9px; -fx-font-style: italic; -fx-padding: 0 4;");
-                bubbleBox.getChildren().add(editedTag);
+
+            HBox msgRow = new HBox(4, bubble);
+            msgRow.setAlignment(mine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
+
+            Label timeLabel = new Label();
+            if (message.getShortTime() != null) {
+                timeLabel.setText(message.getShortTime());
+                timeLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 9px;");
             }
 
-            HBox row;
             if (mine) {
+                bubble.setStyle("-fx-background-color: #f97316; -fx-text-fill: white; -fx-background-radius: 14 14 2 14; -fx-padding: 9 13; -fx-effect: dropshadow(gaussian, rgba(249,115,22,0.25), 6, 0, 0, 2);");
+                bubbleBox.getChildren().addAll(bubble, timeLabel);
+
+                if (message.isEdited()) {
+                    Label editedTag = new Label("✏️ ویرایش شده");
+                    editedTag.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 9px; -fx-font-style: italic; -fx-padding: 0 4;");
+                    bubbleBox.getChildren().add(editedTag);
+                }
+
                 Button editBtn = new Button("✏");
                 editBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-cursor: hand; -fx-font-size: 11px; -fx-padding: 0 2;");
                 Tooltip.install(editBtn, new Tooltip("ویرایش پیام"));
@@ -200,16 +237,27 @@ public class ChatsController extends BaseController {
 
                 VBox actions = new VBox(2, editBtn, deleteBtn);
                 actions.setAlignment(Pos.CENTER);
-                row = new HBox(6, actions, bubbleBox);
+
+                HBox row = new HBox(6, actions, bubbleBox);
+                row.setAlignment(Pos.CENTER_RIGHT);
+                messagesVBox.getChildren().add(row);
             } else {
-                row = new HBox(bubbleBox);
+                bubble.setStyle("-fx-background-color: #ffffff; -fx-text-fill: #0f172a; -fx-background-radius: 14 14 14 2; -fx-border-color: #e7ecf2; -fx-border-radius: 14 14 14 2; -fx-padding: 9 13;");
+                bubbleBox.getChildren().addAll(bubble, timeLabel);
+
+                if (message.isEdited()) {
+                    Label editedTag = new Label("✏️ ویرایش شده");
+                    editedTag.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 9px; -fx-font-style: italic; -fx-padding: 0 4;");
+                    bubbleBox.getChildren().add(editedTag);
+                }
+
+                HBox row = new HBox(bubbleBox);
+                row.setAlignment(Pos.CENTER_LEFT);
+                messagesVBox.getChildren().add(row);
             }
-            row.setAlignment(mine ? Pos.CENTER_RIGHT : Pos.CENTER_LEFT);
-            messagesVBox.getChildren().add(row);
         }
     }
 
-    // FIX (مورد ۴): بعد از ویرایش، کل لیست پیام‌ها دوباره از سرور خوانده می‌شود تا نشانگر «ویرایش شده» هم نمایش داده شود
     private void startEditMessage(ChatMessage message) {
         TextInputDialog dialog = new TextInputDialog(message.getText());
         dialog.setTitle("ویرایش پیام");
@@ -234,7 +282,6 @@ public class ChatsController extends BaseController {
         }).start();
     }
 
-    // FIX: دیالوگ حذف پیام - از متد API بک‌اند موجود (DELETE /chat/message/{id}) که قبلاً بدون UI بود
     private void deleteMessage(ChatMessage message) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("حذف پیام");
@@ -267,6 +314,11 @@ public class ChatsController extends BaseController {
         String text = messageField.getText() != null ? messageField.getText().trim() : "";
         if (text.isEmpty()) return;
 
+        if (currentConversation.isOtherPartyBlocked()) {
+            showAlert("🔒 شما یا طرف مقابل مسدود شده‌اید و امکان ارسال پیام وجود ندارد!", Alert.AlertType.WARNING);
+            return;
+        }
+
         messageField.clear();
         final Long conversationId = currentConversation.getId();
         new Thread(() -> {
@@ -277,8 +329,7 @@ public class ChatsController extends BaseController {
             } catch (Exception e) {
                 Platform.runLater(() -> {
                     String msg = e.getMessage();
-                    // اگر پیام خطای JSON بود (کاربر مسدود شده) به صورت تمیزتر نمایش بده
-                    if (msg != null && msg.contains("مسدود")) {
+                    if (msg != null && (msg.contains("مسدود") || msg.contains("blocked"))) {
                         showAlert("🔒 " + msg, Alert.AlertType.WARNING);
                     } else {
                         showAlert("خطا در ارسال پیام: " + msg, Alert.AlertType.ERROR);
@@ -298,7 +349,7 @@ public class ChatsController extends BaseController {
     private void startPolling() {
         refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(POLL_SECONDS), event -> {
             if (currentConversation != null) loadMessages(false);
-            loadConversations(); // بروزرسانی دایرهٔ نارنجی پیام‌های جدید
+            loadConversations();
         }));
         refreshTimeline.setCycleCount(Animation.INDEFINITE);
         refreshTimeline.play();

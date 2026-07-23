@@ -285,16 +285,15 @@ public class AdListController extends BaseController {
         // همیشه searchItems فراخوانی می‌شود تا sortBy اعمال شود
         // (hasActiveFilterOrSearch فقط برای تصمیم‌گیری clear/placeholder است)
 
-        final String keyword  = searchField != null ? searchField.getText() : null;
-        final Long cityId     = currentCityId();
-        final Long maxPrice   = currentMaxPrice();
-        final String sortBy   = currentSortBy();
+        final String keyword = searchField != null ? searchField.getText() : null;
+        final Long cityId = currentCityId();
+        final Long maxPrice = currentMaxPrice();
+        final String sortBy = currentSortBy();
         final Set<Long> catIds = selectedCategoryIds();
 
         new Thread(() -> {
             try {
-                List<Item> items = ItemService.searchItems(keyword, quickCategoryId, cityId, null, maxPrice, sortBy);
-                // فیلتر چنددسته‌ای چک‌باکس‌ها سمت کلاینت اعمال می‌شود
+                List<Item> items = ItemService.searchItems(keyword, quickCategoryId, cityId, null, maxPrice, sortBy);                // فیلتر چنددسته‌ای چک‌باکس‌ها سمت کلاینت اعمال می‌شود
                 // (بک‌اند در هر جست‌وجو فقط یک categoryId می‌پذیرد)
                 final List<Item> visible;
                 if (!catIds.isEmpty()) {

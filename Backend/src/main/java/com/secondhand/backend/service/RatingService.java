@@ -59,7 +59,6 @@ public class RatingService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
-        // امتیازدهی تنها برای آگهی‌های تاییدشده یا فروخته‌شده مجاز است
         if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD)
             throw new BadRequestException("این آگهی قابل امتیازدهی نیست!");
 
@@ -74,7 +73,6 @@ public class RatingService {
 
         boolean hasChatted = false;
         if (!isBuyer) {
-            // بررسی وجود مکالمه بین کاربر و فروشنده برای این آگهی
             hasChatted = conversationRepository.existsByBuyerIdAndSellerIdAndItemId(raterId, seller.getId(), item.getId());
         }
 
