@@ -3,6 +3,7 @@ package com.secondhand.frontend.controller;
 import com.secondhand.frontend.util.FrontendErrorHandler;
 
 import com.secondhand.frontend.MainApplication;
+import com.secondhand.frontend.model.Rating;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.RatingService;
 import com.secondhand.frontend.service.UserService;
@@ -15,21 +16,20 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.util.List;
 
-/**
- * Phase 5: نمایش میانگین امتیاز در پروفایل
- */
 public class ProfileController extends BaseController {
 
     @FXML private HBox titleBar;
     @FXML private ImageView avatarImageView;
     @FXML private Label usernameLabel;
     @FXML private Label roleLabel;
-    @FXML private Label ratingLabel;       // Phase 5 — fx:id در fxml
+    @FXML private Label ratingLabel;
     @FXML private TextField fullNameField;
     @FXML private TextField emailField;
     @FXML private TextField phoneField;
@@ -37,6 +37,11 @@ public class ProfileController extends BaseController {
     @FXML private PasswordField newPasswordField;
     @FXML private PasswordField confirmPasswordField;
     @FXML private Label messageLabel;
+
+    // امتیازهای فروشندگی
+    @FXML private VBox sellerRatingCard;
+    @FXML private Label ratingCountLabel;
+    @FXML private VBox sellerRatingsBox;
 
     @FXML
     public void initialize() {
@@ -54,6 +59,7 @@ public class ProfileController extends BaseController {
                     SessionManager.setCurrentUser(fresh);
                     fillForm(fresh);
                     loadSellerRating(fresh.getId());
+                    loadSellerRatings(fresh.getId());
                 }))
                 .exceptionally(ex -> {
                     Platform.runLater(() -> showMessage("خطا در دریافت اطلاعات پروفایل: " + ex.getMessage(), false));
@@ -61,7 +67,6 @@ public class ProfileController extends BaseController {
                 });
     }
 
-    /** Phase 5: دریافت میانگین امتیاز از API */
     private void loadSellerRating(Long userId) {
         if (ratingLabel == null) return;
         RatingService.getSellerAverageAsync(userId)
@@ -80,6 +85,72 @@ public class ProfileController extends BaseController {
                     });
                     return null;
                 });
+    }
+
+    private void loadSellerRatings(Long userId) {
+        if (sellerRatingCard == null || sellerRatingsBox == null) return;
+
+        RatingService.getSellerRatingsAsync(userId)
+                .thenAccept(ratings -> Platform.runLater(() -> {
+                    if (ratings == null || ratings.isEmpty()) {
+                        sellerRatingCard.setVisible(false);
+                        sellerRatingCard.setManaged(false);
+                        return;
+                    }
+
+                    sellerRatingCard.setVisible(true);
+                    sellerRatingCard.setManaged(true);
+                    ratingCountLabel.setText(ratings.size() + " امتیاز");
+
+                    sellerRatingsBox.getChildren().clear();
+                    for (Rating rating : ratings) {
+                        sellerRatingsBox.getChildren().add(buildRatingCard(rating));
+                    }
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        if (sellerRatingCard != null) {
+                            sellerRatingCard.setVisible(false);
+                            sellerRatingCard.setManaged(false);
+                        }
+                    });
+                    return null;
+                });
+    }
+
+    private VBox buildRatingCard(Rating rating) {
+        StringBuilder stars = new StringBuilder();
+        for (int i = 0; i < rating.getScore(); i++) stars.append("\u2B50");
+        for (int i = rating.getScore(); i < 5; i++) stars.append("\u2606");
+
+        Label starsLabel = new Label(stars.toString());
+        starsLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #f97316;");
+
+        Label scoreLabel = new Label("امتیاز: " + rating.getScore() + " از 5");
+        scoreLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 12px; -fx-font-weight: bold;");
+
+        Label itemLabel = new Label("📦 " + (rating.getItemTitle() != null ? rating.getItemTitle() : "آگهی حذف شده"));
+        itemLabel.setStyle("-fx-text-fill: #475569; -fx-font-size: 12px; -fx-font-weight: bold;");
+
+        Label raterLabel = new Label("👤 " + (rating.getRaterUsername() != null ? rating.getRaterUsername() : "کاربر ناشناس"));
+        raterLabel.setStyle("-fx-text-fill: #64748b; -fx-font-size: 11px;");
+
+        VBox topRow = new VBox(2, starsLabel, scoreLabel);
+        VBox infoRow = new VBox(2, itemLabel, raterLabel);
+
+        VBox cardContent = new VBox(8, topRow, infoRow);
+
+        if (rating.getComment() != null && !rating.getComment().isBlank()) {
+            Label commentLabel = new Label("\ud83d\udcdd " + rating.getComment());
+            commentLabel.setStyle("-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-style: italic;");
+            commentLabel.setWrapText(true);
+            commentLabel.setMaxWidth(580);
+            cardContent.getChildren().add(commentLabel);
+        }
+
+        VBox card = new VBox(10, cardContent);
+        card.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-border-color: #e7ecf2; -fx-border-radius: 12; -fx-padding: 14;");
+        return card;
     }
 
     private void fillForm(User user) {
