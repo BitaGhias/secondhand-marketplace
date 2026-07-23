@@ -131,7 +131,7 @@
                         <Region style="-fx-background-color: #eef2f6; -fx-pref-height: 1;"/>
 
                         <!-- فروشنده -->
-                        <HBox alignment="CENTER_LEFT" spacing="10">
+                        <HBox alignment="CENTER_LEFT" spacing="10" onMouseClicked="#showSellerProfile" style="-fx-cursor: hand;">
                             <Label text="👤" style="-fx-background-color: #ffedd5; -fx-background-radius: 50; -fx-padding: 7 10; -fx-font-size: 14px;"/>
                             <VBox spacing="1">
                                 <Label fx:id="ownerLabel" text="" style="-fx-text-fill: #0f172a; -fx-font-size: 14px; -fx-font-weight: bold;"/>
