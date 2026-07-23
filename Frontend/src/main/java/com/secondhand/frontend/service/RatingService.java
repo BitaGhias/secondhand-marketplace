@@ -13,7 +13,6 @@ import java.util.concurrent.CompletionException;
 public class RatingService {
     private static final ObjectMapper mapper = ApiClient.getMapper();
 
-    // ─── ثبت امتیاز ───
     public static CompletableFuture<Void> rateSellerAsync(Long itemId, int score, String comment) {
         return CompletableFuture.runAsync(() -> {
             try {
@@ -26,7 +25,6 @@ public class RatingService {
         });
     }
 
-    // ─── بررسی اینکه کاربر قبلاً امتیاز داده ───
     public static CompletableFuture<Boolean> hasRatedAsync(Long itemId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -39,7 +37,6 @@ public class RatingService {
         });
     }
 
-    // ─── میانگین امتیاز فروشنده ───
     public static CompletableFuture<Double> getSellerAverageAsync(Long sellerId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -52,7 +49,6 @@ public class RatingService {
         });
     }
 
-    // ─── تعداد امتیاز‌های فروشنده ───
     public static CompletableFuture<Long> getSellerRatingCountAsync(Long sellerId) {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -65,7 +61,6 @@ public class RatingService {
         });
     }
 
-    // ─── لیست امتیاز‌های فروشنده (برای نمایش در پروفایل) ───
     public static CompletableFuture<List<Rating>> getSellerRatingsAsync(Long sellerId) {
         return CompletableFuture.supplyAsync(() -> {
             try {

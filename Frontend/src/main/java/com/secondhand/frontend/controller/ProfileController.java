@@ -23,6 +23,9 @@ import javafx.stage.FileChooser;
 import java.io.File;
 import java.util.List;
 
+/**
+ * Phase 5: نمایش میانگین امتیاز و لیست امتیاز‌های دریافتی در پروفایل
+ */
 public class ProfileController extends BaseController {
 
     @FXML private HBox titleBar;
@@ -67,6 +70,7 @@ public class ProfileController extends BaseController {
                 });
     }
 
+    /** Phase 5: دریافت میانگین امتیاز از API */
     private void loadSellerRating(Long userId) {
         if (ratingLabel == null) return;
         RatingService.getSellerAverageAsync(userId)
@@ -87,6 +91,7 @@ public class ProfileController extends BaseController {
                 });
     }
 
+    /** دریافت لیست امتیاز‌های دریافتی برای نمایش در پروفایل */
     private void loadSellerRatings(Long userId) {
         if (sellerRatingCard == null || sellerRatingsBox == null) return;
 

@@ -59,9 +59,9 @@ public class ChatsController extends BaseController {
                 if (empty || c == null) { setGraphic(null); setStyle("-fx-background-color: transparent;"); return; }
 
                 String other = c.getOtherPartyUsername(myId);
-                Label itemLabel = new Label("\ud83d\udce6 " + c.getItemTitle());
+                Label itemLabel = new Label("📦 " + c.getItemTitle());
                 itemLabel.setStyle("-fx-text-fill: #0f172a; -fx-font-size: 13px; -fx-font-weight: bold;");
-                Label userLabel = new Label("\ud83d\udc64 " + (other != null ? other : "کاربر"));
+                Label userLabel = new Label("👤 " + (other != null ? other : "کاربر"));
                 userLabel.setStyle("-fx-text-fill: #64748b; -fx-font-size: 11px;");
                 VBox texts = new VBox(2, itemLabel, userLabel);
                 HBox.setHgrow(texts, Priority.ALWAYS);
@@ -138,7 +138,7 @@ public class ChatsController extends BaseController {
         currentConversation = conversation;
         Long myId = SessionManager.getCurrentUserId();
         String other = conversation.getOtherPartyUsername(myId);
-        currentChatUserLabel.setText("\ud83d\udcac " + conversation.getItemTitle()
+        currentChatUserLabel.setText("💬 " + conversation.getItemTitle()
                 + " — " + (other != null ? other : "کاربر"));
         lastMessageCount = 0;
         loadMessages(true);
@@ -276,9 +276,13 @@ public class ChatsController extends BaseController {
                 Platform.runLater(() -> { renderMessages(messages); scrollToBottom(); lastMessageCount = messages.size(); });
             } catch (Exception e) {
                 Platform.runLater(() -> {
-                    Label err = new Label("خطا در ارسال پیام: " + e.getMessage());
-                    err.setStyle("-fx-text-fill: #dc2626;");
-                    messagesVBox.getChildren().add(err);
+                    String msg = e.getMessage();
+                    // اگر پیام خطای JSON بود (کاربر مسدود شده) به صورت تمیزتر نمایش بده
+                    if (msg != null && msg.contains("مسدود")) {
+                        showAlert("🔒 " + msg, Alert.AlertType.WARNING);
+                    } else {
+                        showAlert("خطا در ارسال پیام: " + msg, Alert.AlertType.ERROR);
+                    }
                 });
             }
         }).start();

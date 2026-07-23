@@ -405,7 +405,14 @@ public class ItemDetailController extends BaseController {
                     catch (Exception e) { showMessage("خطا در باز کردن صفحه چت: " + e.getMessage(), "error"); }
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showMessage("خطا در شروع گفت‌وگو: " + e.getMessage(), "error"));
+                Platform.runLater(() -> {
+                    String msg = e.getMessage();
+                    if (msg != null && msg.contains("مسدود")) {
+                        showAlert("🔒 " + msg, Alert.AlertType.WARNING);
+                    } else {
+                        showAlert("خطا در شروع گفت‌وگو: " + msg, Alert.AlertType.ERROR);
+                    }
+                });
             }
         }).start();
     }

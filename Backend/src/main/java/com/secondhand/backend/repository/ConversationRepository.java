@@ -14,4 +14,7 @@ public interface ConversationRepository extends JpaRepository<Conversation, Long
 
     //  پیدا کردن مکالمه بین یک خریدار و فروشنده خاص روی یک آگهی معین (برای جلوگیری از ساخت چت تکراری)
     Optional<Conversation> findByBuyerIdAndSellerIdAndItemId(Long buyerId, Long sellerId, Long itemId);
+
+    // بررسی وجود مکالمه (برای امتیازدهی بعد از چت)
+    boolean existsByBuyerIdAndSellerIdAndItemId(Long buyerId, Long sellerId, Long itemId);
 }

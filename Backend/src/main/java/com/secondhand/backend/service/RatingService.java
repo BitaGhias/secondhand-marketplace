@@ -3,11 +3,13 @@ package com.secondhand.backend.service;
 import com.secondhand.backend.constant.ItemStatus;
 import com.secondhand.backend.dto.rating.RatingCreateRequest;
 import com.secondhand.backend.dto.rating.RatingResponse;
+import com.secondhand.backend.entity.Conversation;
 import com.secondhand.backend.entity.Item;
 import com.secondhand.backend.entity.Rating;
 import com.secondhand.backend.entity.User;
 import com.secondhand.backend.exception.custom.BadRequestException;
 import com.secondhand.backend.exception.custom.ResourceNotFoundException;
+import com.secondhand.backend.repository.ConversationRepository;
 import com.secondhand.backend.repository.ItemRepository;
 import com.secondhand.backend.repository.RatingRepository;
 import com.secondhand.backend.repository.UserRepository;
@@ -28,6 +30,9 @@ public class RatingService {
 
     @Autowired
     private ItemRepository itemRepository;
+
+    @Autowired
+    private ConversationRepository conversationRepository;
 
     private RatingResponse convertToResponse(Rating rating) {
         return new RatingResponse(
@@ -54,6 +59,7 @@ public class RatingService {
         Item item = itemRepository.findById(request.getItemId())
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
 
+        // امتیازدهی تنها برای آگهی‌های تاییدشده یا فروخته‌شده مجاز است
         if (item.getStatus() != ItemStatus.APPROVED && item.getStatus() != ItemStatus.SOLD)
             throw new BadRequestException("این آگهی قابل امتیازدهی نیست!");
 
@@ -61,12 +67,20 @@ public class RatingService {
         if (seller.getId().equals(raterId))
             throw new BadRequestException("شما نمی‌توانید به خودتان امتیاز بدهید!");
 
+        // بررسی اینکه آیا کاربر خرید کرده یا چت داشته
         boolean isBuyer = item.getStatus() == ItemStatus.SOLD
                 && item.getBuyer() != null
                 && item.getBuyer().getId().equals(raterId);
 
-        if (!isBuyer)
-            throw new BadRequestException("امتیازدهی فقط پس از خرید این کالا امکان‌پذیر است!");
+        boolean hasChatted = false;
+        if (!isBuyer) {
+            // بررسی وجود مکالمه بین کاربر و فروشنده برای این آگهی
+            hasChatted = conversationRepository.existsByBuyerIdAndSellerIdAndItemId(raterId, seller.getId(), item.getId());
+        }
+
+        if (!isBuyer && !hasChatted) {
+            throw new BadRequestException("امتیازدهی تنها پس از خرید کالا یا انجام چت با فروشنده امکان‌پذیر است!");
+        }
 
         Optional<Rating> existingRating = ratingRepository.findByRaterIdAndItemId(raterId, request.getItemId());
         if (existingRating.isPresent())
@@ -85,14 +99,12 @@ public class RatingService {
     public double getSellerAverageRating(Long sellerId) {
         if (!userRepository.existsById(sellerId))
             throw new ResourceNotFoundException("فروشنده یافت نشد");
-        // FIX: AVG در سطح DB به جای بارگذاری همه رکوردها در حافظه
         return ratingRepository.averageScoreBySellerId(sellerId);
     }
 
     public long getSellerRatingCount(Long sellerId) {
         if (!userRepository.existsById(sellerId))
             throw new ResourceNotFoundException("فروشنده یافت نشد");
-        // FIX: COUNT در سطح DB به جای بارگذاری همه رکوردها در حافظه
         return ratingRepository.countBySellerId(sellerId);
     }
 
@@ -103,6 +115,7 @@ public class RatingService {
                 .map(this::convertToResponse)
                 .toList();
     }
+
     public boolean hasUserRatedItem(Long raterId, Long itemId) {
         return ratingRepository.findByRaterIdAndItemId(raterId, itemId).isPresent();
     }

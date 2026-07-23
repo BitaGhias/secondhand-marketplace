@@ -71,10 +71,10 @@ public class PurchasesController extends BaseController {
         statusCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getPersianStatus()));
         statusCol.setPrefWidth(110);
 
-        TableColumn<Item, Void> rateCol = new TableColumn<>("امتیازدهی");
-        rateCol.setPrefWidth(180);
+        TableColumn<Item, Void> rateCol = new TableColumn<>("امتیاز به فروشنده");
+        rateCol.setPrefWidth(200);
         rateCol.setCellFactory(col -> new TableCell<>() {
-            private final Button rateBtn  = new Button("\u2B50 ثبت امتیاز");
+            private final Button rateBtn  = new Button("\u2B50 امتیاز به فروشنده");
             private final VBox  ratedBox  = new VBox(4);
             {
                 rateBtn.getStyleClass().add("rate-btn");
@@ -138,16 +138,16 @@ public class PurchasesController extends BaseController {
                 Label starsLabel = new Label(stars.toString());
                 starsLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #f97316;");
 
-                Label scoreLabel = new Label("امتیاز: " + rating.getScore() + " از 5");
+                Label scoreLabel = new Label("امتیاز شما به فروشنده: " + rating.getScore() + " از 5");
                 scoreLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 12px; -fx-font-weight: bold;");
 
                 ratedBox.getChildren().addAll(starsLabel, scoreLabel);
 
                 if (rating.getComment() != null && !rating.getComment().isBlank()) {
-                    Label commentLabel = new Label("\ud83d\udcdd " + rating.getComment());
+                    Label commentLabel = new Label("\ud83d\udcdd نظر: " + rating.getComment());
                     commentLabel.setStyle("-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-style: italic;");
                     commentLabel.setWrapText(true);
-                    commentLabel.setMaxWidth(160);
+                    commentLabel.setMaxWidth(180);
                     ratedBox.getChildren().add(commentLabel);
                 }
 
@@ -155,7 +155,9 @@ public class PurchasesController extends BaseController {
             }
 
             private void showFallbackRatedMessage() {
-                setGraphic(new Label("\u2705 امتیاز ثبت شده"));
+                Label lbl = new Label("\u2705 امتیاز به فروشنده ثبت شده");
+                lbl.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 12px; -fx-font-weight: bold;");
+                setGraphic(lbl);
             }
         });
 

@@ -11,7 +11,6 @@ public class Rating {
     private int score;
     private String comment;
 
-    // Getters & Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
