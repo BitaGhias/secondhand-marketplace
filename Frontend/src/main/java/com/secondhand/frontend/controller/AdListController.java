@@ -79,6 +79,7 @@ public class AdListController extends BaseController {
         SORT_OPTIONS.put("قدیمی‌ترین", "oldest");
         SORT_OPTIONS.put("ارزان‌ترین", "price_asc");
         SORT_OPTIONS.put("گران‌ترین", "price_desc");
+        SORT_OPTIONS.put("بالاترین امتیاز فروشنده", "rating_desc");
     }
     private static final String DEFAULT_SORT_LABEL = "جدیدترین";
 

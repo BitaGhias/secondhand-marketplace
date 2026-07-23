@@ -23,4 +23,8 @@ public interface RatingRepository extends JpaRepository<Rating, Long> {
     //  AVG در سطح دیتابیس به جای محاسبه در جاوا
     @Query("SELECT COALESCE(AVG(r.score), 0.0) FROM Rating r WHERE r.seller.id = :sellerId")
     double averageScoreBySellerId(@Param("sellerId") Long sellerId);
+
+    // میانگین امتیاز همه فروشنده‌ها در یک کوئری (برای مرتب‌سازی لیست آگهی‌ها)
+    @Query("SELECT r.seller.id, AVG(r.score) FROM Rating r GROUP BY r.seller.id")
+    List<Object[]> averageScoreGroupedBySeller();
 }
