@@ -34,7 +34,7 @@
                 </padding>
 
                 <!-- سربرگ صفحه -->
-                <HBox alignment="CENTER_LEFT" spacing="14">
+                <HBox alignment="CENTER_RIGHT" spacing="14">
                     <Button text="←" onAction="#goBack"
                             style="-fx-background-color: #ffffff;
                                    -fx-text-fill: #f97316;
