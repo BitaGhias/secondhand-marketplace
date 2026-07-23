@@ -371,7 +371,7 @@
     -fx-translate-y: 0;
 }
 
-/* ============ Admin Action Buttons (in pending table) ============ */
+/* ============ Admin Action Buttons ============ */
 .admin-action-btn {
     -fx-font-size: 11px;
     -fx-font-weight: bold;
@@ -412,7 +412,7 @@
     -fx-background-color: #fecaca;
 }
 
-/* ============ Rate Button (in purchases table) ============ */
+/* ============ Rate Button ============ */
 .rate-btn {
     -fx-background-color: -brand-orange;
     -fx-text-fill: white;
@@ -433,6 +433,17 @@
     -fx-background-color: #fdba74;
     -fx-text-fill: #ffffff;
     -fx-opacity: 0.7;
+}
+
+/* ============ Rating Cards (profile page) ============ */
+.profile-page .v-box {
+    -fx-background-color: transparent;
+}
+.profile-page .scroll-pane {
+    -fx-background-color: transparent;
+}
+.profile-page .scroll-pane > .viewport {
+    -fx-background-color: transparent;
 }
 
 /* ============ TableView (خریدها) ============ */
@@ -723,7 +734,6 @@
     -fx-border-width: 1px 0 0 0;
 }
 
-
 /* ==== فلای‌اوت‌های نوبار نفتی: متن و فلش سفید ==== */
 .nav-flyout > .label {
     -fx-text-fill: #ffffff;
@@ -734,4 +744,42 @@
 }
 .nav-flyout > .arrow-button > .arrow {
     -fx-background-color: #ffffff;
+}
+
+/* ============ Chat timestamps ============ */
+.chat-time {
+    -fx-text-fill: #94a3b8;
+    -fx-font-size: 9px;
+    -fx-padding: 0 4;
+}
+
+/* Blocked chat indicator */
+.chat-blocked {
+    -fx-background-color: #fef2f2;
+    -fx-opacity: 0.7;
+}
+
+/* Admin status badges */
+.status-pending { -fx-background-color: #fff1e6; -fx-text-fill: #c2410c; -fx-background-radius: 999; -fx-padding: 2 8; }
+.status-approved { -fx-background-color: #dcfce7; -fx-text-fill: #15803d; -fx-background-radius: 999; -fx-padding: 2 8; }
+.status-rejected { -fx-background-color: #fee2e2; -fx-text-fill: #b91c1c; -fx-background-radius: 999; -fx-padding: 2 8; }
+.status-sold { -fx-background-color: #dbeafe; -fx-text-fill: #1d4ed8; -fx-background-radius: 999; -fx-padding: 2 8; }
+.status-deleted { -fx-background-color: #fef2f2; -fx-text-fill: #dc2626; -fx-background-radius: 999; -fx-padding: 2 8; }
+
+/* Rating button for seller */
+.rate-seller-btn {
+    -fx-background-color: linear-gradient(to right, #f97316, #ea580c);
+    -fx-text-fill: white;
+    -fx-background-radius: 10;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+/* No changes warning */
+.no-changes-alert {
+    -fx-background-color: #fef3c7;
+    -fx-text-fill: #92400e;
+    -fx-background-radius: 8;
+    -fx-padding: 12;
 }

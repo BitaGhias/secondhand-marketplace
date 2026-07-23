@@ -1,7 +1,6 @@
 package com.secondhand.frontend.controller;
 
 import com.secondhand.frontend.util.FrontendErrorHandler;
-
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Category;
 import com.secondhand.frontend.model.City;
@@ -30,11 +29,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/**
- * فرم ثبت/ویرایش آگهی به صورت ویزارد ۳ مرحله‌ای:
- *   ۱) مشخصات (عنوان + دسته‌بندی + شهر)   ۲) توضیحات و قیمت   ۳) تصاویر و ثبت نهایی
- * تصاویر هم با دکمه انتخاب فایل و هم با کشیدن و رها کردن (Drag & Drop) اضافه می‌شوند.
- */
 public class CreateAdController extends BaseController {
 
     @FXML private Label      pageTitle;
@@ -61,12 +55,10 @@ public class CreateAdController extends BaseController {
     @FXML private VBox   dropZone;
 
     private static final List<String> IMAGE_EXTENSIONS = List.of(".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp");
-    // FIX: محدودیت‌های تصویر هم‌راستا با بک‌اند که اکنون سمت کلاینت هم بررسی می‌شود
     private static final int  MAX_IMAGES = 5;
     private static final long MAX_IMAGE_SIZE_BYTES = 5L * 1024 * 1024;
 
     private List<String>   imagePaths      = new ArrayList<>();
-    // FIX: تصاویر موجود آگهی هنگام ویرایش و شناسه تصاویری که قرار است حذف شوند
     private List<com.secondhand.frontend.model.Image> existingImages = new ArrayList<>();
     private List<Long>     removedImageIds = new ArrayList<>();
     private List<Category> allCategories   = new ArrayList<>();
@@ -106,7 +98,6 @@ public class CreateAdController extends BaseController {
                 }
             }
         }
-        // FIX: تصاویر فعلی آگهی در حالت ویرایش بارگذاری و قابل حذف می‌شوند
         if (editingItem.getImages() != null) {
             existingImages = new ArrayList<>(editingItem.getImages());
             for (com.secondhand.frontend.model.Image img : existingImages) {
@@ -324,7 +315,6 @@ public class CreateAdController extends BaseController {
         return false;
     }
 
-    // FIX: تعداد کل تصاویر (موجود + جدید) را برای بررسی محدودیت محاسبه می‌کند
     private int totalImageCount() {
         return existingImages.size() + imagePaths.size();
     }
@@ -332,12 +322,10 @@ public class CreateAdController extends BaseController {
     private void addImageFile(File file) {
         String imagePath = file.getAbsolutePath();
         if (imagePaths.contains(imagePath)) return;
-        // FIX: محدودیت حداکثر ۵ تصویر اکنون سمت کلاینت هم قبل از ارسال به سرور بررسی می‌شود
         if (totalImageCount() >= MAX_IMAGES) {
             showErrorLabel("حداکثر " + MAX_IMAGES + " تصویر مجاز است!");
             return;
         }
-        // FIX: محدودیت حجم ۵ مگابایتی اکنون سمت کلاینت هم قبل از ارسال به سرور بررسی می‌شود
         if (file.length() > MAX_IMAGE_SIZE_BYTES) {
             showErrorLabel("حجم تصویر «" + file.getName() + "» نباید بیشتر از ۵ مگابایت باشد!");
             return;
@@ -364,7 +352,6 @@ public class CreateAdController extends BaseController {
         }
     }
 
-    // FIX: نمایش تصاویر موجود آگهی در حالت ویرایش به همراه امکان حذف
     private void addExistingImagePreview(com.secondhand.frontend.model.Image img) {
         try {
             ImageView imageView = new ImageView(new Image(img.getFullUrl()));
@@ -412,7 +399,6 @@ public class CreateAdController extends BaseController {
             if (isEditMode && editingItem != null) {
                 ItemService.ItemUpdateRequest req = new ItemService.ItemUpdateRequest(
                         title, description, price, selectedCategory.getId(), city.getId());
-                // FIX: تصاویر حذف‌شده و تصاویر تازه هم همراه ویرایش ارسال می‌شوند
                 req.removedImageIds = removedImageIds;
                 req.newImagePaths = imagePaths;
                 ItemService.updateItem(editingItem.getId(), req);
@@ -445,7 +431,7 @@ public class CreateAdController extends BaseController {
         } catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 
-    // ─── Label helpers (روی Label داخل فرم نمایش می‌دهند) ───
+    // ─── Label helpers ───
 
     private void showErrorLabel(String message) {
         Platform.runLater(() -> {

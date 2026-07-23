@@ -11,7 +11,7 @@ public class ChatMessageRequest {
     }
 
     public Long getConversationId() { return conversationId; }
-    public String getText() { return text; }
     public void setConversationId(Long conversationId) { this.conversationId = conversationId; }
+    public String getText() { return text; }
     public void setText(String text) { this.text = text; }
 }

@@ -257,18 +257,23 @@ public class AdListController extends BaseController {
                 : "newest";
     }
 
+    /**
+     * بررسی وجود فیلتر/جست‌جوی فعال — اگر هیچکدام فعال نباشد هم باز هم
+     * از searchItems با sortBy پیش‌فرض (جدیدترین) استفاده می‌کنیم تا
+     * مرتب‌سازی سمت سرور تضمین شود.
+     */
     private boolean hasActiveFilterOrSearch() {
         String keyword = searchField != null ? searchField.getText() : null;
         return (keyword != null && !keyword.isBlank())
                 || quickCategoryId != null || currentCityId() != null || currentMaxPrice() != null
-                || !selectedCategoryIds().isEmpty()
-                || !"newest".equals(currentSortBy());
+                || !selectedCategoryIds().isEmpty();
     }
 
+    /** همیشه از searchItems استفاده می‌کنیم تا sortBy همیشه اعمال شود */
     private void fetchAdsFromBackend() {
         new Thread(() -> {
             try {
-                List<Item> items = ItemService.getActiveItems();
+                List<Item> items = ItemService.searchItems(null, null, null, null, null, currentSortBy());
                 Platform.runLater(() -> renderItems(items));
             } catch (Exception e) {
                 showLoadError(e);
@@ -277,18 +282,18 @@ public class AdListController extends BaseController {
     }
 
     private void runFilteredSearch() {
-        if (!hasActiveFilterOrSearch()) { fetchAdsFromBackend(); return; }
+        // همیشه searchItems فراخوانی می‌شود تا sortBy اعمال شود
+        // (hasActiveFilterOrSearch فقط برای تصمیم‌گیری clear/placeholder است)
 
-        final String keyword  = searchField != null ? searchField.getText() : null;
-        final Long cityId     = currentCityId();
-        final Long maxPrice   = currentMaxPrice();
-        final String sortBy   = currentSortBy();
+        final String keyword = searchField != null ? searchField.getText() : null;
+        final Long cityId = currentCityId();
+        final Long maxPrice = currentMaxPrice();
+        final String sortBy = currentSortBy();
         final Set<Long> catIds = selectedCategoryIds();
 
         new Thread(() -> {
             try {
-                List<Item> items = ItemService.searchItems(keyword, quickCategoryId, cityId, null, maxPrice, sortBy);
-                // فیلتر چنددسته‌ای چک‌باکس‌ها سمت کلاینت اعمال می‌شود
+                List<Item> items = ItemService.searchItems(keyword, quickCategoryId, cityId, null, maxPrice, sortBy);                // فیلتر چنددسته‌ای چک‌باکس‌ها سمت کلاینت اعمال می‌شود
                 // (بک‌اند در هر جست‌وجو فقط یک categoryId می‌پذیرد)
                 final List<Item> visible;
                 if (!catIds.isEmpty()) {

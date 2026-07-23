@@ -35,6 +35,7 @@ public class ItemService {
                 body.put("minPrice", minPrice);
                 body.put("maxPrice", maxPrice);
                 body.put("sortBy", (sortBy == null || sortBy.isBlank()) ? "newest" : sortBy);
+                body.put("searchInDescription", true);
                 HttpResponse<String> res = ApiClient.post("/items/search/advanced", body);
                 ensureSuccess(res, "خطا در جست‌وجوی آگهی‌ها");
                 return objectMapper.readValue(res.body(), new TypeReference<List<Item>>() {});
@@ -226,9 +227,6 @@ public class ItemService {
         public List<Long> removedImageIds;
         public List<String> newImagePaths;
 
-        // FIX (مورد ۲): پارامتر status حذف شد. این مقدار قبلاً هرگز واقعاً به سرور ارسال
-        // نمی‌شد (updateItem فقط title/description/price/categoryId/cityId را می‌فرستد) و
-        // صرفاً وضعیت قدیمی و گمراه‌کننده‌ی آگهی (مثلاً "REJECTED") را بی‌مصرف حمل می‌کرد.
         public ItemUpdateRequest(String t, String d, Long p, Long cat, Long city) {
             this.title = t; this.description = d; this.price = p;
             this.categoryId = cat; this.cityId = city;

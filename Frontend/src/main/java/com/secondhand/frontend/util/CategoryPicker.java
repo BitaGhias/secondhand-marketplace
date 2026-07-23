@@ -11,27 +11,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * کامپوننت مشترک انتخاب دسته‌بندی به صورت فلای‌اوت (منوی تو در تو).
- * به جای ComboBox تختِ قبلی، دسته‌های مادر به صورت زیرمنوی بازشو (flyout)
- * نمایش داده می‌شوند — همان الگویی که در فرم ثبت آگهی وجود داشت،
- * حالا به صورت یک کلاس مشترک برای کل اپ (فیلتر، پنل ادمین، ثبت آگهی، نوار دسته‌ها).
- */
 public final class CategoryPicker {
 
-    /** حداکثر عمق درخت برای جلوگیری از حلقه بی‌پایان در داده خراب */
     private static final int MAX_DEPTH = 8;
 
     private CategoryPicker() {}
 
-    /**
-     * پر کردن MenuButton با ساختار درختی دسته‌بندی‌ها.
-     *
-     * @param button          دکمه منو که آیتم‌ها داخل آن ساخته می‌شوند
-     * @param categories      همه دسته‌بندی‌ها (ریشه + زیردسته‌ها)
-     * @param nullOptionLabel اگر null نباشد، گزینه «بدون انتخاب» با این برچسب در ابتدای منو اضافه می‌شود
-     * @param onSelect        callback انتخاب (با null برای گزینه «بدون انتخاب»)
-     */
     public static void populate(MenuButton button,
                                 List<Category> categories,
                                 String nullOptionLabel,
@@ -58,7 +43,6 @@ public final class CategoryPicker {
             button.getItems().add(buildNode(button, root, categories, onSelect, 0));
         }
 
-        // دسته‌هایی که والدشان در لیست نیست (ایمنی در برابر داده ناقص) به صورت تخت اضافه می‌شوند
         for (Category c : categories) {
             if (c.getParentId() != null && findById(categories, c.getParentId()) == null) {
                 MenuItem orphan = new MenuItem(c.getName());
@@ -97,12 +81,10 @@ public final class CategoryPicker {
 
     private static void select(MenuButton button, Category cat, Consumer<Category> onSelect) {
         button.setText("📂 " + displayName(cat));
-        // فیدبک بصری: تغییر رنگ border و background هنگام انتخاب
         button.setStyle("-fx-background-color: #fff1e6; -fx-background-radius: 10; -fx-border-color: #f97316; -fx-border-radius: 10; -fx-border-width: 1.5px; -fx-padding: 8 12; -fx-cursor: hand; -fx-text-fill: #0f172a;");
         if (onSelect != null) onSelect.accept(cat);
     }
 
-    /** برچسب نمایشی دسته (با نام والد در صورت وجود) */
     public static String displayName(Category c) {
         if (c == null) return "";
         if (c.getParentName() != null && !c.getParentName().isBlank()) {

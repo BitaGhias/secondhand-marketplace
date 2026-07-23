@@ -1,7 +1,6 @@
 package com.secondhand.frontend.controller;
 
 import com.secondhand.frontend.util.FrontendErrorHandler;
-
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Comment;
 import com.secondhand.frontend.model.Conversation;
@@ -29,8 +28,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
-
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ItemDetailController extends BaseController {
@@ -69,6 +68,7 @@ public class ItemDetailController extends BaseController {
     private Long   currentUserId;
     private boolean isFavorite   = false;
     private static Long pendingItemId;
+    private Item   editingItem; // برای ذخیره حالت اصلی در ویرایش
 
     @FXML
     public void initialize() {
@@ -76,7 +76,6 @@ public class ItemDetailController extends BaseController {
         currentUserId = SessionManager.getCurrentUserId();
         bindManaged(buyButton); bindManaged(chatButton);
         bindManaged(ratingButton); bindManaged(favoriteButton); bindManaged(addCommentBox);
-        // FIX: دکمه‌های صاحب آگهی هم باید بر اساس visible مدیریت شوند تا با پنهان شدن فضا هم بگیرند
         bindManaged(editButton); bindManaged(deleteButton); bindManaged(soldButton);
         if (ownerActions != null) ownerActions.managedProperty().bind(ownerActions.visibleProperty());
         if (buyerActions != null) buyerActions.managedProperty().bind(buyerActions.visibleProperty());
@@ -90,6 +89,7 @@ public class ItemDetailController extends BaseController {
 
     public void setItem(Item item) {
         this.currentItem = item;
+        this.editingItem = item; // ذخیره برای مقایسه در ویرایش
         displayItemDetails();
         configureActions();
         checkFavoriteStatus();
@@ -151,8 +151,6 @@ public class ItemDetailController extends BaseController {
         ownerActions.setVisible(isOwner);
         buyerActions.setVisible(!isOwner);
         if (isOwner) {
-            // FIX: دکمه‌های ویرایش/حذف/فروخته‌شده فقط برای آگهی‌هایی که هنوز به فروش نرسیده‌اند نمایش داده شوند
-            // (قبلاً این دکمه‌ها برای آگهی فروخته‌شده هم نمایش داده می‌شدند و فقط با خطای بک‌اند مواجه می‌شدند)
             editButton.setVisible(currentItem.isEditable());
             deleteButton.setVisible(currentItem.isDeletable());
             soldButton.setVisible(isActive);
@@ -161,14 +159,13 @@ public class ItemDetailController extends BaseController {
             buyButton.setVisible(isActive);
             chatButton.setVisible(isActive);
             favoriteButton.setVisible(isActive);
-            ratingButton.setVisible(isBuyer);
+            // دکمه امتیازدهی به فروشنده - نمایش اگر کاربر مجاز است (بک‌اند چک می‌کند)
+            ratingButton.setVisible(isActive);
             if (isBuyer) checkRatingStatus();
         }
         if (addCommentBox != null) addCommentBox.setVisible(isLoggedIn && !isOwner);
     }
 
-    /** FIX (امتیازدهی): اگر کاربر قبلاً به این فروشنده امتیاز داده، دکمه امتیازدهی باید قفل و اطلاع‌رسانی شود
-     * (قبلاً با هر بار باز شدن این صفحه دوباره فعال می‌ماند و درخواست دوم با خطای بک‌اند رد می‌شد) */
     private void checkRatingStatus() {
         if (currentItem == null) return;
         RatingService.hasRatedAsync(currentItem.getId())
@@ -180,8 +177,7 @@ public class ItemDetailController extends BaseController {
                         ratingButton.setDisable(false);
                         ratingButton.setText("\u2B50 امتیازدهی به فروشنده");
                     }
-                }))
-                .exceptionally(ex -> null);
+                })).exceptionally(ex -> null);
     }
 
     private void checkFavoriteStatus() {
@@ -240,7 +236,6 @@ public class ItemDetailController extends BaseController {
                 });
     }
 
-    /** اگر برای این آگهی درخواست در انتظار دارم، دکمه خرید قفل شود */
     private void checkMyPendingRequest() {
         if (currentItem == null || currentUserId == null || currentItem.isOwner(currentUserId)) return;
         PurchaseRequestService.mineAsync()
@@ -251,8 +246,7 @@ public class ItemDetailController extends BaseController {
                             return;
                         }
                     }
-                }))
-                .exceptionally(ex -> null);
+                })).exceptionally(ex -> null);
     }
 
     private void setPendingRequestState() {
@@ -260,8 +254,6 @@ public class ItemDetailController extends BaseController {
         buyButton.setText("\u23f3 در انتظار تایید فروشنده");
         buyButton.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #b45309; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 11 24; -fx-opacity: 1;");
     }
-
-    // ===================== درخواست‌های خرید (صاحب آگهی) =====================
 
     private void loadPurchaseRequests() {
         if (currentItem == null || currentUserId == null || !currentItem.isOwner(currentUserId)) return;
@@ -329,11 +321,9 @@ public class ItemDetailController extends BaseController {
                         showMessage("درخواست خرید رد شد", "success");
                     }
                     loadPurchaseRequests();
-                }))
-                .exceptionally(ex -> { showMessage("خطا: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error"); return null; });
+                })).exceptionally(ex -> { showMessage("خطا: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error"); return null; });
     }
 
-    /** دیالوگ پروفایل خریدار برای فروشنده */
     private void showBuyerProfileDialog(PurchaseRequest pr) {
         new Thread(() -> {
             String fullName = pr.getBuyerFullName();
@@ -405,7 +395,14 @@ public class ItemDetailController extends BaseController {
                     catch (Exception e) { showMessage("خطا در باز کردن صفحه چت: " + e.getMessage(), "error"); }
                 });
             } catch (Exception e) {
-                Platform.runLater(() -> showMessage("خطا در شروع گفت‌وگو: " + e.getMessage(), "error"));
+                Platform.runLater(() -> {
+                    String msg = e.getMessage();
+                    if (msg != null && msg.contains("مسدود")) {
+                        showAlert("🔒 " + msg, Alert.AlertType.WARNING);
+                    } else {
+                        showAlert("خطا در شروع گفت‌وگو: " + msg, Alert.AlertType.ERROR);
+                    }
+                });
             }
         }).start();
     }
@@ -413,7 +410,7 @@ public class ItemDetailController extends BaseController {
     @FXML
     private void showRatingDialog() {
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("امتیازدهی به فروشنده"); dialog.setHeaderText("به فروشنده امتیاز دهید");
+        dialog.setTitle("امتیازدهی به فروشنده"); dialog.setHeaderText("به فروشنده «" + currentItem.getOwnerUsername() + "» امتیاز دهید");
         styleDialog(dialog);
         VBox content = new VBox(10); content.setStyle("-fx-padding: 20;");
         Label scoreLabel = new Label("امتیاز (1 تا 5):"); scoreLabel.setStyle("-fx-text-fill: #1f2937;");
@@ -435,6 +432,7 @@ public class ItemDetailController extends BaseController {
 
     @FXML
     private void editItem() {
+        if (currentItem == null) return;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(Routes.CREATE_AD));
             Parent root = loader.load();

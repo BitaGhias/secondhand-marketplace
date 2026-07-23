@@ -22,11 +22,14 @@ import java.util.Locale;
 import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
 public class ItemService {
 
     private static final Logger logger = LoggerFactory.getLogger(ItemService.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
+
     private static final int MAX_TITLE_LENGTH = 100;
     private static final int MAX_DESCRIPTION_LENGTH = 5000;
     private static final long MAX_PRICE = 999_999_999_999L;

@@ -4,6 +4,7 @@ import com.secondhand.frontend.util.FrontendErrorHandler;
 
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Item;
+import com.secondhand.frontend.model.Rating;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.RatingService;
 import com.secondhand.frontend.util.Routes;
@@ -26,7 +27,6 @@ public class PurchasesController extends BaseController {
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
-        // اضافه کردن style class مخصوص برای CSS targeting
         if (purchasesTable != null) purchasesTable.getStyleClass().add("purchases-table");
         setupColumns();
         setupRowDoubleClick();
@@ -71,18 +71,16 @@ public class PurchasesController extends BaseController {
         statusCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getPersianStatus()));
         statusCol.setPrefWidth(110);
 
-        TableColumn<Item, Void> rateCol = new TableColumn<>("امتیازدهی");
-        rateCol.setPrefWidth(150);
+        TableColumn<Item, Void> rateCol = new TableColumn<>("امتیاز به فروشنده");
+        rateCol.setPrefWidth(200);
         rateCol.setCellFactory(col -> new TableCell<>() {
-            private final Button rateBtn  = new Button("\u2B50 ثبت امتیاز");
-            private final Label  ratedLbl = new Label("\u2705 امتیاز داده شده");
+            private final Button rateBtn  = new Button("\u2B50 امتیاز به فروشنده");
+            private final VBox  ratedBox  = new VBox(4);
             {
-                // استفاده از CSS class برای hover/pressed
                 rateBtn.getStyleClass().add("rate-btn");
-                ratedLbl.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 12px;");
                 rateBtn.setOnAction(e -> {
                     Item item = getTableView().getItems().get(getIndex());
-                    showRatingDialog(item, rateBtn, ratedLbl);
+                    showRatingDialog(item, rateBtn, ratedBox);
                 });
             }
 
@@ -93,15 +91,73 @@ public class PurchasesController extends BaseController {
                 Item item = getTableView().getItems().get(getIndex());
                 setGraphic(rateBtn);
                 rateBtn.setDisable(true);
+                ratedBox.getChildren().clear();
+
                 RatingService.hasRatedAsync(item.getId()).thenAccept(rated ->
                         Platform.runLater(() -> {
                             if (rated) {
-                                setGraphic(ratedLbl);
+                                fetchAndShowExistingRating(item);
                             } else {
                                 setGraphic(rateBtn);
                                 rateBtn.setDisable(false);
                             }
                         }));
+            }
+
+            private void fetchAndShowExistingRating(Item item) {
+                Long sellerId = item.getOwnerId();
+                if (sellerId != null) {
+                    RatingService.getSellerRatingsAsync(sellerId).thenAccept(ratings -> {
+                        Platform.runLater(() -> {
+                            Rating myRating = ratings.stream()
+                                    .filter(r -> r.getItemId() != null && r.getItemId().equals(item.getId()))
+                                    .findFirst()
+                                    .orElse(null);
+                            if (myRating != null) {
+                                showExistingRatingDetails(myRating);
+                            } else {
+                                showFallbackRatedMessage();
+                            }
+                        });
+                    }).exceptionally(ex -> {
+                        Platform.runLater(this::showFallbackRatedMessage);
+                        return null;
+                    });
+                } else {
+                    showFallbackRatedMessage();
+                }
+            }
+
+            private void showExistingRatingDetails(Rating rating) {
+                ratedBox.getChildren().clear();
+
+                StringBuilder stars = new StringBuilder();
+                for (int i = 0; i < rating.getScore(); i++) stars.append("\u2B50");
+                for (int i = rating.getScore(); i < 5; i++) stars.append("\u2606");
+
+                Label starsLabel = new Label(stars.toString());
+                starsLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #f97316;");
+
+                Label scoreLabel = new Label("امتیاز شما به فروشنده: " + rating.getScore() + " از 5");
+                scoreLabel.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 12px; -fx-font-weight: bold;");
+
+                ratedBox.getChildren().addAll(starsLabel, scoreLabel);
+
+                if (rating.getComment() != null && !rating.getComment().isBlank()) {
+                    Label commentLabel = new Label("\ud83d\udcdd نظر: " + rating.getComment());
+                    commentLabel.setStyle("-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-style: italic;");
+                    commentLabel.setWrapText(true);
+                    commentLabel.setMaxWidth(180);
+                    ratedBox.getChildren().add(commentLabel);
+                }
+
+                setGraphic(ratedBox);
+            }
+
+            private void showFallbackRatedMessage() {
+                Label lbl = new Label("\u2705 امتیاز به فروشنده ثبت شده");
+                lbl.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 12px; -fx-font-weight: bold;");
+                setGraphic(lbl);
             }
         });
 
@@ -118,7 +174,7 @@ public class PurchasesController extends BaseController {
                 });
     }
 
-    private void showRatingDialog(Item item, Button rateBtn, Label ratedLbl) {
+    private void showRatingDialog(Item item, Button rateBtn, VBox ratedBox) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("امتیازدهی به فروشنده");
         dialog.setHeaderText("امتیاز شما به «" + item.getOwnerUsername() + "» برای خرید «" + item.getTitle() + "»");
