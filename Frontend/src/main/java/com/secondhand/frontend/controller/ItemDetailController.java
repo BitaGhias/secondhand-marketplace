@@ -497,7 +497,7 @@ public class ItemDetailController extends BaseController {
         HBox header = new HBox(8); header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label usernameLabel = new Label("\uD83D\uDC64 " + comment.getUsername());
         usernameLabel.setStyle("-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;");
-        Label dateLabel = new Label(comment.getShortDate());
+        Label dateLabel = new Label("🕐 " + comment.getShortTime() + "  " + comment.getShortDate());
         dateLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 11px;");
         // FIX (مورد ۴): نشانگر «ویرایش شده» برای کامنت‌هایی که بعد از ثبت تغییر داده شده‌اند
         Label editedTag = new Label("(ویرایش شده)");
