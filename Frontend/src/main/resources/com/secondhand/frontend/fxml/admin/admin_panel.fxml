@@ -47,6 +47,9 @@
                     <Label text="پنل مدیریت" style="-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;"/>
                     <Label text="دست‌دوم مارکت" style="-fx-text-fill: #fdba74; -fx-font-size: 10px;"/>
                 </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Button text="←" onAction="#goBack"
+                        style="-fx-background-color: rgba(255,255,255,0.10); -fx-text-fill: #fdba74; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 3 10; -fx-cursor: hand;"/>
             </HBox>
 
             <Separator style="-fx-opacity: 0.15;"/>
@@ -71,8 +74,6 @@
 
             <Button text="🔄  بروزرسانی همه" maxWidth="Infinity" onAction="#refreshAll"
                     style="-fx-background-color: #143449; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 10; -fx-padding: 10 16; -fx-cursor: hand; -fx-alignment: CENTER_LEFT;"/>
-            <Button text="←" maxWidth="Infinity" onAction="#goBack"
-                    style="-fx-background-color: transparent; -fx-text-fill: rgba(255,255,255,0.55); -fx-font-weight: bold; -fx-font-size: 12px; -fx-background-radius: 10; -fx-padding: 10 16; -fx-cursor: hand; -fx-alignment: CENTER_LEFT;"/>
         </VBox>
 
         <!-- محتوا -->
