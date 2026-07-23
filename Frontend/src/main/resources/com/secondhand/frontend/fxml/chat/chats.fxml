@@ -11,6 +11,7 @@
 <?import javafx.scene.shape.Circle?>
 
 <!-- لی‌اوت دوستونهٔ واتساپی: لیست مکالمات چسبیده به محیط گفت‌وگو — بدون کارت‌های جدا -->
+<?import javafx.scene.layout.Region?>
 <VBox styleClass="chats-page" prefHeight="620.0" prefWidth="940.0" spacing="0"
       style="-fx-background-color: #ffffff; -fx-background-radius: 24; -fx-border-color: #e7ecf2; -fx-border-radius: 24; -fx-border-width: 1;"
       stylesheets="@../../css/styles.css"
@@ -39,7 +40,8 @@
 
             <HBox alignment="CENTER_LEFT" spacing="9" style="-fx-background-color: #143449; -fx-padding: 13 16;">
                 <Label text="💬" style="-fx-background-color: rgba(249,115,22,0.18); -fx-background-radius: 10; -fx-padding: 4 8; -fx-font-size: 13px;"/>
-                <Label text="گفت‌وگوها" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
+                <Label text="گفت‌وگوها" style="-fx-text-fill: white; -fx-font-size: 14px; -fx-font-weight: bold;"/>
+                <Region HBox.hgrow="ALWAYS"/>
                 <Button text="←" onAction="#goBack"
                         style="-fx-background-color: rgba(255,255,255,0.10); -fx-text-fill: #fdba74; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 3 10; -fx-cursor: hand;"/>
             </HBox>
