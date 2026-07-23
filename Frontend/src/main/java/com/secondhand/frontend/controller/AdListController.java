@@ -160,6 +160,9 @@ public class AdListController extends BaseController {
                     if (categoryQuickMenuButton != null) {
                         CategoryPicker.populate(categoryQuickMenuButton, categories, "🗂 همه دسته‌ها", cat -> {
                             this.quickCategoryId = cat != null ? cat.getId() : null;
+                            categoryQuickMenuButton.setStyle(cat != null
+                                    ? "-fx-background-color: #f97316; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 7 14; -fx-cursor: hand;"
+                                    : "-fx-background-color: #143449; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 7 14; -fx-cursor: hand;");
                             runFilteredSearch();
                         });
                     }
@@ -235,6 +238,7 @@ public class AdListController extends BaseController {
         if (searchField != null) searchField.clear();
         quickCategoryId = null;
         if (categoryQuickMenuButton != null) categoryQuickMenuButton.setText("🗂 همه دسته‌ها");
+        if (categoryQuickMenuButton != null) categoryQuickMenuButton.setStyle("-fx-background-color: #143449; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 7 14; -fx-cursor: hand;");
         runFilteredSearch();
     }
 
