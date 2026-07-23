@@ -1,9 +1,22 @@
 package com.secondhand.frontend.util;
 
+/**
+ * Utility class providing "validation util" helpers.
+ * <p>
+ * This class is a helper utility whose methods are used across different parts of the application.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ValidationUtil {
 
     /**
-     * بررسی معتبر بودن ساختار ایمیل
+     * Checks whether the "valid email" condition holds.
+     *
+     * @param email the email address
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
      */
     public static boolean isValidEmail(String email) {
         if (email == null || email.trim().isEmpty()) return false;
@@ -12,7 +25,10 @@ public class ValidationUtil {
     }
 
     /**
-     * تبدیل ارقام فارسی/عربی به انگلیسی (مثلاً شماره تلفن با کیبورد فارسی تایپ‌شده)
+     * Performs the "normalize digits" operation.
+     *
+     * @param input the "input" value of type {@code String}
+     * @return the resulting string
      */
     public static String normalizeDigits(String input) {
         if (input == null) return null;
@@ -30,7 +46,10 @@ public class ValidationUtil {
     }
 
     /**
-     * بررسی معتبر بودن شماره تلفن همراه ایران (مثلا 09123456789)؛ ارقام فارسی/عربی هم پذیرفته می‌شوند
+     * Checks whether the "valid iranian phone" condition holds.
+     *
+     * @param phone the "phone" value of type {@code String}
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
      */
     public static boolean isValidIranianPhone(String phone) {
         if (phone == null || phone.trim().isEmpty()) return false;
@@ -38,7 +57,10 @@ public class ValidationUtil {
     }
 
     /**
-     * بررسی فرمت نام کاربری (فقط حروف انگلیسی، عدد و _ ، بین ۳ تا ۲۰ کاراکتر)
+     * Checks whether the "valid username" condition holds.
+     *
+     * @param username the username
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
      */
     public static boolean isValidUsername(String username) {
         if (username == null || username.trim().isEmpty()) return false;
@@ -46,7 +68,10 @@ public class ValidationUtil {
     }
 
     /**
-     * بررسی فرمت نام کامل (فقط حروف و فاصله، بین ۳ تا ۵۰ کاراکتر)
+     * Checks whether the "valid full name" condition holds.
+     *
+     * @param fullName the "full name" value of type {@code String}
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
      */
     public static boolean isValidFullName(String fullName) {
         if (fullName == null || fullName.trim().isEmpty()) return false;
@@ -54,21 +79,32 @@ public class ValidationUtil {
     }
 
     /**
-     * بررسی حداقل طول رمز عبور (مثلاً حداقل ۶ کاراکتر)
+     * Checks whether the "valid password" condition holds.
+     *
+     * @param password the password
+     * @param minLength the "min length" value of type {@code int}
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
      */
     public static boolean isValidPassword(String password, int minLength) {
         return password != null && password.length() >= minLength;
     }
 
     /**
-     * بررسی حداکثر طول رمز عبور
+     * Checks whether the "password too long" condition holds.
+     *
+     * @param password the password
+     * @param maxLength the "max length" value of type {@code int}
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
      */
     public static boolean isPasswordTooLong(String password, int maxLength) {
         return password != null && password.length() > maxLength;
     }
 
     /**
-     * بررسی وجود فاصله در رمز عبور (رمز عبور نباید فاصله داشته باشد)
+     * Performs the "contains space" operation.
+     *
+     * @param password the password
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
      */
     public static boolean containsSpace(String password) {
         return password != null && password.contains(" ");

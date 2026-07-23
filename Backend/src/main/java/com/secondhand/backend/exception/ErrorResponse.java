@@ -2,6 +2,16 @@ package com.secondhand.backend.exception;
 
 import java.time.LocalDateTime;
 
+/**
+ * Error-handling type: "error response".
+ * <p>
+ * This class is part of the centralized error-handling mechanism, ensuring that every error response has the same structure and a clear message.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ErrorResponse {
     private String message; // خطا به فارسی
     private int statusCode;
@@ -9,6 +19,9 @@ public class ErrorResponse {
     private LocalDateTime timestamp;
     private String path;
 
+    /**
+     * Creates a new {@code ErrorResponse} instance.
+     */
     public ErrorResponse() {}
 
     public ErrorResponse(String message, int statusCode, String status, String path) {

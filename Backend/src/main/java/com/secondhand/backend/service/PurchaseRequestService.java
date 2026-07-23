@@ -22,9 +22,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * منطق درخواست خرید:
- * خریدار درخواست می‌دهد ← فروشنده تایید/رد می‌کند ← در صورت تایید، آگهی SOLD می‌شود
- * و بقیه درخواست‌های در انتظار همان آگهی خودکار رد می‌شوند.
+ * Business-logic service for "purchase request" operations.
+ * <p>
+ * This class implements the core business logic and sits between the controller layer and the repository layer. Validation and access control are enforced here and a proper exception is thrown when a rule is violated.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
  */
 @Service
 public class PurchaseRequestService {
@@ -33,6 +38,12 @@ public class PurchaseRequestService {
     @Autowired private ItemRepository itemRepository;
     @Autowired private UserRepository userRepository;
 
+    /**
+     * Converts to response.
+     *
+     * @param pr the "pr" value of type {@code PurchaseRequest}
+     * @return the resulting {@code PurchaseRequestResponse} instance
+     */
     private PurchaseRequestResponse convertToResponse(PurchaseRequest pr) {
         PurchaseRequestResponse r = new PurchaseRequestResponse();
         r.setId(pr.getId());
@@ -57,12 +68,25 @@ public class PurchaseRequestService {
         return r;
     }
 
+    /**
+     * Converts list.
+     *
+     * @param list the "list" value of type {@code List<PurchaseRequest>}
+     * @return a {@code List<PurchaseRequestResponse>} with the results; empty if nothing matches
+     */
     private List<PurchaseRequestResponse> convertList(List<PurchaseRequest> list) {
         List<PurchaseRequestResponse> out = new ArrayList<>();
         for (PurchaseRequest pr : list) out.add(convertToResponse(pr));
         return out;
     }
 
+    /**
+     * Creates.
+     *
+     * @param itemId id of the ad (item)
+     * @param buyerId id of the buyer
+     * @return the resulting {@code PurchaseRequestResponse} instance
+     */
     public PurchaseRequestResponse create(Long itemId, Long buyerId) {
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -88,6 +112,13 @@ public class PurchaseRequestService {
         return convertToResponse(purchaseRequestRepository.save(pr));
     }
 
+    /**
+     * Lists for item.
+     *
+     * @param itemId id of the ad (item)
+     * @param requesterId the "requester id" value of type {@code Long}
+     * @return a {@code List<PurchaseRequestResponse>} with the results; empty if nothing matches
+     */
     public List<PurchaseRequestResponse> listForItem(Long itemId, Long requesterId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));
@@ -96,18 +127,37 @@ public class PurchaseRequestService {
         return convertList(purchaseRequestRepository.findByItemIdOrderByCreatedAtDesc(itemId));
     }
 
+    /**
+     * Performs the "incoming" operation.
+     *
+     * @param sellerId id of the seller
+     * @return a {@code List<PurchaseRequestResponse>} with the results; empty if nothing matches
+     */
     public List<PurchaseRequestResponse> incoming(Long sellerId) {
         if (!userRepository.existsById(sellerId))
             throw new ResourceNotFoundException("کاربر یافت نشد");
         return convertList(purchaseRequestRepository.findByItemUserIdOrderByCreatedAtDesc(sellerId));
     }
 
+    /**
+     * Performs the "mine" operation.
+     *
+     * @param buyerId id of the buyer
+     * @return a {@code List<PurchaseRequestResponse>} with the results; empty if nothing matches
+     */
     public List<PurchaseRequestResponse> mine(Long buyerId) {
         if (!userRepository.existsById(buyerId))
             throw new ResourceNotFoundException("کاربر یافت نشد");
         return convertList(purchaseRequestRepository.findByBuyerIdOrderByCreatedAtDesc(buyerId));
     }
 
+    /**
+     * Performs the "accept" operation.
+     *
+     * @param requestId id of the request
+     * @param sellerId id of the seller
+     * @return the resulting {@code PurchaseRequestResponse} instance
+     */
     @Transactional
     public PurchaseRequestResponse accept(Long requestId, Long sellerId) {
         PurchaseRequest pr = purchaseRequestRepository.findById(requestId)
@@ -139,6 +189,13 @@ public class PurchaseRequestService {
         return convertToResponse(saved);
     }
 
+    /**
+     * Performs the "decline" operation.
+     *
+     * @param requestId id of the request
+     * @param sellerId id of the seller
+     * @return the resulting {@code PurchaseRequestResponse} instance
+     */
     @Transactional
     public PurchaseRequestResponse decline(Long requestId, Long sellerId) {
         PurchaseRequest pr = purchaseRequestRepository.findById(requestId)

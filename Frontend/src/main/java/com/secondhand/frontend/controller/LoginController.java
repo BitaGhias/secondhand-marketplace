@@ -20,6 +20,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.Map;
 
+/**
+ * JavaFX controller of the "login" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class LoginController extends BaseController {
 
     @FXML private TextField         usernameField;
@@ -30,6 +40,9 @@ public class LoginController extends BaseController {
     @FXML private ProgressIndicator loadingIndicator;
     @FXML private HBox              titleBar;
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
@@ -41,6 +54,9 @@ public class LoginController extends BaseController {
         passwordField.setOnKeyPressed(e -> { if (e.getCode() == KeyCode.ENTER) handleLogin(); });
     }
 
+    /**
+     * Handles login.
+     */
     @FXML
     private void handleLogin() {
         String username = usernameField.getText().trim();
@@ -74,6 +90,11 @@ public class LoginController extends BaseController {
         }
     }
 
+    /**
+     * Handles login response.
+     *
+     * @param response the received response
+     */
     private void handleLoginResponse(HttpResponse<String> response) {
         int status = response.statusCode();
         // FIX: به‌جای نمایش پیام یکسان برای 401 و 403، پیام واقعی سرور (مثلاً مسدود بودن کاربر) نمایش داده شود
@@ -114,6 +135,13 @@ public class LoginController extends BaseController {
     }
 
     // FIX: استخراج پیام دقیق خطا (مثلاً مسدود بودن کاربر) از پاسخ سرور
+    /**
+     * Extracts server message.
+     *
+     * @param responseBody the "response body" value of type {@code String}
+     * @param fallback the "fallback" value of type {@code String}
+     * @return the resulting string
+     */
     private String extractServerMessage(String responseBody, String fallback) {
         try {
             @SuppressWarnings("unchecked")
@@ -124,15 +152,23 @@ public class LoginController extends BaseController {
         return fallback;
     }
 
+    /**
+     * Navigates to after login.
+     *
+     * @throws Exception if the request fails or the server cannot be reached
+     */
     private void navigateAfterLogin() throws Exception {
         User u = SessionManager.getCurrentUser();
         if (u != null && "ADMIN".equalsIgnoreCase(u.getRole()))
             MainApplication.changeScene(Routes.ADMIN_PANEL, "پنل مدیریت");
         else
             // Regular users must land on the marketplace panel, not the create-ad form.
-            MainApplication.changeScene(Routes.USER_PANEL, "دست‌دوم مارکت — پنل کاربر");
+            MainApplication.changeScene(Routes.USER_PANEL, "دیباچه — پنل کاربر");
     }
 
+    /**
+     * Navigates to to register.
+     */
     @FXML
     private void goToRegister() {
         try { MainApplication.changeScene(Routes.REGISTER, "ثبت‌نام"); }
@@ -141,6 +177,11 @@ public class LoginController extends BaseController {
 
     // ─── Label helper (≠ BaseController.showError که Alert باز می‌کنه) ───────
 
+    /**
+     * Shows error label.
+     *
+     * @param message the message text
+     */
     private void showErrorLabel(String message) {
         Platform.runLater(() -> {
             errorLabel.setText(message);

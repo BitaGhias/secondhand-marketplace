@@ -23,6 +23,16 @@ import javafx.util.Duration;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * JavaFX controller of the "chats" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ChatsController extends BaseController {
 
     @FXML private ListView<Conversation> chatUsersListView;
@@ -38,6 +48,11 @@ public class ChatsController extends BaseController {
     private int          lastMessageCount = 0;
     private static final int POLL_SECONDS = 3;
 
+    /**
+     * Sets initial conversation id.
+     *
+     * @param id unique identifier of the record
+     */
     public static void setInitialConversationId(Long id) { initialConversationId = id; }
 
     @FXML
@@ -48,6 +63,9 @@ public class ChatsController extends BaseController {
         startPolling();
     }
 
+    /**
+     * Sets up conversation list.
+     */
     private void setupConversationList() {
         Long myId = SessionManager.getCurrentUserId();
         chatUsersListView.setCellFactory(lv -> new ListCell<>() {
@@ -121,6 +139,9 @@ public class ChatsController extends BaseController {
                 });
     }
 
+    /**
+     * Loads conversations.
+     */
     private void loadConversations() {
         new Thread(() -> {
             try {
@@ -155,6 +176,11 @@ public class ChatsController extends BaseController {
         }).start();
     }
 
+    /**
+     * Opens conversation.
+     *
+     * @param conversation the conversation object
+     */
     private void openConversation(Conversation conversation) {
         currentConversation = conversation;
         Long myId = SessionManager.getCurrentUserId();
@@ -174,6 +200,11 @@ public class ChatsController extends BaseController {
         chatUsersListView.refresh();
     }
 
+    /**
+     * Loads messages.
+     *
+     * @param scrollToBottom the "scroll to bottom" value of type {@code boolean}
+     */
     private void loadMessages(boolean scrollToBottom) {
         if (currentConversation == null) return;
         final Long conversationId = currentConversation.getId();
@@ -192,6 +223,11 @@ public class ChatsController extends BaseController {
         }).start();
     }
 
+    /**
+     * Performs the "render messages" operation.
+     *
+     * @param messages the "messages" value of type {@code List<ChatMessage>}
+     */
     private void renderMessages(List<ChatMessage> messages) {
         messagesVBox.getChildren().clear();
         Long myId = SessionManager.getCurrentUserId();
@@ -258,6 +294,11 @@ public class ChatsController extends BaseController {
         }
     }
 
+    /**
+     * Starts edit message.
+     *
+     * @param message the message text
+     */
     private void startEditMessage(ChatMessage message) {
         TextInputDialog dialog = new TextInputDialog(message.getText());
         dialog.setTitle("ویرایش پیام");
@@ -282,6 +323,11 @@ public class ChatsController extends BaseController {
         }).start();
     }
 
+    /**
+     * Deletes message.
+     *
+     * @param message the message text
+     */
     private void deleteMessage(ChatMessage message) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("حذف پیام");
@@ -304,10 +350,16 @@ public class ChatsController extends BaseController {
         }).start();
     }
 
+    /**
+     * Performs the "scroll to bottom" operation.
+     */
     private void scrollToBottom() {
         if (messagesScrollPane != null) { messagesScrollPane.layout(); messagesScrollPane.setVvalue(1.0); }
     }
 
+    /**
+     * Sends message.
+     */
     @FXML
     private void sendMessage() {
         if (currentConversation == null) { currentChatUserLabel.setText("ابتدا یک گفت‌وگو را انتخاب کنید"); return; }
@@ -339,6 +391,9 @@ public class ChatsController extends BaseController {
         }).start();
     }
 
+    /**
+     * Navigates to back.
+     */
     @FXML
     private void goBack() {
         stopPolling();
@@ -346,6 +401,9 @@ public class ChatsController extends BaseController {
         catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 
+    /**
+     * Starts polling.
+     */
     private void startPolling() {
         refreshTimeline = new Timeline(new KeyFrame(Duration.seconds(POLL_SECONDS), event -> {
             if (currentConversation != null) loadMessages(false);
@@ -355,10 +413,18 @@ public class ChatsController extends BaseController {
         refreshTimeline.play();
     }
 
+    /**
+     * Stops polling.
+     */
     private void stopPolling() {
         if (refreshTimeline != null) { refreshTimeline.stop(); refreshTimeline = null; }
     }
 
+    /**
+     * Closes window.
+     *
+     * @param event the UI event
+     */
     @Override @FXML
     public void closeWindow(ActionEvent event) {
         stopPolling();

@@ -22,6 +22,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * Business-logic service for "item" operations.
+ * <p>
+ * This class implements the core business logic and sits between the controller layer and the repository layer. Validation and access control are enforced here and a proper exception is thrown when a rule is violated.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Service
 public class ItemService {
 
@@ -42,12 +52,22 @@ public class ItemService {
     @Autowired private ImageRepository imageRepository;
     @Autowired private PurchaseRequestRepository purchaseRequestRepository;
 
+    /**
+     * Validates the ad price; negative or invalid prices are rejected with HTTP 400.
+     *
+     * @param price the price (Toman)
+     */
     private void validateItemPrice(Long price) {
         if (price == null) throw new BadRequestException("قیمت آگهی الزامی است!");
         if (price <= 0) throw new BadRequestException("قیمت باید بزرگتر از ۰ باشد!");
         if (price > MAX_PRICE) throw new BadRequestException("قیمت آگهی بیش از حد مجاز است!");
     }
 
+    /**
+     * Validates item title.
+     *
+     * @param title the title
+     */
     private void validateItemTitle(String title) {
         if (title == null || title.trim().isEmpty())
             throw new BadRequestException("عنوان آگهی نمی‌تواند خالی باشد!");
@@ -55,6 +75,11 @@ public class ItemService {
             throw new BadRequestException("عنوان آگهی نباید بیشتر از ۱۰۰ کاراکتر باشد!");
     }
 
+    /**
+     * Validates item description.
+     *
+     * @param description the description text
+     */
     private void validateItemDescription(String description) {
         if (description == null || description.trim().isEmpty())
             throw new BadRequestException("توضیحات آگهی نمی‌تواند خالی باشد!");
@@ -62,22 +87,45 @@ public class ItemService {
             throw new BadRequestException("توضیحات آگهی نباید بیشتر از ۵۰۰۰ کاراکتر باشد!");
     }
 
+    /**
+     * Validates item title and description.
+     *
+     * @param title the title
+     * @param description the description text
+     */
     private void validateItemTitleAndDescription(String title, String description) {
         validateItemTitle(title);
         validateItemDescription(description);
     }
 
+    /**
+     * Validates user is admin.
+     *
+     * @param user the user object
+     */
     private void validateUserIsAdmin(User user) {
         if (user.getRole() != Role.ADMIN)
             throw new ForbiddenException("شما دسترسی ادمین ندارید!");
     }
 
+    /**
+     * Validates user is admin.
+     *
+     * @param userId id of the user
+     */
     private void validateUserIsAdmin(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
         validateUserIsAdmin(user);
     }
 
+    /**
+     * Validates user is owner or admin.
+     *
+     * @param item the ad (item) object
+     * @param userId id of the user
+     * @param requester the "requester" value of type {@code User}
+     */
     private void validateUserIsOwnerOrAdmin(Item item, Long userId, User requester) {
         boolean isOwner = item.getUser().getId().equals(userId);
         boolean isAdmin = requester.getRole() == Role.ADMIN;
@@ -85,11 +133,21 @@ public class ItemService {
             throw new ForbiddenException("شما اجازه این عملیات را ندارید!");
     }
 
+    /**
+     * Validates item not sold or deleted.
+     *
+     * @param item the ad (item) object
+     */
     private void validateItemNotSoldOrDeleted(Item item) {
         if (item.getStatus() == ItemStatus.SOLD || item.getStatus() == ItemStatus.DELETED)
             throw new BadRequestException("این آگهی قابل تغییر نیست!");
     }
 
+    /**
+     * Validates images.
+     *
+     * @param images list of images
+     */
     private void validateImages(List<MultipartFile> images) {
         if (images == null || images.isEmpty()) return;
         if (images.size() > 5) throw new BadRequestException("حداکثر ۵ تصویر مجاز است!");
@@ -115,6 +173,12 @@ public class ItemService {
         }
     }
 
+    /**
+     * Converts to response.
+     *
+     * @param item the ad (item) object
+     * @return the resulting {@code ItemResponse} instance
+     */
     private ItemResponse convertToResponse(Item item) {
         List<Image> images = imageRepository.findByItemId(item.getId());
         List<ImageResponse> imageResponses = new ArrayList<>();
@@ -149,6 +213,12 @@ public class ItemService {
         return response;
     }
 
+    /**
+     * Converts to response list.
+     *
+     * @param items the "items" value of type {@code List<Item>}
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     private List<ItemResponse> convertToResponseList(List<Item> items) {
         List<ItemResponse> responses = new ArrayList<>();
         for (Item item : items) responses.add(convertToResponse(item));
@@ -167,6 +237,13 @@ public class ItemService {
     }
 
     // FIX: @Transactional اضافه شد - ذخیره آگهی و تصویر اتمیک است
+    /**
+     * Adds item.
+     *
+     * @param request request body received from the client
+     * @param userId id of the user
+     * @return the resulting {@code ItemResponse} instance
+     */
     @Transactional
     public ItemResponse addItem(ItemCreateRequest request, Long userId) {
         User user = userRepository.findById(userId)
@@ -234,10 +311,24 @@ public class ItemService {
         return convertToResponse(savedItem);
     }
 
+    /**
+     * Gets approved items.
+     *
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     public List<ItemResponse> getApprovedItems() {
         return convertToResponseList(itemRepository.findByStatus(ItemStatus.APPROVED));
     }
 
+    /**
+     * Updates item status.
+     *
+     * @param requesterAdminId the "requester admin id" value of type {@code Long}
+     * @param itemId id of the ad (item)
+     * @param newStatus the "new status" value of type {@code String}
+     * @param rejectionReason the "rejection reason" value of type {@code String}
+     * @return the resulting {@code ItemResponse} instance
+     */
     public ItemResponse updateItemStatus(Long requesterAdminId, Long itemId, String newStatus, String rejectionReason) {
         validateUserIsAdmin(requesterAdminId);
 
@@ -274,21 +365,45 @@ public class ItemService {
         return convertToResponse(itemRepository.save(item));
     }
 
+    /**
+     * Gets pending items.
+     *
+     * @param requesterAdminId the "requester admin id" value of type {@code Long}
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     public List<ItemResponse> getPendingItems(Long requesterAdminId) {
         validateUserIsAdmin(requesterAdminId);
         return convertToResponseList(itemRepository.findByStatus(ItemStatus.PENDING));
     }
 
+    /**
+     * Gets approved items by category.
+     *
+     * @param categoryId id of the category
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     public List<ItemResponse> getApprovedItemsByCategory(Long categoryId) {
         return convertToResponseList(itemRepository.findByCategoryIdAndStatus(categoryId, ItemStatus.APPROVED));
     }
 
+    /**
+     * Gets item by user.
+     *
+     * @param userId id of the user
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     public List<ItemResponse> getItemByUser(Long userId) {
         if (!userRepository.existsById(userId))
             throw new ResourceNotFoundException("کاربر یافت نشد");
         return convertToResponseList(itemRepository.findByUserIdAndStatusNot(userId, ItemStatus.DELETED));
     }
 
+    /**
+     * Deletes item.
+     *
+     * @param itemId id of the ad (item)
+     * @param userId id of the user
+     */
     public void deleteItem(Long itemId, Long userId) {
         User requester = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -314,6 +429,12 @@ public class ItemService {
         itemRepository.save(item);
     }
 
+    /**
+     * Searches items.
+     *
+     * @param keyword the search keyword
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     public List<ItemResponse> searchItems(String keyword) {
         if (keyword == null || keyword.trim().isEmpty())
             throw new BadRequestException("کلمه کلیدی جستجو نمی‌تواند خالی باشد!");
@@ -324,6 +445,12 @@ public class ItemService {
         );
     }
 
+    /**
+     * Gets items by city.
+     *
+     * @param cityId id of the city
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     public List<ItemResponse> getItemsByCity(Long cityId) {
         if (!cityRepository.existsById(cityId))
             throw new ResourceNotFoundException("شهر یافت نشد");
@@ -331,6 +458,13 @@ public class ItemService {
     }
 
     // FIX: @Transactional اضافه شد - علامت‌گذاری فروش و رد درخواست‌های معلق باید اتمیک باشند
+    /**
+     * Marks as sold.
+     *
+     * @param itemId id of the ad (item)
+     * @param userId id of the user
+     * @return the resulting {@code ItemResponse} instance
+     */
     @Transactional
     public ItemResponse markAsSold(Long itemId, Long userId) {
         User user = userRepository.findById(userId)
@@ -360,6 +494,12 @@ public class ItemService {
         return response;
     }
 
+    /**
+     * Gets item by id.
+     *
+     * @param itemId id of the ad (item)
+     * @return the resulting {@code ItemResponse} instance
+     */
     public ItemResponse getItemById(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی مورد نظر یافت نشد"));
@@ -369,6 +509,13 @@ public class ItemService {
     }
 
     // FIX: متد جدید - ادمین می‌تواند هر آگهی با هر وضعیتی را ببیند
+    /**
+     * Gets item by id for admin.
+     *
+     * @param adminId the "admin id" value of type {@code Long}
+     * @param itemId id of the ad (item)
+     * @return the resulting {@code ItemResponse} instance
+     */
     public ItemResponse getItemByIdForAdmin(Long adminId, Long itemId) {
         validateUserIsAdmin(adminId);
         Item item = itemRepository.findById(itemId)
@@ -376,6 +523,14 @@ public class ItemService {
         return convertToResponse(item);
     }
 
+    /**
+     * Updates item.
+     *
+     * @param itemId id of the ad (item)
+     * @param userId id of the user
+     * @param request request body received from the client
+     * @return the resulting {@code ItemResponse} instance
+     */
     public ItemResponse updateItem(Long itemId, Long userId, ItemUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -483,6 +638,12 @@ public class ItemService {
         return convertToResponse(itemRepository.save(item));
     }
 
+    /**
+     * Advanced ad search combining keyword, category, city and price range, then sorting the results (newest, price ascending/descending and highest seller rating). Only approved ads are returned.
+     *
+     * @param request request body received from the client
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     public List<ItemResponse> searchItemsAdvanced(ItemSearchRequest request) {
         String sortBy = request.getSortBy();
         if (sortBy == null || sortBy.trim().isEmpty()) sortBy = "newest";
@@ -509,6 +670,11 @@ public class ItemService {
         return convertToResponseList(items);
     }
 
+    /**
+     * Performs the "seller average map" operation.
+     *
+     * @return the resulting {@code Map<Long, Double>} instance
+     */
     private Map<Long, Double> sellerAverageMap() {
         Map<Long, Double> map = new HashMap<>();
         for (Object[] row : ratingRepository.averageScoreGroupedBySeller()) {
@@ -518,6 +684,13 @@ public class ItemService {
     }
 
     // معلق روی همین آگهی رد شوند، وگرنه برای همیشه در وضعیت «در انتظار» باقی می‌مانند
+    /**
+     * Direct purchase of an ad; the ad status changes to SOLD and all remaining open purchase requests are rejected.
+     *
+     * @param itemId id of the ad (item)
+     * @param buyerId id of the buyer
+     * @return the resulting {@code ItemResponse} instance
+     */
     @Transactional
     public ItemResponse purchaseItem(Long itemId, Long buyerId) {
         User buyer = userRepository.findById(buyerId)
@@ -548,12 +721,25 @@ public class ItemService {
         return response;
     }
 
+    /**
+     * Gets purchased items.
+     *
+     * @param buyerId id of the buyer
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     public List<ItemResponse> getPurchasedItems(Long buyerId) {
         if (!userRepository.existsById(buyerId))
             throw new ResourceNotFoundException("کاربر یافت نشد");
         return convertToResponseList(itemRepository.findByBuyerId(buyerId));
     }
 
+    /**
+     * Gets items by user for admin.
+     *
+     * @param requesterAdminId the "requester admin id" value of type {@code Long}
+     * @param userId id of the user
+     * @return a {@code List<ItemResponse>} with the results; empty if nothing matches
+     */
     public List<ItemResponse> getItemsByUserForAdmin(Long requesterAdminId, Long userId) {
         validateUserIsAdmin(requesterAdminId);
         if (!userRepository.existsById(userId))
@@ -561,6 +747,12 @@ public class ItemService {
         return convertToResponseList(itemRepository.findByUserId(userId));
     }
 
+    /**
+     * Gets item images.
+     *
+     * @param itemId id of the ad (item)
+     * @return a {@code List<ImageResponse>} with the results; empty if nothing matches
+     */
     public List<ImageResponse> getItemImages(Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new ResourceNotFoundException("آگهی یافت نشد"));

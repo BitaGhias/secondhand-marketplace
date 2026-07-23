@@ -17,18 +17,34 @@ import javafx.scene.layout.HBox;
 
 import java.util.List;
 
+/**
+ * JavaFX controller of the "favorites" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class FavoritesController extends BaseController {
 
     @FXML private FlowPane favoritesFlowPane;
     @FXML private Label    noFavoritesLabel;
     @FXML private HBox     titleBar;
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         loadFavorites();
     }
 
+    /**
+     * Loads favorites.
+     */
     private void loadFavorites() {
         new Thread(() -> {
             try {
@@ -61,11 +77,19 @@ public class FavoritesController extends BaseController {
         }).start();
     }
 
+    /**
+     * Navigates to to item detail.
+     *
+     * @param item the ad (item) object
+     */
     private void goToItemDetail(Item item) {
         try { MainApplication.goToItemDetail(item); }
         catch (Exception e) { System.err.println("❌ خطا در رفتن به جزئیات: " + e.getMessage()); }
     }
 
+    /**
+     * Navigates to back.
+     */
     @FXML
     private void goBack() {
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }

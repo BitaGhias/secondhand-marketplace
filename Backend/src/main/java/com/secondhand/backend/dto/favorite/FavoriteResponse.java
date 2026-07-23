@@ -1,5 +1,15 @@
 package com.secondhand.backend.dto.favorite;
 
+/**
+ * Data Transfer Object carrying "favorite response" data between client and server.
+ * <p>
+ * This class is used purely for transferring data between client and server and is not mapped to the database directly, keeping the internal structure of the entities hidden from the client.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class FavoriteResponse {
     private Long id;
     private Long itemId;
@@ -8,6 +18,9 @@ public class FavoriteResponse {
     private String itemStatus;
     private Long userId;
 
+    /**
+     * Creates a new {@code FavoriteResponse} instance.
+     */
     public FavoriteResponse() {}
 
     public FavoriteResponse(Long id, Long itemId, String itemTitle, Long itemPrice, String itemStatus, Long userId) {

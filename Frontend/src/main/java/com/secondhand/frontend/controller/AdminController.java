@@ -3,9 +3,11 @@ package com.secondhand.frontend.controller;
 import com.secondhand.frontend.util.FrontendErrorHandler;
 import com.secondhand.frontend.MainApplication;
 import com.secondhand.frontend.model.Category;
+import com.secondhand.frontend.model.City;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.CategoryService;
+import com.secondhand.frontend.service.CityService;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.service.UserService;
 import com.secondhand.frontend.util.CategoryPicker;
@@ -38,6 +40,16 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * JavaFX controller of the admin panel: pending-ads review, user management, categories, cities and statistics.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class AdminController extends BaseController {
 
     private static final String NO_PARENT_LABEL = "بدون والد (دستهٔ اصلی)";
@@ -57,6 +69,7 @@ public class AdminController extends BaseController {
     @FXML private Button navPendingButton;
     @FXML private Button navUsersButton;
     @FXML private Button navCategoriesButton;
+    @FXML private Button navCitiesButton;
     @FXML private Label  sidebarPendingBadge;
 
     // پنل‌های محتوا
@@ -64,6 +77,7 @@ public class AdminController extends BaseController {
     @FXML private VBox pendingPane;
     @FXML private VBox usersPane;
     @FXML private VBox categoriesPane;
+    @FXML private VBox citiesPane;
 
     // داشبورد
     @FXML private Label dashPendingLabel;
@@ -89,10 +103,19 @@ public class AdminController extends BaseController {
     @FXML private Button     deleteCategoryButton;
     @FXML private Button     cancelCategoryEditButton;
 
+    // شهرها
+    @FXML private ListView<City> citiesListView;
+    @FXML private Label      citiesCountLabel;
+    @FXML private TextField  cityNameField;
+    @FXML private Button     addCityButton;
+
     private Category selectedCategoryForEdit;
     private Category selectedParentCategory;
     private List<Category> allCategories = new ArrayList<>();
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
@@ -111,14 +134,24 @@ public class AdminController extends BaseController {
 
     // ===================== ناوبری سایدبار =====================
 
+    /**
+     * Performs the "activate" operation.
+     *
+     * @param active the "active" value of type {@code Button}
+     */
     private void activate(Button active) {
-        for (Button b : new Button[]{navDashboardButton, navPendingButton, navUsersButton, navCategoriesButton}) {
+        for (Button b : new Button[]{navDashboardButton, navPendingButton, navUsersButton, navCategoriesButton, navCitiesButton}) {
             if (b != null) b.setStyle(b == active ? NAV_ACTIVE : NAV_IDLE);
         }
     }
 
+    /**
+     * Shows pane.
+     *
+     * @param pane the "pane" value of type {@code VBox}
+     */
     private void showPane(VBox pane) {
-        for (VBox p : new VBox[]{dashboardPane, pendingPane, usersPane, categoriesPane}) {
+        for (VBox p : new VBox[]{dashboardPane, pendingPane, usersPane, categoriesPane, citiesPane}) {
             if (p != null) { p.setVisible(p == pane); p.setManaged(p == pane); }
         }
     }
@@ -127,9 +160,13 @@ public class AdminController extends BaseController {
     @FXML private void showPending()    { showPane(pendingPane);    activate(navPendingButton); }
     @FXML private void showUsers()      { showPane(usersPane);      activate(navUsersButton); }
     @FXML private void showCategories() { showPane(categoriesPane); activate(navCategoriesButton); }
+    @FXML private void showCities()     { showPane(citiesPane);     activate(navCitiesButton); }
 
     // ===================== جدول آگهی‌های در انتظار =====================
 
+    /**
+     * Sets up pending table.
+     */
     private void setupPendingTable() {
         if (pendingTable == null) return;
 
@@ -187,6 +224,9 @@ public class AdminController extends BaseController {
         });
     }
 
+    /**
+     * Loads pending items.
+     */
     private void loadPendingItems() {
         new Thread(() -> {
             try {
@@ -207,6 +247,9 @@ public class AdminController extends BaseController {
         }).start();
     }
 
+    /**
+     * Loads active count.
+     */
     private void loadActiveCount() {
         new Thread(() -> {
             try {
@@ -218,6 +261,11 @@ public class AdminController extends BaseController {
         }).start();
     }
 
+    /**
+     * Approves item.
+     *
+     * @param item the ad (item) object
+     */
     private void approveItem(Item item) {
         if (item == null) return;
         new Thread(() -> {
@@ -230,6 +278,11 @@ public class AdminController extends BaseController {
         }).start();
     }
 
+    /**
+     * Rejects item with prompt.
+     *
+     * @param item the ad (item) object
+     */
     private void rejectItemWithPrompt(Item item) {
         if (item == null) return;
         TextInputDialog dialog = new TextInputDialog();
@@ -253,6 +306,11 @@ public class AdminController extends BaseController {
         }).start();
     }
 
+    /**
+     * Deletes item by admin.
+     *
+     * @param item the ad (item) object
+     */
     private void deleteItemByAdmin(Item item) {
         if (item == null) return;
         new Thread(() -> {
@@ -267,6 +325,9 @@ public class AdminController extends BaseController {
 
     // ===================== کاربران =====================
 
+    /**
+     * Sets up users list.
+     */
     private void setupUsersList() {
         if (usersListView == null) return;
 
@@ -314,6 +375,9 @@ public class AdminController extends BaseController {
         });
     }
 
+    /**
+     * Loads all users.
+     */
     private void loadAllUsers() {
         new Thread(() -> {
             try {
@@ -329,6 +393,11 @@ public class AdminController extends BaseController {
         }).start();
     }
 
+    /**
+     * Navigates to to user ads page.
+     *
+     * @param user the user object
+     */
     private void goToUserAdsPage(User user) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(Routes.ADMIN_USER_ADS));
@@ -350,6 +419,9 @@ public class AdminController extends BaseController {
 
     // ===================== دسته‌بندی‌ها =====================
 
+    /**
+     * Sets up categories pane.
+     */
     private void setupCategoriesPane() {
         if (categoriesListView == null) return;
 
@@ -469,6 +541,9 @@ public class AdminController extends BaseController {
         deleteCategoryButton.setDisable(true);
     }
 
+    /**
+     * Loads categories.
+     */
     private void loadCategories() {
         if (categoriesListView == null) return;
         new Thread(() -> {
@@ -487,6 +562,9 @@ public class AdminController extends BaseController {
         }).start();
     }
 
+    /**
+     * Refreshes parent menu.
+     */
     private void refreshParentMenu() {
         if (parentCategoryMenuButton == null) return;
 
@@ -527,6 +605,12 @@ public class AdminController extends BaseController {
         }
     }
 
+    /**
+     * Finds category by id.
+     *
+     * @param id unique identifier of the record
+     * @return the resulting {@code Category} instance
+     */
     private Category findCategoryById(Long id) {
         if (id == null) return null;
         for (Category c : allCategories) {
@@ -535,6 +619,9 @@ public class AdminController extends BaseController {
         return null;
     }
 
+    /**
+     * Adds or update category.
+     */
     @FXML
     private void addOrUpdateCategory() {
         String name = categoryNameField.getText() != null ? categoryNameField.getText().trim() : "";
@@ -557,6 +644,9 @@ public class AdminController extends BaseController {
         }).start();
     }
 
+    /**
+     * Deletes category.
+     */
     @FXML
     private void deleteCategory() {
         Category selected = selectedCategoryForEdit;
@@ -571,12 +661,18 @@ public class AdminController extends BaseController {
         }).start();
     }
 
+    /**
+     * Cancels category edit.
+     */
     @FXML
     private void cancelCategoryEdit() {
         categoriesListView.getSelectionModel().clearSelection();
         resetCategoryForm();
     }
 
+    /**
+     * Resets category form.
+     */
     private void resetCategoryForm() {
         selectedCategoryForEdit = null;
         selectedParentCategory = null;
@@ -591,12 +687,23 @@ public class AdminController extends BaseController {
         deleteCategoryButton.setDisable(true);
     }
 
+    /**
+     * Performs the "root message" operation.
+     *
+     * @param e the exception/event that occurred
+     * @return the resulting string
+     */
     private String rootMessage(Throwable e) {
         return e.getMessage() != null ? e.getMessage() : "خطای ناشناخته";
     }
 
     // ===================== دیالوگ جزئیات =====================
 
+    /**
+     * Shows item details dialog.
+     *
+     * @param item the ad (item) object
+     */
     private void showItemDetailsDialog(Item item) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("جزئیات آگهی");
@@ -690,12 +797,24 @@ public class AdminController extends BaseController {
         dialog.showAndWait();
     }
 
+    /**
+     * Performs the "detail chip" operation.
+     *
+     * @param text the text value
+     * @return the resulting {@code Label} instance
+     */
     private Label detailChip(String text) {
         Label chip = new Label(text);
         chip.setStyle("-fx-background-color: #f1f5f9; -fx-text-fill: #334155; -fx-background-radius: 999; -fx-padding: 6 13; -fx-font-size: 11px; -fx-font-weight: bold;");
         return chip;
     }
 
+    /**
+     * Performs the "info label" operation.
+     *
+     * @param text the text value
+     * @return the resulting {@code Label} instance
+     */
     private Label infoLabel(String text) {
         Label label = new Label(text);
         label.setStyle("-fx-text-fill: #0f172a; -fx-font-size: 14px;");
@@ -704,8 +823,57 @@ public class AdminController extends BaseController {
 
     // ===================== عمومی =====================
 
-    @FXML private void refreshAll() { loadPendingItems(); loadAllUsers(); loadCategories(); loadActiveCount(); }
+    // ===================== شهرها =====================
 
+    /**
+     * Loads the city list from the server on a background thread and shows it in the admin panel together with a counter.
+     */
+    private void loadCities() {
+        if (citiesListView == null) return;
+        new Thread(() -> {
+            try {
+                List<City> cities = CityService.getAllCities();
+                Platform.runLater(() -> {
+                    citiesListView.getItems().setAll(cities);
+                    if (citiesCountLabel != null) citiesCountLabel.setText(cities.size() + " شهر");
+                });
+            } catch (Exception e) {
+                FrontendErrorHandler.log(e);
+                Platform.runLater(() -> showError("خطا در دریافت شهرها: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    /**
+     * Adds a new city; only admins are allowed and duplicate names are rejected with HTTP 400.
+     */
+    @FXML
+    private void addCity() {
+        String name = cityNameField != null ? cityNameField.getText() : null;
+        if (name == null || name.trim().isEmpty()) { showError("نام شهر را وارد کنید"); return; }
+        String cityName = name.trim();
+        if (addCityButton != null) addCityButton.setDisable(true);
+        CityService.addCityAsync(cityName)
+                .thenAccept(city -> Platform.runLater(() -> {
+                    if (cityNameField != null) cityNameField.clear();
+                    if (addCityButton != null) addCityButton.setDisable(false);
+                    showSuccess("✅ شهر «" + city.getName() + "» اضافه شد");
+                    loadCities();
+                }))
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> {
+                        if (addCityButton != null) addCityButton.setDisable(false);
+                        showError("خطا در افزودن شهر: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()));
+                    });
+                    return null;
+                });
+    }
+
+    @FXML private void refreshAll() { loadPendingItems(); loadAllUsers(); loadCategories(); loadCities(); loadActiveCount(); }
+
+    /**
+     * Navigates to back.
+     */
     @FXML
     private void goBack() {
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }

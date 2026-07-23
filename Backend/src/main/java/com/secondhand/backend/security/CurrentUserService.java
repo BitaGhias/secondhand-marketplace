@@ -7,20 +7,45 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+/**
+ * Configuration class: "current user service".
+ * <p>
+ * This class is part of the application security configuration and is loaded by Spring at startup.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Service
 public class CurrentUserService { // خارج کردن هویت کاربر از توکن
 
     private final UserService userService;
 
+    /**
+     * Creates a new {@code CurrentUserService} instance.
+     *
+     * @param userService the "user service" value of type {@code UserService}
+     */
     public CurrentUserService(UserService userService) {
         this.userService = userService;
     }
 
+    /**
+     * Gets current user id.
+     *
+     * @return the resulting numeric value
+     */
     public Long getCurrentUserId() {
         String username = getCurrentUsername();
         return userService.getUserIdByUsername(username);
     }
 
+    /**
+     * Gets current username.
+     *
+     * @return the resulting string
+     */
     public String getCurrentUsername() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 

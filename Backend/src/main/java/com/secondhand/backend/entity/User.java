@@ -3,6 +3,16 @@ package com.secondhand.backend.entity;
 import com.secondhand.backend.constant.Role;
 import jakarta.persistence.*;
 
+/**
+ * JPA entity representing a "user" record in the database.
+ * <p>
+ * This class defines the structure of the matching table in the SQLite database and is managed by Hibernate; relations between tables are declared with JPA annotations.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Entity //برای ساخت جدول توی DB
 @Table(name = "users")
 public class User {
@@ -40,6 +50,9 @@ public class User {
     @Column(name = "profile_image_path")
     private String profileImagePath;
 
+    /**
+     * Creates a new {@code User} instance.
+     */
     public User() {}
 
     public User(Long id, String fullName, String username, String password,

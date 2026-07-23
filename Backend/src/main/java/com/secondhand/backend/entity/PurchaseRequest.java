@@ -4,15 +4,22 @@ import com.secondhand.backend.constant.PurchaseRequestStatus;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-/**
- * درخواست خرید — خریدار ابتدا درخواست می‌دهد و فروشنده تصمیم می‌گیرد.
- */
 @Entity
 @Table(name = "purchase_requests", indexes = {
         @Index(name = "idx_purchase_item_status", columnList = "item_id, status"),
         @Index(name = "idx_purchase_buyer_created", columnList = "buyer_id, created_at"),
         @Index(name = "idx_purchase_item_created", columnList = "item_id, created_at")
 })
+/**
+ * JPA entity representing a "purchase request" record in the database.
+ * <p>
+ * This class defines the structure of the matching table in the SQLite database and is managed by Hibernate; relations between tables are declared with JPA annotations.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class PurchaseRequest {
 
     @Id

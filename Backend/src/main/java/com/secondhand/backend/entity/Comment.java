@@ -8,6 +8,16 @@ import java.time.LocalDateTime;
         @Index(name = "idx_comments_item_created", columnList = "item_id, created_at"),
         @Index(name = "idx_comments_user", columnList = "user_id")
 })
+/**
+ * JPA entity representing a "comment" record in the database.
+ * <p>
+ * This class defines the structure of the matching table in the SQLite database and is managed by Hibernate; relations between tables are declared with JPA annotations.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class Comment {
 
     @Id
@@ -32,10 +42,22 @@ public class Comment {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    /**
+     * Creates a new {@code Comment} instance.
+     */
     public Comment() {
         this.createdAt = LocalDateTime.now();
     }
 
+    /**
+     * Creates a new {@code Comment} instance.
+     *
+     * @param id unique identifier of the record
+     * @param text the text value
+     * @param createdAt the "created at" value of type {@code LocalDateTime}
+     * @param item the ad (item) object
+     * @param user the user object
+     */
     public Comment(Long id, String text, LocalDateTime createdAt, Item item, User user) {
         this.id = id;
         this.text = text;

@@ -8,6 +8,7 @@ import com.secondhand.frontend.model.City;
 import com.secondhand.frontend.model.Item;
 import com.secondhand.frontend.model.User;
 import com.secondhand.frontend.service.CategoryService;
+import com.secondhand.frontend.service.ChatService;
 import com.secondhand.frontend.service.CityService;
 import com.secondhand.frontend.service.ItemService;
 import com.secondhand.frontend.util.CategoryPicker;
@@ -38,10 +39,14 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * صفحهٔ اصلی بازار:
- * • Hero با آمار زنده + بج اعلان روی زنگوله
- * • سایدبار فیلتر داخل خود صفحه: چک‌باکس دسته‌بندی + اسلایدر قیمت + شهر + مرتب‌سازی
- * • نتایج با انیمیشن fade-in پلکانی
+ * JavaFX controller of the main ad-list screen: search, filters, sorting, seller-profile dialog, user menu and the unread-chat badge.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
  */
 public class AdListController extends BaseController {
 
@@ -72,7 +77,6 @@ public class AdListController extends BaseController {
     private static final long PRICE_SLIDER_MAX = 100_000_000L;
     private boolean syncingPrice = false;
 
-    /** برچسب فارسی مرتب‌سازی ← کد مورد انتظار بک‌اند (ItemSearchRequest.sortBy) */
     private static final Map<String, String> SORT_OPTIONS = new LinkedHashMap<>();
     static {
         SORT_OPTIONS.put("جدیدترین", "newest");
@@ -83,12 +87,14 @@ public class AdListController extends BaseController {
     }
     private static final String DEFAULT_SORT_LABEL = "جدیدترین";
 
-    /** دستهٔ انتخاب‌شده از فلای‌اوت نوبار (سمت سرور اعمال می‌شود) */
     private Long quickCategoryId;
 
     private List<Category> allCategories = new ArrayList<>();
     private final List<CheckBox> categoryChecks = new ArrayList<>();
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
@@ -109,6 +115,7 @@ public class AdListController extends BaseController {
         loadCategoriesAndCities();
         fetchAdsFromBackend();
         loadNotificationBadge();
+        loadUnreadChatBadge();
 
         if (searchField != null) {
             searchField.textProperty().addListener((observable, oldValue, newValue) -> {
@@ -120,6 +127,9 @@ public class AdListController extends BaseController {
 
     // ===================== سایدبار فیلتر =====================
 
+    /**
+     * Sets up filter sidebar.
+     */
     private void setupFilterSidebar() {
         if (minPriceSlider != null && maxPriceSlider != null) {
             minPriceSlider.setMin(0);
@@ -174,6 +184,9 @@ public class AdListController extends BaseController {
         }
     }
 
+    /**
+     * Updates price label.
+     */
     private void updatePriceLabel() {
         if (priceValueLabel == null) return;
         long min = minPriceSlider != null ? (long) minPriceSlider.getValue() : 0;
@@ -187,6 +200,13 @@ public class AdListController extends BaseController {
         }
     }
 
+    /**
+     * Performs the "bind price controls" operation.
+     *
+     * @param slider the "slider" value of type {@code Slider}
+     * @param field the "field" value of type {@code TextField}
+     * @param emptyValue the "empty value" value of type {@code long}
+     */
     private void bindPriceControls(Slider slider, TextField field, long emptyValue) {
         if (field == null) return;
         // فقط رقم قابل تایپ باشه
@@ -213,7 +233,9 @@ public class AdListController extends BaseController {
         });
     }
 
-    /** دسته‌ها (چک‌باکس‌های سایدبار + فلای‌اوت نوبار) و شهرها + آمار Hero */
+    /**
+     * Loads categories and cities.
+     */
     private void loadCategoriesAndCities() {
         new Thread(() -> {
             try {
@@ -243,7 +265,11 @@ public class AdListController extends BaseController {
         }).start();
     }
 
-    /** چک‌باکس دسته‌بندی‌ها — دسته‌های اصلی پررنگ، زیردسته‌ها تورفتگی‌دار */
+    /**
+     * Builds category checks.
+     *
+     * @param categories the "categories" value of type {@code List<Category>}
+     */
     private void buildCategoryChecks(List<Category> categories) {
         if (categoryChecksVBox == null) return;
         categoryChecksVBox.getChildren().clear();
@@ -253,6 +279,12 @@ public class AdListController extends BaseController {
         }
     }
 
+    /**
+     * Adds category check.
+     *
+     * @param category the category object
+     * @param depth the "depth" value of type {@code int}
+     */
     private void addCategoryCheck(Category category, int depth) {
         if (depth > 8) return;
         CheckBox check = new CheckBox(category.getName());
@@ -269,7 +301,11 @@ public class AdListController extends BaseController {
         }
     }
 
-    /** مجموعهٔ دسته‌های تیک‌خورده + همهٔ زیردسته‌هایشان (برای فیلتر سمت کلاینت) */
+    /**
+     * Performs the "selected category ids" operation.
+     *
+     * @return a {@code Set<Long>} with the results; empty if nothing matches
+     */
     private Set<Long> selectedCategoryIds() {
         Set<Long> selected = new HashSet<>();
         for (CheckBox check : categoryChecks) {
@@ -293,6 +329,9 @@ public class AdListController extends BaseController {
 
     @FXML private void applyFilters() { runFilteredSearch(); }
 
+    /**
+     * Clears filters.
+     */
     @FXML
     private void clearFilters() {
         for (CheckBox check : categoryChecks) check.setSelected(false);
@@ -311,22 +350,42 @@ public class AdListController extends BaseController {
 
     // ===================== دریافت و نمایش آگهی‌ها =====================
 
+    /**
+     * Performs the "current min price" operation.
+     *
+     * @return the resulting numeric value
+     */
     private Long currentMinPrice() {
         if (minPriceSlider == null) return null;
         long v = (long) minPriceSlider.getValue();
         return v <= 0 ? null : v;   // صفر یعنی بدون حداقل → null بفرست
     }
+    /**
+     * Performs the "current max price" operation.
+     *
+     * @return the resulting numeric value
+     */
     private Long currentMaxPrice() {
         if (maxPriceSlider == null) return null;
         long v = (long) maxPriceSlider.getValue();
         return v >= PRICE_SLIDER_MAX ? null : v;
     }
 
+    /**
+     * Performs the "current city id" operation.
+     *
+     * @return the resulting numeric value
+     */
     private Long currentCityId() {
         City city = cityFilterComboBox != null ? cityFilterComboBox.getValue() : null;
         return city != null ? city.getId() : null;
     }
 
+    /**
+     * Performs the "current sort by" operation.
+     *
+     * @return the resulting string
+     */
     private String currentSortBy() {
         return sortFilterComboBox != null
                 ? SORT_OPTIONS.getOrDefault(sortFilterComboBox.getValue(), "newest")
@@ -334,9 +393,9 @@ public class AdListController extends BaseController {
     }
 
     /**
-     * بررسی وجود فیلتر/جست‌جوی فعال — اگر هیچکدام فعال نباشد هم باز هم
-     * از searchItems با sortBy پیش‌فرض (جدیدترین) استفاده می‌کنیم تا
-     * مرتب‌سازی سمت سرور تضمین شود.
+     * Checks whether the "active filter or search" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
      */
     private boolean hasActiveFilterOrSearch() {
         String keyword = searchField != null ? searchField.getText() : null;
@@ -345,7 +404,9 @@ public class AdListController extends BaseController {
                 || !selectedCategoryIds().isEmpty();
     }
 
-    /** همیشه از searchItems استفاده می‌کنیم تا sortBy همیشه اعمال شود */
+    /**
+     * Fetches ads from backend.
+     */
     private void fetchAdsFromBackend() {
         new Thread(() -> {
             try {
@@ -357,6 +418,9 @@ public class AdListController extends BaseController {
         }).start();
     }
 
+    /**
+     * Runs filtered search.
+     */
     private void runFilteredSearch() {
         // همیشه searchItems فراخوانی می‌شود تا sortBy اعمال شود
         // (hasActiveFilterOrSearch فقط برای تصمیم‌گیری clear/placeholder است)
@@ -387,6 +451,11 @@ public class AdListController extends BaseController {
         }).start();
     }
 
+    /**
+     * Performs the "render items" operation.
+     *
+     * @param items the "items" value of type {@code List<Item>}
+     */
     private void renderItems(List<Item> items) {
         if (loadingContainer != null) loadingContainer.setVisible(false);
         if (adsFlowPane == null) return;
@@ -433,6 +502,11 @@ public class AdListController extends BaseController {
         }
     }
 
+    /**
+     * Shows load error.
+     *
+     * @param e the exception/event that occurred
+     */
     private void showLoadError(Exception e) {
         FrontendErrorHandler.log(e);
         Platform.runLater(() -> {
@@ -448,7 +522,9 @@ public class AdListController extends BaseController {
 
     // ===================== اعلان‌ها =====================
 
-    /** بج زنگوله: تعداد اعلان‌های خوانده‌نشده (وضعیت آگهی‌ها + درخواست‌های خرید) */
+    /**
+     * Loads notification badge.
+     */
     private void loadNotificationBadge() {
         new Thread(() -> {
             try {
@@ -464,6 +540,9 @@ public class AdListController extends BaseController {
         }).start();
     }
 
+    /**
+     * Navigates to to notifications.
+     */
     @FXML
     private void goToNotifications() {
         try { MainApplication.changeScene(Routes.NOTIFICATIONS, "اعلان‌ها"); }
@@ -472,6 +551,9 @@ public class AdListController extends BaseController {
 
     // ===================== ناوبری =====================
 
+    /**
+     * Handles search click.
+     */
     @FXML
     private void handleSearchClick() { runFilteredSearch(); }
 
@@ -480,6 +562,9 @@ public class AdListController extends BaseController {
         catch (Exception e) { System.err.println("❌ خطا در رفتن به صفحه جزئیات: " + e.getMessage()); }
     }
 
+    /**
+     * Sets up menu actions.
+     */
     private void setupMenuActions() {
         if (userMenuButton == null || userMenuButton.getItems() == null) return;
         for (MenuItem item : userMenuButton.getItems()) {
@@ -500,14 +585,58 @@ public class AdListController extends BaseController {
         }
     }
 
+    /**
+     * Fetches the total unread-message count on a background thread and shows an orange badge on the "Chats" menu entry when new messages exist.
+     */
     @FXML private void goToMyAds()      { try { MainApplication.changeScene(Routes.MY_ADS,      "آگهی‌های من");     } catch (Exception e) { FrontendErrorHandler.log(e); } }
     @FXML private void goToFavorites()  { try { MainApplication.changeScene(Routes.FAVORITES,   "علاقه‌مندی‌ها");  } catch (Exception e) { FrontendErrorHandler.log(e); } }
+    private void loadUnreadChatBadge() {
+        if (userMenuButton == null || SessionManager.getCurrentUser() == null) return;
+        new Thread(() -> {
+            try {
+                long unread = ChatService.getConversations().stream()
+                        .mapToLong(c -> c.getUnreadCount() != null ? c.getUnreadCount() : 0L)
+                        .sum();
+                Platform.runLater(() -> applyUnreadChatBadge(unread));
+            } catch (Exception e) { FrontendErrorHandler.log(e); }
+        }).start();
+    }
+
+    /**
+     * Adds or removes the orange unread-message indicator on the "Chats" menu item and the user menu button.
+     *
+     * @param unreadCount number of unread messages
+     */
+    private void applyUnreadChatBadge(long unreadCount) {
+        if (userMenuButton == null) return;
+        for (MenuItem item : userMenuButton.getItems()) {
+            String text = item.getText();
+            if (text != null && text.contains("گفت‌وگوها")) {
+                if (unreadCount > 0) {
+                    javafx.scene.shape.Circle dot = new javafx.scene.shape.Circle(5, javafx.scene.paint.Color.web("#f97316"));
+                    item.setGraphic(dot);
+                } else {
+                    item.setGraphic(null);
+                }
+            }
+        }
+        // نقطهٔ نارنجی کوچک روی خود دکمهٔ منو تا بدون باز کردن منو هم دیده شود
+        if (unreadCount > 0) {
+            userMenuButton.setGraphic(new javafx.scene.shape.Circle(4, javafx.scene.paint.Color.web("#f97316")));
+        } else {
+            userMenuButton.setGraphic(null);
+        }
+    }
+
     @FXML private void goToChats()      { try { MainApplication.changeScene(Routes.CHATS,        "پیام‌ها");         } catch (Exception e) { FrontendErrorHandler.log(e); } }
     @FXML private void goToPurchases()  { try { MainApplication.changeScene(Routes.PURCHASES,   "خریدها");          } catch (Exception e) { FrontendErrorHandler.log(e); } }
     @FXML private void goToCreateAd()   { try { MainApplication.changeScene(Routes.CREATE_AD,   "ثبت آگهی جدید");  } catch (Exception e) { FrontendErrorHandler.log(e); } }
     @FXML private void goToAdminPanel() { try { MainApplication.changeScene(Routes.ADMIN_PANEL, "پنل مدیریت");      } catch (Exception e) { FrontendErrorHandler.log(e); } }
     @FXML private void goToProfile()    { try { MainApplication.changeScene(Routes.PROFILE,     "پروفایل من");      } catch (Exception e) { FrontendErrorHandler.log(e); } }
 
+    /**
+     * Handles logout.
+     */
     private void handleLogout() {
         SessionManager.logout();
         try { MainApplication.changeScene(Routes.LOGIN, "ورود"); }

@@ -13,6 +13,16 @@ import java.time.LocalDateTime;
         @Index(name = "idx_items_buyer", columnList = "buyer_id"),
         @Index(name = "idx_items_status_created", columnList = "status, created_at")
 })
+/**
+ * JPA entity representing a "item" record in the database.
+ * <p>
+ * This class defines the structure of the matching table in the SQLite database and is managed by Hibernate; relations between tables are declared with JPA annotations.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class Item {
 
     @Id
@@ -63,6 +73,9 @@ public class Item {
     @JoinColumn(name = "buyer_id")
     private User buyer;
 
+    /**
+     * Creates a new {@code Item} instance.
+     */
     public Item() {}
 
     public Item(Long id, String title, String description, Long price, ItemStatus status,

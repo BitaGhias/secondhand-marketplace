@@ -19,17 +19,33 @@ import javafx.scene.layout.StackPane;
 
 import java.util.List;
 
+/**
+ * JavaFX controller of the "my ads" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class MyAdsController extends BaseController {
 
     @FXML private FlowPane myAdsFlowPane;
     @FXML private HBox     titleBar;
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         loadMyAds();
     }
 
+    /**
+     * Loads my ads.
+     */
     private void loadMyAds() {
         ItemService.getMyItemsAsync()
                 .thenAccept(myItems -> Platform.runLater(() -> renderItems(myItems)))
@@ -39,6 +55,11 @@ public class MyAdsController extends BaseController {
                 });
     }
 
+    /**
+     * Performs the "render items" operation.
+     *
+     * @param items the "items" value of type {@code List<Item>}
+     */
     private void renderItems(List<Item> items) {
         myAdsFlowPane.getChildren().clear();
         if (items == null || items.isEmpty()) { showEmptyMessage("هنوز هیچ آگهی‌ای ثبت نکرده‌اید"); return; }
@@ -54,6 +75,11 @@ public class MyAdsController extends BaseController {
         }
     }
 
+    /**
+     * Shows empty message.
+     *
+     * @param text the text value
+     */
     private void showEmptyMessage(String text) {
         myAdsFlowPane.getChildren().clear();
         Label emptyLabel = new Label(text);
@@ -65,11 +91,19 @@ public class MyAdsController extends BaseController {
         myAdsFlowPane.getChildren().add(emptyPane);
     }
 
+    /**
+     * Navigates to to item detail.
+     *
+     * @param item the ad (item) object
+     */
     private void goToItemDetail(Item item) {
         try { MainApplication.goToItemDetail(item); }
         catch (Exception e) { System.err.println("❌ خطا در رفتن به جزئیات: " + e.getMessage()); }
     }
 
+    /**
+     * Navigates to back.
+     */
     @FXML
     private void goBack() {
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }

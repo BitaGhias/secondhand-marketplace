@@ -28,11 +28,14 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * صفحه اعلان‌ها:
- *  • وضعیت آگهی‌های من (تایید/رد/در انتظار/فروخته‌شده)
- *  • درخواست‌های خرید رسیده برای آگهی‌های من
- *  • پاسخ فروشنده به درخواست‌های خرید من
- *  + دکمهٔ «خواندن» برای هر اعلان و «خواندن همه»
+ * JavaFX controller of the "notifications" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
  */
 public class NotificationsController extends BaseController {
 
@@ -42,12 +45,18 @@ public class NotificationsController extends BaseController {
 
     private List<NotificationCenter.Entry> entries = new ArrayList<>();
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
         refresh();
     }
 
+    /**
+     * Refreshes.
+     */
     private void refresh() {
         new Thread(() -> {
             List<NotificationCenter.Entry> list = NotificationCenter.fetchAll();
@@ -56,6 +65,12 @@ public class NotificationsController extends BaseController {
         }).start();
     }
 
+    /**
+     * Performs the "render" operation.
+     *
+     * @param list the "list" value of type {@code List<NotificationCenter.Entry>}
+     * @param read the "read" value of type {@code Set<String>}
+     */
     private void render(List<NotificationCenter.Entry> list, Set<String> read) {
         entries = list;
         notificationsVBox.getChildren().clear();
@@ -77,6 +92,13 @@ public class NotificationsController extends BaseController {
             notificationsVBox.getChildren().add(buildCard(e, read.contains(e.key)));
     }
 
+    /**
+     * Builds card.
+     *
+     * @param e the exception/event that occurred
+     * @param isRead the "is read" value of type {@code boolean}
+     * @return the resulting {@code Node} instance
+     */
     private Node buildCard(NotificationCenter.Entry e, boolean isRead) {
         Label icon = new Label(e.icon);
         icon.setStyle("-fx-font-size: 19px;");
@@ -146,12 +168,20 @@ public class NotificationsController extends BaseController {
         return card;
     }
 
+    /**
+     * Marks all read.
+     */
     @FXML
     private void markAllRead() {
         NotificationCenter.markAllRead(entries);
         refresh();
     }
 
+    /**
+     * Opens item.
+     *
+     * @param itemId id of the ad (item)
+     */
     private void openItem(Long itemId) {
         try {
             ItemDetailController.setItemId(itemId);
@@ -159,6 +189,11 @@ public class NotificationsController extends BaseController {
         } catch (Exception ex) { FrontendErrorHandler.log(ex); }
     }
 
+    /**
+     * Navigates to to edit.
+     *
+     * @param item the ad (item) object
+     */
     private void goToEdit(Item item) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(Routes.CREATE_AD));
@@ -174,6 +209,9 @@ public class NotificationsController extends BaseController {
         } catch (Exception ex) { FrontendErrorHandler.log(ex); }
     }
 
+    /**
+     * Navigates to back.
+     */
     @FXML
     private void goBack() {
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }

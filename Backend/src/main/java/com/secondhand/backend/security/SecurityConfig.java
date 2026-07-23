@@ -11,6 +11,16 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+/**
+ * Configuration class: "security config".
+ * <p>
+ * This class is part of the application security configuration and is loaded by Spring at startup.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
@@ -18,6 +28,13 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    /**
+     * Performs the "security filter chain" operation.
+     *
+     * @param http the "http" value of type {@code HttpSecurity}
+     * @return the resulting {@code SecurityFilterChain} instance
+     * @throws Exception if the request fails or the server cannot be reached
+     */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http

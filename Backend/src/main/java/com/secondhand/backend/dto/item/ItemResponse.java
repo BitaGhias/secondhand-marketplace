@@ -3,6 +3,16 @@ package com.secondhand.backend.dto.item;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Data Transfer Object carrying "item response" data between client and server.
+ * <p>
+ * This class is used purely for transferring data between client and server and is not mapped to the database directly, keeping the internal structure of the entities hidden from the client.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ItemResponse {
     private Long id;
     private String title;
@@ -24,6 +34,9 @@ public class ItemResponse {
     // تاریخ ثبت آگهی
     private LocalDateTime createdAt;
 
+    /**
+     * Creates a new {@code ItemResponse} instance.
+     */
     public ItemResponse() {}
 
     public ItemResponse(Long id, String title, String description, Long price, String status,

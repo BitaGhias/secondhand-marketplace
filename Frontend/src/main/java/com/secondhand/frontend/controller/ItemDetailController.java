@@ -32,6 +32,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+/**
+ * JavaFX controller of the "item detail" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ItemDetailController extends BaseController {
 
     @FXML private javafx.scene.image.ImageView mainImageView;
@@ -68,8 +78,12 @@ public class ItemDetailController extends BaseController {
     private Long   currentUserId;
     private boolean isFavorite   = false;
     private static Long pendingItemId;
+    /** Keeps the original item state while the user is editing the ad. */
     private Item   editingItem; // برای ذخیره حالت اصلی در ویرایش
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
@@ -83,10 +97,20 @@ public class ItemDetailController extends BaseController {
         if (pendingItemId != null) { Long id = pendingItemId; pendingItemId = null; loadItemById(id); }
     }
 
+    /**
+     * Performs the "bind managed" operation.
+     *
+     * @param node the "node" value of type {@code Region}
+     */
     private void bindManaged(Region node) {
         if (node != null) node.managedProperty().bind(node.visibleProperty());
     }
 
+    /**
+     * Sets item.
+     *
+     * @param item the ad (item) object
+     */
     public void setItem(Item item) {
         this.currentItem = item;
         this.editingItem = item; // ذخیره برای مقایسه در ویرایش
@@ -98,6 +122,11 @@ public class ItemDetailController extends BaseController {
         checkMyPendingRequest();
     }
 
+    /**
+     * Sets item id.
+     *
+     * @param id unique identifier of the record
+     */
     public static void setItemId(Long id) { pendingItemId = id; }
 
     private void loadItemById(Long id) {
@@ -111,6 +140,9 @@ public class ItemDetailController extends BaseController {
                 });
     }
 
+    /**
+     * Displays item details.
+     */
     private void displayItemDetails() {
         if (currentItem == null) return;
         titleLabel.setText(currentItem.getTitle());
@@ -125,6 +157,9 @@ public class ItemDetailController extends BaseController {
         loadImages();
     }
 
+    /**
+     * Loads images.
+     */
     private void loadImages() {
         List<Image> images = currentItem.getImages();
         if (images != null && !images.isEmpty()) {
@@ -142,6 +177,9 @@ public class ItemDetailController extends BaseController {
         } else { ImageLoaderUtil.loadDefaultImage(mainImageView); }
     }
 
+    /**
+     * Performs the "configure actions" operation.
+     */
     private void configureActions() {
         if (currentItem == null || currentUserId == null) return;
         boolean isOwner    = currentItem.isOwner(currentUserId);
@@ -166,6 +204,9 @@ public class ItemDetailController extends BaseController {
         if (addCommentBox != null) addCommentBox.setVisible(isLoggedIn && !isOwner);
     }
 
+    /**
+     * Checks rating status.
+     */
     private void checkRatingStatus() {
         if (currentItem == null) return;
         RatingService.hasRatedAsync(currentItem.getId())
@@ -180,6 +221,9 @@ public class ItemDetailController extends BaseController {
                 })).exceptionally(ex -> null);
     }
 
+    /**
+     * Checks favorite status.
+     */
     private void checkFavoriteStatus() {
         if (currentItem == null || currentUserId == null || currentItem.isOwner(currentUserId)) return;
         new Thread(() -> {
@@ -190,6 +234,9 @@ public class ItemDetailController extends BaseController {
         }).start();
     }
 
+    /**
+     * Updates favorite button.
+     */
     private void updateFavoriteButton() {
         if (isFavorite) {
             favoriteButton.setText("\u2764\uFE0F");
@@ -200,6 +247,9 @@ public class ItemDetailController extends BaseController {
         }
     }
 
+    /**
+     * Toggles favorite.
+     */
     @FXML
     private void toggleFavorite() {
         try {
@@ -209,6 +259,9 @@ public class ItemDetailController extends BaseController {
         } catch (Exception e) { showMessage("خطا: " + e.getMessage(), "error"); }
     }
 
+    /**
+     * Buys item.
+     */
     @FXML
     private void buyItem() {
         if (currentItem == null) return;
@@ -236,6 +289,9 @@ public class ItemDetailController extends BaseController {
                 });
     }
 
+    /**
+     * Checks my pending request.
+     */
     private void checkMyPendingRequest() {
         if (currentItem == null || currentUserId == null || currentItem.isOwner(currentUserId)) return;
         PurchaseRequestService.mineAsync()
@@ -249,12 +305,18 @@ public class ItemDetailController extends BaseController {
                 })).exceptionally(ex -> null);
     }
 
+    /**
+     * Sets pending request state.
+     */
     private void setPendingRequestState() {
         buyButton.setDisable(true);
         buyButton.setText("\u23f3 در انتظار تایید فروشنده");
         buyButton.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #b45309; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 11 24; -fx-opacity: 1;");
     }
 
+    /**
+     * Loads purchase requests.
+     */
     private void loadPurchaseRequests() {
         if (currentItem == null || currentUserId == null || !currentItem.isOwner(currentUserId)) return;
         if (purchaseRequestsCard == null) return;
@@ -263,6 +325,11 @@ public class ItemDetailController extends BaseController {
                 .exceptionally(ex -> null);
     }
 
+    /**
+     * Performs the "render purchase requests" operation.
+     *
+     * @param list the "list" value of type {@code List<PurchaseRequest>}
+     */
     private void renderPurchaseRequests(List<PurchaseRequest> list) {
         purchaseRequestsBox.getChildren().clear();
         purchaseRequestsCard.setVisible(list != null && !list.isEmpty());
@@ -272,6 +339,12 @@ public class ItemDetailController extends BaseController {
         for (PurchaseRequest pr : list) purchaseRequestsBox.getChildren().add(buildRequestRow(pr));
     }
 
+    /**
+     * Builds request row.
+     *
+     * @param pr the "pr" value of type {@code PurchaseRequest}
+     * @return the resulting {@code HBox} instance
+     */
     private HBox buildRequestRow(PurchaseRequest pr) {
         Label avatar = new Label("\ud83d\udc64");
         avatar.setStyle("-fx-background-color: #ffedd5; -fx-background-radius: 50; -fx-padding: 7 10; -fx-font-size: 14px;");
@@ -308,6 +381,12 @@ public class ItemDetailController extends BaseController {
         return row;
     }
 
+    /**
+     * Performs the "respond to request" operation.
+     *
+     * @param pr the "pr" value of type {@code PurchaseRequest}
+     * @param accept the "accept" value of type {@code boolean}
+     */
     private void respondToRequest(PurchaseRequest pr, boolean accept) {
         (accept ? PurchaseRequestService.acceptAsync(pr.getId()) : PurchaseRequestService.declineAsync(pr.getId()))
                 .thenAccept(updated -> Platform.runLater(() -> {
@@ -324,6 +403,11 @@ public class ItemDetailController extends BaseController {
                 })).exceptionally(ex -> { showMessage("خطا: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error"); return null; });
     }
 
+    /**
+     * Shows buyer profile dialog.
+     *
+     * @param pr the "pr" value of type {@code PurchaseRequest}
+     */
     private void showBuyerProfileDialog(PurchaseRequest pr) {
         new Thread(() -> {
             String fullName = pr.getBuyerFullName();
@@ -372,6 +456,9 @@ public class ItemDetailController extends BaseController {
         }).start();
     }
 
+    /**
+     * Shows the seller-profile dialog including name, contact info and average rating with vote count.
+     */
     @FXML
     private void showSellerProfile() {
         if (currentItem == null || currentItem.getOwnerId() == null) return;
@@ -431,6 +518,13 @@ public class ItemDetailController extends BaseController {
         }).start();
     }
 
+    /**
+     * Performs the "profile row" operation.
+     *
+     * @param caption the "caption" value of type {@code String}
+     * @param value the "value" value of type {@code String}
+     * @return the resulting {@code HBox} instance
+     */
     private HBox profileRow(String caption, String value) {
         Label c = new Label(caption);
         c.setStyle("-fx-text-fill: #64748b; -fx-font-size: 12px; -fx-min-width: 70;");
@@ -442,6 +536,9 @@ public class ItemDetailController extends BaseController {
         return row;
     }
 
+    /**
+     * Starts chat.
+     */
     @FXML
     private void startChat() {
         if (currentItem == null) return;
@@ -466,6 +563,9 @@ public class ItemDetailController extends BaseController {
         }).start();
     }
 
+    /**
+     * Shows rating dialog.
+     */
     @FXML
     private void showRatingDialog() {
         Dialog<ButtonType> dialog = new Dialog<>();
@@ -489,6 +589,9 @@ public class ItemDetailController extends BaseController {
         }
     }
 
+    /**
+     * Edits item.
+     */
     @FXML
     private void editItem() {
         if (currentItem == null) return;
@@ -506,6 +609,9 @@ public class ItemDetailController extends BaseController {
         } catch (Exception e) { showMessage("خطا در بارگذاری صفحه ویرایش: " + e.getMessage(), "error"); }
     }
 
+    /**
+     * Deletes item.
+     */
     @FXML
     private void deleteItem() {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
@@ -521,6 +627,9 @@ public class ItemDetailController extends BaseController {
         }
     }
 
+    /**
+     * Marks as sold.
+     */
     @FXML
     private void markAsSold() {
         ItemService.markAsSoldAsync(currentItem.getId())
@@ -533,6 +642,9 @@ public class ItemDetailController extends BaseController {
                 .exceptionally(ex -> { showMessage("خطا در تغییر وضعیت: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error"); return null; });
     }
 
+    /**
+     * Loads comments.
+     */
     private void loadComments() {
         if (currentItem == null) return;
         new Thread(() -> {
@@ -543,6 +655,11 @@ public class ItemDetailController extends BaseController {
         }).start();
     }
 
+    /**
+     * Performs the "render comments" operation.
+     *
+     * @param comments the "comments" value of type {@code List<Comment>}
+     */
     private void renderComments(List<Comment> comments) {
         commentsListBox.getChildren().clear();
         if (comments == null || comments.isEmpty()) { noCommentsLabel.setVisible(true); commentCountLabel.setText("(0)"); return; }
@@ -550,6 +667,12 @@ public class ItemDetailController extends BaseController {
         for (Comment comment : comments) commentsListBox.getChildren().add(buildCommentCard(comment));
     }
 
+    /**
+     * Builds comment card.
+     *
+     * @param comment the comment object
+     * @return the resulting {@code VBox} instance
+     */
     private VBox buildCommentCard(Comment comment) {
         VBox card = new VBox(6);
         card.setStyle("-fx-background-color: #f8fafc; -fx-background-radius: 12; -fx-border-color: #e7ecf2; -fx-border-radius: 12; -fx-padding: 12 16;");
@@ -588,6 +711,14 @@ public class ItemDetailController extends BaseController {
     }
 
     // FIX: حالت ویرایش درون‌خطی برای نظر - از متد از قبل موجود CommentService.editComment استفاده می‌کند
+    /**
+     * Starts edit comment.
+     *
+     * @param comment the comment object
+     * @param card the "card" value of type {@code VBox}
+     * @param textLabel the "text label" value of type {@code Label}
+     * @param editedTag the "edited tag" value of type {@code Label}
+     */
     private void startEditComment(Comment comment, VBox card, Label textLabel, Label editedTag) {
         TextArea editArea = new TextArea(comment.getText());
         editArea.setWrapText(true);
@@ -634,6 +765,9 @@ public class ItemDetailController extends BaseController {
         });
     }
 
+    /**
+     * Submits comment.
+     */
     @FXML
     private void submitComment() {
         if (currentItem == null || newCommentArea == null) return;
@@ -652,6 +786,12 @@ public class ItemDetailController extends BaseController {
                 .exceptionally(ex -> { showMessage("خطا در ثبت نظر: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error"); return null; });
     }
 
+    /**
+     * Deletes comment.
+     *
+     * @param commentId id of the comment
+     * @param card the "card" value of type {@code VBox}
+     */
     private void deleteComment(Long commentId, VBox card) {
         CommentService.deleteComment(commentId)
                 .thenRun(() -> Platform.runLater(() -> {
@@ -664,22 +804,42 @@ public class ItemDetailController extends BaseController {
                 .exceptionally(ex -> { showMessage("خطا در حذف نظر: " + (ex.getCause() != null ? ex.getCause().getMessage() : ex.getMessage()), "error"); return null; });
     }
 
+    /**
+     * Parses count.
+     *
+     * @param text the text value
+     * @return the resulting numeric value
+     */
     private int parseCount(String text) {
         if (text == null) return 0;
         try { return Integer.parseInt(text.replaceAll("[^0-9]", "")); } catch (NumberFormatException e) { return 0; }
     }
 
+    /**
+     * Navigates to back.
+     */
     @FXML
     private void goBack() {
         try { MainApplication.changeScene(Routes.AD_LIST, "لیست آگهی‌ها"); }
         catch (Exception e) { FrontendErrorHandler.log(e); }
     }
 
+    /**
+     * Styles dialog.
+     *
+     * @param dialog the "dialog" value of type {@code Dialog<?>}
+     */
     private void styleDialog(Dialog<?> dialog) {
         try { dialog.getDialogPane().getStylesheets().add(getClass().getResource(Routes.STYLESHEET).toExternalForm()); } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
         dialog.getDialogPane().setStyle("-fx-background-color: #ffffff;");
     }
 
+    /**
+     * Shows message.
+     *
+     * @param message the message text
+     * @param type the "type" value of type {@code String}
+     */
     private void showMessage(String message, String type) {
         Platform.runLater(() -> {
             if (errorLabel != null) {

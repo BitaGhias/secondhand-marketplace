@@ -1,5 +1,15 @@
 package com.secondhand.frontend.model;
 
+/**
+ * Client-side model representing "category" data returned by the server.
+ * <p>
+ * This class is the client-side representation of data received from the server and is deserialized from JSON by Jackson.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class Category {
     private Long id;
     private String name;
@@ -9,6 +19,9 @@ public class Category {
     private Boolean hasChildren;
     private Long itemCount;
 
+    /**
+     * Creates a new {@code Category} instance.
+     */
     public Category() {}
 
     public Category(Long id, String name) {
@@ -17,6 +30,11 @@ public class Category {
     }
 
     // Getters & Setters
+    /**
+     * Gets id.
+     *
+     * @return the resulting numeric value
+     */
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 

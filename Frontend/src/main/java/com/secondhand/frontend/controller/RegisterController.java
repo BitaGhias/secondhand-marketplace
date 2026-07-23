@@ -13,6 +13,16 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 
+/**
+ * JavaFX controller of the "register" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class RegisterController extends BaseController {
 
     @FXML private TextField     fullNameField;
@@ -27,11 +37,17 @@ public class RegisterController extends BaseController {
     @FXML private ProgressIndicator loadingIndicator;
     @FXML private HBox          titleBar;
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
     }
 
+    /**
+     * Handles register.
+     */
     @FXML
     private void handleRegister() {
         String fullName         = fullNameField.getText().trim();
@@ -55,6 +71,17 @@ public class RegisterController extends BaseController {
                 });
     }
 
+    /**
+     * Validates form.
+     *
+     * @param fullName the "full name" value of type {@code String}
+     * @param username the username
+     * @param email the email address
+     * @param phone the "phone" value of type {@code String}
+     * @param password the password
+     * @param confirmPassword the "confirm password" value of type {@code String}
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private boolean validateForm(String fullName, String username, String email,
                                  String phone, String password, String confirmPassword) {
         if (fullName.isEmpty())                              return showValidationError("نام کامل الزامی است!");
@@ -79,11 +106,23 @@ public class RegisterController extends BaseController {
         return true;
     }
 
+    /**
+     * Shows validation error.
+     *
+     * @param message the message text
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private boolean showValidationError(String message) {
         showErrorLabel(message);
         return false;
     }
 
+    /**
+     * Handles register success.
+     *
+     * @param username the username
+     * @param password the password
+     */
     private void handleRegisterSuccess(String username, String password) {
         Platform.runLater(() -> showSuccessLabel("✅ ثبت‌نام با موفقیت انجام شد! در حال ورود به حساب شما..."));
         AuthService.login(username, password)
@@ -91,7 +130,7 @@ public class RegisterController extends BaseController {
                     if (loginResponse != null && loginResponse.getUser() != null)
                         SessionManager.setCurrentUser(loginResponse.getUser());
                     setLoadingState(false);
-                    try { MainApplication.changeScene(Routes.USER_PANEL, "دست‌دوم مارکت - پنل کاربر"); }
+                    try { MainApplication.changeScene(Routes.USER_PANEL, "دیباچه - پنل کاربر"); }
                     catch (Exception e) { FrontendErrorHandler.log(e); goToLogin(); }
                 }))
                 .exceptionally(ex -> {
@@ -100,6 +139,11 @@ public class RegisterController extends BaseController {
                 });
     }
 
+    /**
+     * Handles register error.
+     *
+     * @param errorMessage the "error message" value of type {@code String}
+     */
     private void handleRegisterError(String errorMessage) {
         Platform.runLater(() -> {
             setLoadingState(false);
@@ -114,6 +158,11 @@ public class RegisterController extends BaseController {
         });
     }
 
+    /**
+     * Sets loading state.
+     *
+     * @param isLoading the "is loading" value of type {@code boolean}
+     */
     private void setLoadingState(boolean isLoading) {
         if (loadingIndicator != null) loadingIndicator.setVisible(isLoading);
         if (registerButton != null)   registerButton.setDisable(isLoading);
@@ -122,6 +171,11 @@ public class RegisterController extends BaseController {
 
     // ─── Label helpers (≠ BaseController — روی Label داخل فرم) ───────────────
 
+    /**
+     * Shows error label.
+     *
+     * @param message the message text
+     */
     private void showErrorLabel(String message) {
         Platform.runLater(() -> {
             if (errorLabel != null) {
@@ -132,6 +186,11 @@ public class RegisterController extends BaseController {
         });
     }
 
+    /**
+     * Shows success label.
+     *
+     * @param message the message text
+     */
     private void showSuccessLabel(String message) {
         Platform.runLater(() -> {
             if (errorLabel != null) {
@@ -142,6 +201,9 @@ public class RegisterController extends BaseController {
         });
     }
 
+    /**
+     * Navigates to to login.
+     */
     @FXML
     private void goToLogin() {
         try { MainApplication.changeScene(Routes.LOGIN, "ورود"); }

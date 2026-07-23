@@ -19,6 +19,16 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 
+/**
+ * Configuration class: "jwt authentication filter".
+ * <p>
+ * This class is part of the application security configuration and is loaded by Spring at startup.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -30,6 +40,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Autowired
     private UserDetailsService userDetailsService;
 
+    /**
+     * Performs the "do filter internal" operation.
+     *
+     * @param request request body received from the client
+     * @param response the received response
+     * @param filterChain the "filter chain" value of type {@code FilterChain}
+     * @throws ServletException if an error occurs
+     * @throws IOException if an I/O error occurs
+     */
     @Override
     protected void doFilterInternal(
             HttpServletRequest request,

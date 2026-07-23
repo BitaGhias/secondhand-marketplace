@@ -3,12 +3,25 @@ package com.secondhand.frontend.util;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 
+/**
+ * Utility class providing "image loader util" helpers.
+ * <p>
+ * This class is a helper utility whose methods are used across different parts of the application.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ImageLoaderUtil {
 
     private static final String DEFAULT_IMAGE_PATH = "/com/secondhand/frontend/images/default-item.png";
 
     /**
-     * بارگذاری تصویر از URL؛ در صورت خطا یا خالی بودن، تصویر پیش‌فرض لود می‌شود.
+     * Loads image with default.
+     *
+     * @param imageView the "image view" value of type {@code ImageView}
+     * @param url the target URL
      */
     public static void loadImageWithDefault(ImageView imageView, String url) {
         try {
@@ -24,7 +37,9 @@ public class ImageLoaderUtil {
     }
 
     /**
-     * بارگذاری مستقیم تصویر پیش‌فرض سیستم
+     * Loads default image.
+     *
+     * @param imageView the "image view" value of type {@code ImageView}
      */
     public static void loadDefaultImage(ImageView imageView) {
         try {

@@ -1,5 +1,15 @@
 package com.secondhand.frontend.model;
 
+/**
+ * Client-side model representing "chat message" data returned by the server.
+ * <p>
+ * This class is the client-side representation of data received from the server and is deserialized from JSON by Jackson.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ChatMessage {
     private Long id;
     private Long conversationId;

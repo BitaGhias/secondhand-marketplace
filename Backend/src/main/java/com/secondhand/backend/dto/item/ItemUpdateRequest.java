@@ -3,6 +3,16 @@ package com.secondhand.backend.dto.item;
 import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 
+/**
+ * Data Transfer Object carrying "item update request" data between client and server.
+ * <p>
+ * This class is used purely for transferring data between client and server and is not mapped to the database directly, keeping the internal structure of the entities hidden from the client.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ItemUpdateRequest {
     private String title;
     private String description;
@@ -14,6 +24,9 @@ public class ItemUpdateRequest {
     private List<Long> removedImageIds;
     private List<MultipartFile> images;
 
+    /**
+     * Creates a new {@code ItemUpdateRequest} instance.
+     */
     public ItemUpdateRequest() {}
 
     public ItemUpdateRequest(String title, String description, Long price,

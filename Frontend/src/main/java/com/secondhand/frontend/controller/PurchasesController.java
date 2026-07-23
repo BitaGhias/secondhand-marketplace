@@ -19,11 +19,24 @@ import javafx.scene.layout.VBox;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * JavaFX controller of the "purchases" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class PurchasesController extends BaseController {
 
     @FXML private TableView<Item> purchasesTable;
     @FXML private HBox titleBar;
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
@@ -33,6 +46,9 @@ public class PurchasesController extends BaseController {
         loadPurchases();
     }
 
+    /**
+     * Sets up row double click.
+     */
     private void setupRowDoubleClick() {
         purchasesTable.setRowFactory(tv -> {
             TableRow<Item> row = new TableRow<>();
@@ -45,6 +61,11 @@ public class PurchasesController extends BaseController {
         });
     }
 
+    /**
+     * Opens item detail.
+     *
+     * @param item the ad (item) object
+     */
     private void openItemDetail(Item item) {
         try {
             ItemDetailController.setItemId(item.getId());
@@ -54,6 +75,9 @@ public class PurchasesController extends BaseController {
         }
     }
 
+    /**
+     * Sets up columns.
+     */
     private void setupColumns() {
         TableColumn<Item, String> titleCol = new TableColumn<>("عنوان کالا");
         titleCol.setCellValueFactory(c -> new ReadOnlyStringWrapper(c.getValue().getTitle()));
@@ -84,6 +108,12 @@ public class PurchasesController extends BaseController {
                 });
             }
 
+            /**
+             * Updates item.
+             *
+             * @param v the "v" value of type {@code Void}
+             * @param empty the "empty" value of type {@code boolean}
+             */
             @Override
             protected void updateItem(Void v, boolean empty) {
                 super.updateItem(v, empty);
@@ -104,6 +134,11 @@ public class PurchasesController extends BaseController {
                         }));
             }
 
+            /**
+             * Fetches and show existing rating.
+             *
+             * @param item the ad (item) object
+             */
             private void fetchAndShowExistingRating(Item item) {
                 Long sellerId = item.getOwnerId();
                 if (sellerId != null) {
@@ -128,6 +163,11 @@ public class PurchasesController extends BaseController {
                 }
             }
 
+            /**
+             * Shows existing rating details.
+             *
+             * @param rating the rating object
+             */
             private void showExistingRatingDetails(Rating rating) {
                 ratedBox.getChildren().clear();
 
@@ -154,6 +194,9 @@ public class PurchasesController extends BaseController {
                 setGraphic(ratedBox);
             }
 
+            /**
+             * Shows fallback rated message.
+             */
             private void showFallbackRatedMessage() {
                 Label lbl = new Label("\u2705 امتیاز به فروشنده ثبت شده");
                 lbl.setStyle("-fx-text-fill: #16a34a; -fx-font-size: 12px; -fx-font-weight: bold;");
@@ -165,6 +208,9 @@ public class PurchasesController extends BaseController {
         purchasesTable.setPlaceholder(new Label("خریدی در تاریخچه ندارید"));
     }
 
+    /**
+     * Loads purchases.
+     */
     private void loadPurchases() {
         ItemService.getPurchasedItemsAsync()
                 .thenAccept(list -> Platform.runLater(() -> purchasesTable.getItems().setAll(list)))
@@ -174,6 +220,13 @@ public class PurchasesController extends BaseController {
                 });
     }
 
+    /**
+     * Shows rating dialog.
+     *
+     * @param item the ad (item) object
+     * @param rateBtn the "rate btn" value of type {@code Button}
+     * @param ratedBox the "rated box" value of type {@code VBox}
+     */
     private void showRatingDialog(Item item, Button rateBtn, VBox ratedBox) {
         Dialog<ButtonType> dialog = new Dialog<>();
         dialog.setTitle("امتیازدهی به فروشنده");
@@ -224,6 +277,9 @@ public class PurchasesController extends BaseController {
                 });
     }
 
+    /**
+     * Navigates to back.
+     */
     @FXML
     private void goBack() {
         try {

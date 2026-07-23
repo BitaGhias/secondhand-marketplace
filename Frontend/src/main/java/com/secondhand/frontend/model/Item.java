@@ -2,6 +2,16 @@ package com.secondhand.frontend.model;
 
 import java.util.List;
 
+/**
+ * Client-side model representing "item" data returned by the server.
+ * <p>
+ * This class is the client-side representation of data received from the server and is deserialized from JSON by Jackson.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class Item {
 
     public Long id;
@@ -23,6 +33,9 @@ public class Item {
     public String buyerUsername;
 
     // ===== Constructors =====
+    /**
+     * Creates a new {@code Item} instance.
+     */
     public Item() {}
 
     public Item(Long id, String title, String description, Long price, String status,
@@ -85,6 +98,11 @@ public class Item {
     public void setAverageRating(Double averageRating) { this.averageRating = averageRating; }
 
     public Long getCategoryId() { return categoryId; }
+    /**
+     * Sets category id.
+     *
+     * @param categoryId id of the category
+     */
     public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
 
     public Long getCityId() { return cityId; }
@@ -96,18 +114,15 @@ public class Item {
     public String getBuyerUsername() { return buyerUsername; }
     public void setBuyerUsername(String buyerUsername) { this.buyerUsername = buyerUsername; }
 
-    /**
-     * قیمت را به صورت فرمت شده با کاما برمی‌گرداند
-     * مثال: ۱,۸۰۰,۰۰۰ تومان
-     */
     public String getFormattedPrice() {
         if (price == null || price == 0) return "توافقی";
         return String.format("%,d تومان", price);
     }
 
     /**
-     * قیمت را به صورت خلاصه برمی‌گرداند
-     * مثال: ۱.۸ میلیون تومان
+     * Gets short price.
+     *
+     * @return the resulting string
      */
     public String getShortPrice() {
         if (price == null || price == 0) return "توافقی";
@@ -125,7 +140,9 @@ public class Item {
     }
 
     /**
-     * وضعیت آگهی را به فارسی برمی‌گرداند
+     * Gets persian status.
+     *
+     * @return the resulting string
      */
     public String getPersianStatus() {
         if (status == null) return "نامشخص";
@@ -140,7 +157,9 @@ public class Item {
     }
 
     /**
-     * رنگ وضعیت برای نمایش در UI
+     * Gets status color.
+     *
+     * @return the resulting string
      */
     public String getStatusColor() {
         if (status == null) return "#94a3b8";
@@ -154,22 +173,48 @@ public class Item {
         };
     }
 
+    /**
+     * Checks whether the "active" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isActive() {
         return "APPROVED".equalsIgnoreCase(status) || "ACTIVE".equalsIgnoreCase(status);
     }
 
+    /**
+     * Checks whether the "pending" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isPending() {
         return "PENDING".equalsIgnoreCase(status);
     }
 
+    /**
+     * Checks whether the "sold" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isSold() {
         return "SOLD".equalsIgnoreCase(status);
     }
 
+    /**
+     * Checks whether the "owner" condition holds.
+     *
+     * @param userId id of the user
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isOwner(Long userId) {
         return ownerId != null && ownerId.equals(userId);
     }
 
+    /**
+     * Gets full title.
+     *
+     * @return the resulting string
+     */
     public String getFullTitle() {
         String category = categoryName != null ? categoryName : "";
         String parent = parentCategoryName != null ? parentCategoryName : "";
@@ -181,14 +226,29 @@ public class Item {
         return title;
     }
 
+    /**
+     * Checks whether the "images" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean hasImages() {
         return images != null && !images.isEmpty();
     }
 
+    /**
+     * Gets image count.
+     *
+     * @return the resulting numeric value
+     */
     public int getImageCount() {
         return images != null ? images.size() : 0;
     }
 
+    /**
+     * Gets first image url.
+     *
+     * @return the resulting string
+     */
     public String getFirstImageUrl() {
         if (hasImages()) {
             return images.get(0).getFullUrl();
@@ -196,6 +256,11 @@ public class Item {
         return null;
     }
 
+    /**
+     * Gets formatted rating.
+     *
+     * @return the resulting string
+     */
     public String getFormattedRating() {
         if (averageRating == null) {
             return "بدون امتیاز";
@@ -203,6 +268,12 @@ public class Item {
         return String.format("⭐ %.1f", averageRating);
     }
 
+    /**
+     * Gets rating with count.
+     *
+     * @param count the "count" value of type {@code int}
+     * @return the resulting string
+     */
     public String getRatingWithCount(int count) {
         if (averageRating == null || count == 0) {
             return "بدون امتیاز";
@@ -210,19 +281,40 @@ public class Item {
         return String.format("⭐ %.1f (%d رأی)", averageRating, count);
     }
 
+    /**
+     * Checks whether the "editable" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isEditable() {
         return isPending() || isActive();
     }
 
+    /**
+     * Checks whether the "deletable" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isDeletable() {
         return isPending() || isActive();
     }
 
+    /**
+     * Performs the "to string" operation.
+     *
+     * @return the resulting string
+     */
     @Override
     public String toString() {
         return title + " - " + getFormattedPrice();
     }
 
+    /**
+     * Checks whether the "purchased by" condition holds.
+     *
+     * @param userId id of the user
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isPurchasedBy(Long userId) {
         return isSold() && buyerId != null && buyerId.equals(userId);
     }

@@ -24,7 +24,14 @@ import java.io.File;
 import java.util.List;
 
 /**
- * Phase 5: نمایش میانگین امتیاز و لیست امتیاز‌های دریافتی در پروفایل
+ * JavaFX controller of the "profile" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
  */
 public class ProfileController extends BaseController {
 
@@ -46,6 +53,9 @@ public class ProfileController extends BaseController {
     @FXML private Label ratingCountLabel;
     @FXML private VBox sellerRatingsBox;
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
@@ -53,6 +63,9 @@ public class ProfileController extends BaseController {
         loadProfile();
     }
 
+    /**
+     * Loads profile.
+     */
     private void loadProfile() {
         User cached = SessionManager.getCurrentUser();
         if (cached != null) fillForm(cached);
@@ -70,7 +83,11 @@ public class ProfileController extends BaseController {
                 });
     }
 
-    /** Phase 5: دریافت میانگین امتیاز از API */
+    /**
+     * Loads seller rating.
+     *
+     * @param userId id of the user
+     */
     private void loadSellerRating(Long userId) {
         if (ratingLabel == null) return;
         RatingService.getSellerAverageAsync(userId)
@@ -91,7 +108,11 @@ public class ProfileController extends BaseController {
                 });
     }
 
-    /** دریافت لیست امتیاز‌های دریافتی برای نمایش در پروفایل */
+    /**
+     * Loads seller ratings.
+     *
+     * @param userId id of the user
+     */
     private void loadSellerRatings(Long userId) {
         if (sellerRatingCard == null || sellerRatingsBox == null) return;
 
@@ -123,6 +144,12 @@ public class ProfileController extends BaseController {
                 });
     }
 
+    /**
+     * Builds rating card.
+     *
+     * @param rating the rating object
+     * @return the resulting {@code VBox} instance
+     */
     private VBox buildRatingCard(Rating rating) {
         StringBuilder stars = new StringBuilder();
         for (int i = 0; i < rating.getScore(); i++) stars.append("\u2B50");
@@ -158,6 +185,11 @@ public class ProfileController extends BaseController {
         return card;
     }
 
+    /**
+     * Fills form.
+     *
+     * @param user the user object
+     */
     private void fillForm(User user) {
         usernameLabel.setText("👤 " + user.getUsername());
         roleLabel.setText("ADMIN".equalsIgnoreCase(user.getRole()) ? "🛡️ ادمین" : "کاربر عادی");
@@ -167,6 +199,11 @@ public class ProfileController extends BaseController {
         loadAvatar(user);
     }
 
+    /**
+     * Loads avatar.
+     *
+     * @param user the user object
+     */
     private void loadAvatar(User user) {
         try {
             if (user.getProfileImageUrl() != null) {
@@ -178,6 +215,9 @@ public class ProfileController extends BaseController {
         } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
     }
 
+    /**
+     * Changes profile photo.
+     */
     @FXML
     private void changeProfilePhoto() {
         FileChooser fc = new FileChooser();
@@ -199,6 +239,9 @@ public class ProfileController extends BaseController {
                 });
     }
 
+    /**
+     * Saves profile.
+     */
     @FXML
     private void saveProfile() {
         String fullName = fullNameField.getText().trim();
@@ -221,6 +264,9 @@ public class ProfileController extends BaseController {
                 });
     }
 
+    /**
+     * Changes password.
+     */
     @FXML
     private void changePassword() {
         String oldPass = oldPasswordField.getText();
@@ -242,12 +288,21 @@ public class ProfileController extends BaseController {
                 });
     }
 
+    /**
+     * Shows message.
+     *
+     * @param text the text value
+     * @param success the "success" value of type {@code boolean}
+     */
     private void showMessage(String text, boolean success) {
         messageLabel.setText(text);
         messageLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: " + (success ? "#16a34a" : "#dc2626") + ";");
         messageLabel.setVisible(true);
     }
 
+    /**
+     * Navigates to back.
+     */
     @FXML
     private void goBack() {
         try { MainApplication.changeScene("/com/secondhand/frontend/fxml/item/adlist.fxml", "لیست آگهی‌ها"); }

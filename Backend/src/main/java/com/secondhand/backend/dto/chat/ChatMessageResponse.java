@@ -2,6 +2,16 @@ package com.secondhand.backend.dto.chat;
 
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object carrying "chat message response" data between client and server.
+ * <p>
+ * This class is used purely for transferring data between client and server and is not mapped to the database directly, keeping the internal structure of the entities hidden from the client.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ChatMessageResponse {
     private Long id;
     private Long conversationId;
@@ -15,6 +25,9 @@ public class ChatMessageResponse {
     private boolean deleted;
     private boolean edited;
 
+    /**
+     * Creates a new {@code ChatMessageResponse} instance.
+     */
     public ChatMessageResponse() {}
 
     public ChatMessageResponse(Long id, Long conversationId, Long senderId,
@@ -35,6 +48,19 @@ public class ChatMessageResponse {
         this.edited = edited;
     }
 
+    /**
+     * Creates a new {@code ChatMessageResponse} instance.
+     *
+     * @param id unique identifier of the record
+     * @param conversationId id of the conversation
+     * @param senderId the "sender id" value of type {@code Long}
+     * @param senderUsername the "sender username" value of type {@code String}
+     * @param text the text value
+     * @param timestamp the "timestamp" value of type {@code LocalDateTime}
+     * @param read the "read" value of type {@code boolean}
+     * @param deleted the "deleted" value of type {@code boolean}
+     * @param edited the "edited" value of type {@code boolean}
+     */
     public ChatMessageResponse(Long id, Long conversationId, Long senderId,
                                String senderUsername, String text,
                                LocalDateTime timestamp, boolean read,

@@ -9,10 +9,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Client-side service for "comment" operations against the backend API.
+ * <p>
+ * This class is the client-to-server communication layer; it sends requests to the backend API through {@code ApiClient} and converts JSON responses into Java models with Jackson. On a non-successful response the server error message is propagated as an exception.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class CommentService {
 
     /**
-     * دریافت نظرات یک آگهی (عمومی - بدون توکن)
+     * Gets comments.
+     *
+     * @param itemId id of the ad (item)
+     * @return a {@code List<Comment>} with the results; empty if nothing matches
+     * @throws Exception if the request fails or the server cannot be reached
      */
     public static List<Comment> getComments(Long itemId) throws Exception {
         HttpResponse<String> response = ApiClient.get("/comments/item/" + itemId);
@@ -28,7 +42,11 @@ public class CommentService {
     }
 
     /**
-     * ارسال نظر جدید (نیاز به توکن)
+     * Adds comment.
+     *
+     * @param itemId id of the ad (item)
+     * @param text the text value
+     * @return a {@code CompletableFuture} that completes asynchronously with the result
      */
     public static CompletableFuture<Comment> addComment(Long itemId, String text) {
         return CompletableFuture.supplyAsync(() -> {
@@ -46,7 +64,10 @@ public class CommentService {
     }
 
     /**
-     * حذف نظر (فقط صاحب نظر یا ادمین)
+     * Deletes comment.
+     *
+     * @param commentId id of the comment
+     * @return a {@code CompletableFuture} that completes asynchronously with the result
      */
     public static CompletableFuture<Void> deleteComment(Long commentId) {
         return CompletableFuture.runAsync(() -> {
@@ -62,7 +83,11 @@ public class CommentService {
     }
 
     /**
-     * ویرایش نظر
+     * Edits comment.
+     *
+     * @param commentId id of the comment
+     * @param newText the "new text" value of type {@code String}
+     * @return a {@code CompletableFuture} that completes asynchronously with the result
      */
     public static CompletableFuture<Comment> editComment(Long commentId, String newText) {
         return CompletableFuture.supplyAsync(() -> {

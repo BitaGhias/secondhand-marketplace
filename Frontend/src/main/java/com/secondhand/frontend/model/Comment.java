@@ -2,6 +2,16 @@ package com.secondhand.frontend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+/**
+ * Client-side model representing "comment" data returned by the server.
+ * <p>
+ * This class is the client-side representation of data received from the server and is deserialized from JSON by Jackson.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Comment {
     private Long id;
@@ -23,6 +33,11 @@ public class Comment {
     public Long getUserId() { return userId; }
     public String getUsername() { return username; }
     public String getCreatedAt() { return createdAt; }
+    /**
+     * Checks whether the "edited" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isEdited() { return edited; }
 
     public void setId(Long id) { this.id = id; }
@@ -38,6 +53,11 @@ public class Comment {
         if (createdAt == null || createdAt.length() < 10) return "";
         return createdAt.substring(0, 10);
     }
+    /**
+     * Gets short time.
+     *
+     * @return the resulting string
+     */
     public String getShortTime() {
         if (createdAt == null || createdAt.length() < 16) return "";
         return createdAt.substring(11, 16);

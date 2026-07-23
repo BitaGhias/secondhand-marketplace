@@ -31,7 +31,7 @@
               style="-fx-background-color: #0e2433;
                      -fx-background-radius: 24 24 0 0;
                      -fx-padding: 12 16;">
-            <Label text="دست‌دوم مارکت" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <Label text="دیباچه" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
             <HBox HBox.hgrow="ALWAYS"/>
             <Button text="─" onAction="#minimizeWindow"
                     style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
@@ -54,7 +54,7 @@
                         <SVGPath content="M8.7 14.4 L11.1 16.8 L15.6 12.1" scaleX="2.4" scaleY="2.4" style="-fx-fill: transparent; -fx-stroke: #f97316; -fx-stroke-width: 1.6;"/>
                     </StackPane>
                 </StackPane>
-                <Label text="دست‌دوم مارکت" style="-fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold;"/>
+                <Label text="دیباچه" style="-fx-text-fill: white; -fx-font-size: 26px; -fx-font-weight: bold;"/>
                 <Label text="بخر، بفروش، پس‌انداز کن ✨" style="-fx-text-fill: #fdba74; -fx-font-size: 14px; -fx-font-weight: bold;"/>
                 <Region prefHeight="12"/>
                 <Label text="خرید و فروش مطمئن کالای دستِ دوم" wrapText="true" textAlignment="CENTER"

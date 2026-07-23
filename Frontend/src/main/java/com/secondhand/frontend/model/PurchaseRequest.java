@@ -2,7 +2,16 @@ package com.secondhand.frontend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-/** مدل درخواست خرید — مطابق PurchaseRequestResponse بک‌اند */
+/**
+ * Client-side model representing "purchase request" data returned by the server.
+ * <p>
+ * This class is the client-side representation of data received from the server and is deserialized from JSON by Jackson.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class PurchaseRequest {
     private Long id;
@@ -39,6 +48,11 @@ public class PurchaseRequest {
     public void setSellerId(Long sellerId) { this.sellerId = sellerId; }
     public String getSellerUsername() { return sellerUsername; }
     public void setSellerUsername(String sellerUsername) { this.sellerUsername = sellerUsername; }
+    /**
+     * Gets status.
+     *
+     * @return the resulting string
+     */
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     public String getCreatedAt() { return createdAt; }
@@ -56,6 +70,11 @@ public class PurchaseRequest {
         return "در انتظار";
     }
 
+    /**
+     * Gets short date.
+     *
+     * @return the resulting string
+     */
     public String getShortDate() {
         if (createdAt == null) return "";
         return createdAt.replace("T", " — ").length() > 21 ? createdAt.replace("T", " — ").substring(0, 21) : createdAt.replace("T", " — ");

@@ -2,6 +2,16 @@ package com.secondhand.frontend.model;
 
 import java.util.List;
 
+/**
+ * Client-side model representing "conversation" data returned by the server.
+ * <p>
+ * This class is the client-side representation of data received from the server and is deserialized from JSON by Jackson.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class Conversation {
     private Long id;
     private Long itemId;
@@ -44,6 +54,11 @@ public class Conversation {
     public boolean isOtherPartyBlocked() { return otherPartyBlocked; }
     public void setOtherPartyBlocked(boolean otherPartyBlocked) { this.otherPartyBlocked = otherPartyBlocked; }
     public String getLastMessage() { return lastMessage; }
+    /**
+     * Sets last message.
+     *
+     * @param lastMessage the "last message" value of type {@code String}
+     */
     public void setLastMessage(String lastMessage) { this.lastMessage = lastMessage; }
     public String getLastMessageTime() { return lastMessageTime; }
     public void setLastMessageTime(String lastMessageTime) { this.lastMessageTime = lastMessageTime; }

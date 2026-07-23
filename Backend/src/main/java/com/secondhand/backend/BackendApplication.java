@@ -7,6 +7,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class
 BackendApplication {
 
+    /**
+     * Application entry point.
+     *
+     * @param args the "args" value of type {@code String[]}
+     */
     public static void main(String[] args) {
         SpringApplication.run(BackendApplication.class, args);
     }
