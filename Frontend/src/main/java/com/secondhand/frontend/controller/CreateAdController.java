@@ -74,6 +74,9 @@ public class CreateAdController extends BaseController {
         loadCities();
         setupDragAndDrop();
         showStep(1);
+
+        priceField.setTextFormatter(new TextFormatter<>(change ->
+                change.getControlNewText().matches("[0-9,]*") ? change : null));
     }
 
     public void setItemForEdit(Item item) {
@@ -195,7 +198,11 @@ public class CreateAdController extends BaseController {
             return false;
         }
         try {
-            Long.parseLong(priceText.replace(",", ""));
+            long price = Long.parseLong(priceText.replace(",", ""));
+            if (price <= 0) {
+                showErrorLabel("قیمت باید بزرگتر از صفر باشد");
+                return false;
+            }
         } catch (NumberFormatException e) {
             showErrorLabel("قیمت وارد شده معتبر نیست");
             return false;
@@ -392,6 +399,11 @@ public class CreateAdController extends BaseController {
         } catch (NumberFormatException e) {
             showStep(2);
             showErrorLabel("قیمت وارد شده معتبر نیست");
+            return;
+        }
+        if (price <= 0) {
+            showStep(2);
+            showErrorLabel("قیمت باید بزرگتر از صفر باشد");
             return;
         }
 
