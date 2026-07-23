@@ -74,6 +74,9 @@ public class CreateAdController extends BaseController {
         loadCities();
         setupDragAndDrop();
         showStep(1);
+
+        priceField.setTextFormatter(new TextFormatter<>(change ->
+                change.getControlNewText().matches("[0-9,]*") ? change : null));
     }
 
     public void setItemForEdit(Item item) {
@@ -104,6 +107,7 @@ public class CreateAdController extends BaseController {
                 addExistingImagePreview(img);
             }
         }
+        setupChangeTracking();
     }
 
     // ===================== ویزارد =====================
@@ -195,12 +199,51 @@ public class CreateAdController extends BaseController {
             return false;
         }
         try {
-            Long.parseLong(priceText.replace(",", ""));
+            long price = Long.parseLong(priceText.replace(",", ""));
+            if (price <= 0) {
+                showErrorLabel("قیمت باید بزرگتر از صفر باشد");
+                return false;
+            }
         } catch (NumberFormatException e) {
             showErrorLabel("قیمت وارد شده معتبر نیست");
             return false;
         }
         return true;
+    }
+    private boolean hasChanges()
+    {
+        if (!isEditMode || editingItem == null) return true;
+
+        String title = titleField.getText() != null ? titleField.getText().trim() : "";
+        String desc  = descriptionArea.getText() != null ? descriptionArea.getText().trim() : "";
+        String price = priceField.getText() != null ? priceField.getText().trim().replace(",", "") : "";
+
+        if (!title.equals(editingItem.getTitle()))                        return true;
+        if (!desc.equals(editingItem.getDescription()))                   return true;
+        if (!price.equals(String.valueOf((long) editingItem.getPrice()))) return true;
+
+        if (selectedCategory != null
+                && !selectedCategory.getName().equals(editingItem.getCategoryName())) return true;
+
+        City city = cityComboBox.getValue();
+        if (city != null && !city.getName().equals(editingItem.getCityName()))       return true;
+
+        if (!imagePaths.isEmpty() || !removedImageIds.isEmpty())          return true;
+
+        return false;
+    }
+    private void refreshSubmitState()
+    {
+        if (isEditMode && submitButton != null) submitButton.setDisable(!hasChanges());
+    }
+
+    private void setupChangeTracking()
+    {
+        titleField.textProperty().addListener((obs, oldV, newV) -> refreshSubmitState());
+        descriptionArea.textProperty().addListener((obs, oldV, newV) -> refreshSubmitState());
+        priceField.textProperty().addListener((obs, oldV, newV) -> refreshSubmitState());
+        cityComboBox.valueProperty().addListener((obs, oldV, newV) -> refreshSubmitState());
+        refreshSubmitState();
     }
 
     // ===================== دسته‌بندی و شهر =====================
@@ -211,7 +254,11 @@ public class CreateAdController extends BaseController {
                 List<Category> categories = CategoryService.getAllCategories();
                 Platform.runLater(() -> {
                     allCategories = categories;
-                    CategoryPicker.populate(categoryMenuButton, categories, null, cat -> selectedCategory = cat);
+                    CategoryPicker.populate(categoryMenuButton, categories, null, cat ->
+                            {
+                                selectedCategory = cat;
+                                refreshSubmitState();
+                            });
                     applyPendingCategorySelection();
                 });
             } catch (Exception e) {
@@ -223,6 +270,7 @@ public class CreateAdController extends BaseController {
     private void selectCategory(Category category) {
         selectedCategory = category;
         categoryMenuButton.setText("📂 " + CategoryPicker.displayName(category));
+        refreshSubmitState();
     }
 
     private void applyPendingCategorySelection() {
@@ -332,6 +380,7 @@ public class CreateAdController extends BaseController {
         }
         imagePaths.add(imagePath);
         addImagePreview(imagePath);
+        refreshSubmitState();
     }
 
     private void addImagePreview(String imagePath) {
@@ -344,6 +393,7 @@ public class CreateAdController extends BaseController {
             imageView.setOnMouseClicked(e -> {
                 imagePaths.remove(imagePath);
                 imagePreviewContainer.getChildren().remove(imageView);
+                refreshSubmitState();
             });
             Tooltip.install(imageView, new Tooltip("برای حذف کلیک کنید"));
             imagePreviewContainer.getChildren().add(imageView);
@@ -363,6 +413,7 @@ public class CreateAdController extends BaseController {
                 existingImages.remove(img);
                 if (img.getId() != null) removedImageIds.add(img.getId());
                 imagePreviewContainer.getChildren().remove(imageView);
+                refreshSubmitState();
             });
             Tooltip.install(imageView, new Tooltip("برای حذف کلیک کنید"));
             imagePreviewContainer.getChildren().add(imageView);
@@ -392,6 +443,11 @@ public class CreateAdController extends BaseController {
         } catch (NumberFormatException e) {
             showStep(2);
             showErrorLabel("قیمت وارد شده معتبر نیست");
+            return;
+        }
+        if (price <= 0) {
+            showStep(2);
+            showErrorLabel("قیمت باید بزرگتر از صفر باشد");
             return;
         }
 

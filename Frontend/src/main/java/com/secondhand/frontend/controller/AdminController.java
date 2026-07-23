@@ -30,6 +30,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
+import javafx.scene.control.ScrollPane;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -676,7 +677,13 @@ public class AdminController extends BaseController {
             content.getChildren().add(reason);
         }
 
-        pane.setContent(content);
+        ScrollPane scroll = new ScrollPane(content);
+        scroll.setFitToWidth(true);
+        scroll.setPrefViewportHeight(520);
+        scroll.setStyle("-fx-background-color: transparent;");
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        pane.setContent(scroll);
+
         pane.getButtonTypes().add(ButtonType.CLOSE);
         javafx.scene.Node closeBtn = pane.lookupButton(ButtonType.CLOSE);
         if (closeBtn != null) closeBtn.setStyle("-fx-background-color: #143449; -fx-text-fill: white; -fx-background-radius: 10; -fx-font-weight: bold; -fx-padding: 7 22; -fx-cursor: hand;");

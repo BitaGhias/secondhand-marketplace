@@ -372,6 +372,65 @@ public class ItemDetailController extends BaseController {
         }).start();
     }
 
+    @FXML
+    private void showSellerProfile() {
+        if (currentItem == null || currentItem.getOwnerId() == null) return;
+        new Thread(() -> {
+            String fullName = null, phone = null, email = null;
+            try {
+                java.net.http.HttpResponse<String> res = ApiClient.get("/auth/" + currentItem.getOwnerId());
+                if (res.statusCode() >= 200 && res.statusCode() < 300) {
+                    JsonNode node = ApiClient.getMapper().readTree(res.body());
+                    if (node.hasNonNull("fullName"))    fullName = node.get("fullName").asText();
+                    if (node.hasNonNull("phoneNumber")) phone    = node.get("phoneNumber").asText();
+                    if (node.hasNonNull("email"))       email    = node.get("email").asText();
+                }
+            } catch (Exception e) { FrontendErrorHandler.log(e); }
+            Double avg = null;
+            Long ratingCount = null;
+            try {
+                avg = RatingService.getSellerAverageAsync(currentItem.getOwnerId()).join();
+                ratingCount = RatingService.getSellerRatingCountAsync(currentItem.getOwnerId()).join();
+            } catch (Exception e) { FrontendErrorHandler.log(e); }
+
+            final String fRating = (avg == null || avg <= 0 || (ratingCount != null && ratingCount == 0))
+                    ? "بدون امتیاز"
+                    : String.format("%.1f", avg) + " ⭐ )" + ratingCount + " رأی)";
+            final String fFull = fullName;
+            final String fPhone = phone;
+            final String fEmail = email;
+            Platform.runLater(() -> {
+                Dialog<ButtonType> dialog = new Dialog<>();
+                dialog.setTitle("پروفایل فروشنده");
+                styleDialog(dialog);
+                DialogPane pane = dialog.getDialogPane();
+                pane.setPrefWidth(420);
+
+                Label avatar = new Label("\ud83d\udc64");
+                avatar.setStyle("-fx-background-color: rgba(249,115,22,0.22); -fx-background-radius: 50; -fx-padding: 12 16; -fx-font-size: 20px;");
+                Label nm = new Label(fFull != null && !fFull.isBlank() ? fFull : currentItem.getOwnerUsername());
+                nm.setStyle("-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;");
+                Label un = new Label("@" + currentItem.getOwnerUsername());
+                un.setStyle("-fx-text-fill: rgba(255,255,255,0.65); -fx-font-size: 11px;");
+                VBox nameBox = new VBox(2, nm, un);
+                HBox head = new HBox(12, avatar, nameBox);
+                head.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                head.setStyle("-fx-background-color: linear-gradient(to left, #143449, #0e2433); -fx-background-radius: 14; -fx-padding: 14 16;");
+
+                VBox info = new VBox(8,
+                        profileRow("⭐ امتیاز", fRating),
+                        profileRow("\ud83d\udcde تلفن", fPhone),
+                        profileRow("\u2709 ایمیل", fEmail));
+
+                VBox content = new VBox(12, head, info);
+                content.setNodeOrientation(javafx.geometry.NodeOrientation.RIGHT_TO_LEFT);
+                pane.setContent(content);
+                pane.getButtonTypes().add(ButtonType.CLOSE);
+                dialog.showAndWait();
+            });
+        }).start();
+    }
+
     private HBox profileRow(String caption, String value) {
         Label c = new Label(caption);
         c.setStyle("-fx-text-fill: #64748b; -fx-font-size: 12px; -fx-min-width: 70;");
@@ -497,7 +556,7 @@ public class ItemDetailController extends BaseController {
         HBox header = new HBox(8); header.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
         Label usernameLabel = new Label("\uD83D\uDC64 " + comment.getUsername());
         usernameLabel.setStyle("-fx-text-fill: #0f172a; -fx-font-weight: bold; -fx-font-size: 13px;");
-        Label dateLabel = new Label(comment.getShortDate());
+        Label dateLabel = new Label("🕐 " + comment.getShortTime() + "  " + comment.getShortDate());
         dateLabel.setStyle("-fx-text-fill: #94a3b8; -fx-font-size: 11px;");
         // FIX (مورد ۴): نشانگر «ویرایش شده» برای کامنت‌هایی که بعد از ثبت تغییر داده شده‌اند
         Label editedTag = new Label("(ویرایش شده)");

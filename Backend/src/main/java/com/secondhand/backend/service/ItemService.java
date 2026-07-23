@@ -16,10 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.nio.file.*;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.UUID;
+import java.util.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -499,12 +497,26 @@ public class ItemService {
             case "oldest" -> items.sort((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()));
             case "price_asc" -> items.sort((a, b) -> Long.compare(a.getPrice(), b.getPrice()));
             case "price_desc" -> items.sort((a, b) -> Long.compare(b.getPrice(), a.getPrice()));
+            case "rating_desc" ->
+            {
+                Map<Long, Double> avg = sellerAverageMap();
+                items.sort((a, b) -> Double.compare(
+                        avg.getOrDefault(b.getUser().getId(), 0.0),
+                        avg.getOrDefault(a.getUser().getId(), 0.0)));
+            }
             default -> items.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
         }
         return convertToResponseList(items);
     }
 
-    // FIX (مورد ۱): مشابه باگ قبلی markAsSold - بعد از خرید مستقیم باید درخواست‌های خرید
+    private Map<Long, Double> sellerAverageMap() {
+        Map<Long, Double> map = new HashMap<>();
+        for (Object[] row : ratingRepository.averageScoreGroupedBySeller()) {
+            map.put((Long) row[0], (Double) row[1]);
+        }
+        return map;
+    }
+
     // معلق روی همین آگهی رد شوند، وگرنه برای همیشه در وضعیت «در انتظار» باقی می‌مانند
     @Transactional
     public ItemResponse purchaseItem(Long itemId, Long buyerId) {

@@ -95,10 +95,17 @@
             <Separator style="-fx-opacity: 0.6;" />
 
             <HBox alignment="CENTER_LEFT" spacing="6">
-                <Label style="-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold;" text="💰 سقف قیمت" HBox.hgrow="ALWAYS" />
+                <Label style="-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold;" text="💰 محدوده قیمت" HBox.hgrow="ALWAYS" />
                 <Label fx:id="priceValueLabel" style="-fx-text-fill: #ea580c; -fx-font-size: 10px; -fx-font-weight: bold;" text="بدون محدودیت" />
             </HBox>
+
+            <Label style="-fx-text-fill: #64748b; -fx-font-size: 10px;" text="حداقل" />
+            <Slider fx:id="minPriceSlider" max="100000000" min="0" value="0" />
+            <TextField fx:id="minPriceInput" promptText="حداقل قیمت (تومان)" style="-fx-font-size: 11px;" />
+
+            <Label style="-fx-text-fill: #64748b; -fx-font-size: 10px;" text="حداکثر" />
             <Slider fx:id="maxPriceSlider" max="100000000" min="0" value="100000000" />
+            <TextField fx:id="maxPriceInput" promptText="حداکثر قیمت (تومان)" style="-fx-font-size: 11px;" />
 
             <VBox spacing="6">
                 <Label style="-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold;" text="📍 شهر" />

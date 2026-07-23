@@ -38,4 +38,8 @@ public class Comment {
         if (createdAt == null || createdAt.length() < 10) return "";
         return createdAt.substring(0, 10);
     }
+    public String getShortTime() {
+        if (createdAt == null || createdAt.length() < 16) return "";
+        return createdAt.substring(11, 16);
+    }
 }
