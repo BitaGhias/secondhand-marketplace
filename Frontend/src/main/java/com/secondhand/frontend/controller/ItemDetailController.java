@@ -153,7 +153,15 @@ public class ItemDetailController extends BaseController {
         cityLabel.setText("\uD83D\uDCCD " + currentItem.getCityName());
         categoryLabel.setText("\uD83D\uDCC2 " + currentItem.getCategoryName());
         ratingLabel.setText(currentItem.getFormattedRating());
-        ownerLabel.setText("\uD83D\uDC64 " + currentItem.getOwnerUsername());
+        javafx.scene.image.ImageView ownerAvatar = ImageLoaderUtil.circularAvatar(currentItem.getOwnerProfileImageUrl(), 24);
+        if (ownerAvatar != null) {
+            ownerLabel.setGraphic(ownerAvatar);
+            ownerLabel.setGraphicTextGap(6);
+            ownerLabel.setText(currentItem.getOwnerUsername());
+        } else {
+            ownerLabel.setGraphic(null);
+            ownerLabel.setText("\uD83D\uDC64 " + currentItem.getOwnerUsername());
+        }
         loadImages();
     }
 
@@ -310,7 +318,7 @@ public class ItemDetailController extends BaseController {
      */
     private void setPendingRequestState() {
         buyButton.setDisable(true);
-        buyButton.setText("\u23f3 در انتظار تایید فروشنده");
+        buyButton.setText("\u23f3 در ان��ظ��ر تایید فروشنده");
         buyButton.setStyle("-fx-background-color: #fef3c7; -fx-text-fill: #b45309; -fx-background-radius: 12; -fx-font-weight: bold; -fx-font-size: 13px; -fx-padding: 11 24; -fx-opacity: 1;");
     }
 
@@ -413,6 +421,7 @@ public class ItemDetailController extends BaseController {
             String fullName = pr.getBuyerFullName();
             String phone = pr.getBuyerPhone();
             String email = pr.getBuyerEmail();
+            String imagePath = null;
             try {
                 java.net.http.HttpResponse<String> res = ApiClient.get("/auth/" + pr.getBuyerId());
                 if (res.statusCode() >= 200 && res.statusCode() < 300) {
@@ -420,11 +429,13 @@ public class ItemDetailController extends BaseController {
                     if (node.hasNonNull("fullName")) fullName = node.get("fullName").asText();
                     if (node.hasNonNull("phoneNumber")) phone = node.get("phoneNumber").asText();
                     if (node.hasNonNull("email")) email = node.get("email").asText();
+                    if (node.hasNonNull("profileImagePath")) imagePath = node.get("profileImagePath").asText();
                 }
             } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
             final String fFull = fullName;
             final String fPhone = phone;
             final String fEmail = email;
+            final String fImage = imagePath;
             Platform.runLater(() -> {
                 Dialog<ButtonType> dialog = new Dialog<>();
                 dialog.setTitle("پروفایل خریدار");
@@ -432,8 +443,7 @@ public class ItemDetailController extends BaseController {
                 DialogPane pane = dialog.getDialogPane();
                 pane.setPrefWidth(420);
 
-                Label avatar = new Label("\ud83d\udc64");
-                avatar.setStyle("-fx-background-color: rgba(249,115,22,0.22); -fx-background-radius: 50; -fx-padding: 12 16; -fx-font-size: 20px;");
+                javafx.scene.Node avatar = buildProfileAvatar(fImage, 46);
                 Label nm = new Label(fFull != null && !fFull.isBlank() ? fFull : pr.getBuyerUsername());
                 nm.setStyle("-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;");
                 Label un = new Label("@" + pr.getBuyerUsername());
@@ -463,7 +473,7 @@ public class ItemDetailController extends BaseController {
     private void showSellerProfile() {
         if (currentItem == null || currentItem.getOwnerId() == null) return;
         new Thread(() -> {
-            String fullName = null, phone = null, email = null;
+            String fullName = null, phone = null, email = null, imagePath = null;
             try {
                 java.net.http.HttpResponse<String> res = ApiClient.get("/auth/" + currentItem.getOwnerId());
                 if (res.statusCode() >= 200 && res.statusCode() < 300) {
@@ -471,6 +481,7 @@ public class ItemDetailController extends BaseController {
                     if (node.hasNonNull("fullName"))    fullName = node.get("fullName").asText();
                     if (node.hasNonNull("phoneNumber")) phone    = node.get("phoneNumber").asText();
                     if (node.hasNonNull("email"))       email    = node.get("email").asText();
+                    if (node.hasNonNull("profileImagePath")) imagePath = node.get("profileImagePath").asText();
                 }
             } catch (Exception e) { FrontendErrorHandler.log(e); }
             Double avg = null;
@@ -486,6 +497,7 @@ public class ItemDetailController extends BaseController {
             final String fFull = fullName;
             final String fPhone = phone;
             final String fEmail = email;
+            final String fImage = imagePath;
             Platform.runLater(() -> {
                 Dialog<ButtonType> dialog = new Dialog<>();
                 dialog.setTitle("پروفایل فروشنده");
@@ -493,8 +505,7 @@ public class ItemDetailController extends BaseController {
                 DialogPane pane = dialog.getDialogPane();
                 pane.setPrefWidth(420);
 
-                Label avatar = new Label("\ud83d\udc64");
-                avatar.setStyle("-fx-background-color: rgba(249,115,22,0.22); -fx-background-radius: 50; -fx-padding: 12 16; -fx-font-size: 20px;");
+                javafx.scene.Node avatar = buildProfileAvatar(fImage, 46);
                 Label nm = new Label(fFull != null && !fFull.isBlank() ? fFull : currentItem.getOwnerUsername());
                 nm.setStyle("-fx-text-fill: white; -fx-font-size: 15px; -fx-font-weight: bold;");
                 Label un = new Label("@" + currentItem.getOwnerUsername());
@@ -516,6 +527,35 @@ public class ItemDetailController extends BaseController {
                 dialog.showAndWait();
             });
         }).start();
+    }
+
+    /**
+     * Builds a circular avatar node for profile dialogs: shows the user's real
+     * profile image when available, otherwise falls back to a person-emoji placeholder.
+     *
+     * @param profileImagePath the raw profile image path returned by the backend (may be {@code null})
+     * @param size the avatar diameter in pixels
+     * @return an {@code ImageView} with the profile photo, or a placeholder {@code Label}
+     */
+    private javafx.scene.Node buildProfileAvatar(String profileImagePath, double size) {
+        if (profileImagePath != null && !profileImagePath.isBlank()) {
+            com.secondhand.frontend.model.User tmp = new com.secondhand.frontend.model.User();
+            tmp.setProfileImagePath(profileImagePath);
+            String url = tmp.getProfileImageUrl();
+            if (url != null) {
+                try {
+                    javafx.scene.image.Image img = new javafx.scene.image.Image(url, size, size, false, true, true);
+                    javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView(img);
+                    iv.setFitWidth(size);
+                    iv.setFitHeight(size);
+                    iv.setClip(new javafx.scene.shape.Circle(size / 2, size / 2, size / 2));
+                    return iv;
+                } catch (Exception e) { FrontendErrorHandler.log(e); }
+            }
+        }
+        Label fallback = new Label("\ud83d\udc64");
+        fallback.setStyle("-fx-background-color: rgba(249,115,22,0.22); -fx-background-radius: 50; -fx-padding: 12 16; -fx-font-size: 20px;");
+        return fallback;
     }
 
     /**

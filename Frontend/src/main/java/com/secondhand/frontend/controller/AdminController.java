@@ -722,8 +722,15 @@ public class AdminController extends BaseController {
         Label titleLabel = new Label(item.getTitle());
         titleLabel.setStyle("-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
         titleLabel.setWrapText(true);
-        Label subLabel = new Label("👤 آگهی‌دهنده: " + item.getOwnerUsername());
+        Label subLabel = new Label("آگهی‌دهنده: " + item.getOwnerUsername());
         subLabel.setStyle("-fx-text-fill: rgba(255,255,255,0.65); -fx-font-size: 11px;");
+        ImageView ownerAvatar = com.secondhand.frontend.util.ImageLoaderUtil.circularAvatar(item.getOwnerProfileImageUrl(), 22);
+        if (ownerAvatar != null) {
+            subLabel.setGraphic(ownerAvatar);
+            subLabel.setGraphicTextGap(6);
+        } else {
+            subLabel.setText("👤 آگهی‌دهنده: " + item.getOwnerUsername());
+        }
         VBox headText = new VBox(4, titleLabel, subLabel);
         HBox.setHgrow(headText, Priority.ALWAYS);
         Label statusChip = new Label(item.getPersianStatus());

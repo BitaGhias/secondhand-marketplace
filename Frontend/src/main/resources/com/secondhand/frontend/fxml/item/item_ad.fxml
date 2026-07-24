@@ -39,9 +39,9 @@
 
     <!-- فروشنده و شهر -->
     <HBox alignment="CENTER_LEFT" spacing="7">
-        <StackPane>
+        <StackPane fx:id="sellerAvatarStack">
             <Circle radius="11" style="-fx-fill: #ffedd5; -fx-stroke: #fed7aa; -fx-stroke-width: 1;"/>
-            <Label text="👤" style="-fx-font-size: 10px;"/>
+            <Label fx:id="sellerAvatarIcon" text="👤" style="-fx-font-size: 10px;"/>
         </StackPane>
         <Label fx:id="usernameLabel" text="کاربر" style="-fx-text-fill: #475569; -fx-font-size: 11px; -fx-font-weight: bold;" HBox.hgrow="ALWAYS"/>
         <Label text="📍" style="-fx-font-size: 10px;"/>

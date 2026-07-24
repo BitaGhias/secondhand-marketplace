@@ -13,6 +13,8 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
+import com.secondhand.frontend.util.ImageLoaderUtil;
 
 /**
  * JavaFX controller of the "ad item" screen.
@@ -35,6 +37,8 @@ public class AdItemController {
     @FXML private Label adTitleLabel;
     @FXML private Label adPriceLabel;
     @FXML private Label usernameLabel;
+    @FXML private StackPane sellerAvatarStack;
+    @FXML private Label sellerAvatarIcon;
     @FXML private Label cityLabel;
     @FXML private Label ratingLabel;
     @FXML private Label statusLabel;
@@ -64,6 +68,16 @@ public class AdItemController {
         if (adTitleLabel != null) adTitleLabel.setText(item.getTitle());
         if (adPriceLabel != null) adPriceLabel.setText(item.getFormattedPrice());
         if (usernameLabel != null) usernameLabel.setText(item.getOwnerUsername());
+        if (sellerAvatarStack != null) {
+            sellerAvatarStack.getChildren().removeIf(node -> node instanceof ImageView);
+            ImageView sellerAvatar = ImageLoaderUtil.circularAvatar(item.getOwnerProfileImageUrl(), 22);
+            if (sellerAvatar != null) {
+                if (sellerAvatarIcon != null) sellerAvatarIcon.setVisible(false);
+                sellerAvatarStack.getChildren().add(sellerAvatar);
+            } else if (sellerAvatarIcon != null) {
+                sellerAvatarIcon.setVisible(true);
+            }
+        }
         if (cityLabel != null) cityLabel.setText(item.getCityName());
         if (ratingLabel != null) ratingLabel.setText(item.getFormattedRating());
         if (statusLabel != null) {

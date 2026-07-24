@@ -24,6 +24,7 @@ public class Item {
     public String cityName;
     public String ownerUsername;
     public Long ownerId;
+    public String ownerProfileImagePath;
     public List<Image> images;
     public String rejectionReason;
     public Double averageRating;
@@ -87,6 +88,22 @@ public class Item {
 
     public Long getOwnerId() { return ownerId; }
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
+
+    public String getOwnerProfileImagePath() { return ownerProfileImagePath; }
+    public void setOwnerProfileImagePath(String ownerProfileImagePath) { this.ownerProfileImagePath = ownerProfileImagePath; }
+
+    /**
+     * Builds the absolute URL of the owner's profile image.
+     *
+     * @return the absolute image URL, or {@code null} when the owner has no profile image
+     */
+    public String getOwnerProfileImageUrl() {
+        if (ownerProfileImagePath == null || ownerProfileImagePath.isBlank()) return null;
+        String normalized = ownerProfileImagePath.replace("\\", "/");
+        if (normalized.startsWith("http")) return normalized;
+        if (!normalized.startsWith("/")) normalized = "/" + normalized;
+        return "http://127.0.0.1:8080" + normalized;
+    }
 
     public List<Image> getImages() { return images; }
     public void setImages(List<Image> images) { this.images = images; }

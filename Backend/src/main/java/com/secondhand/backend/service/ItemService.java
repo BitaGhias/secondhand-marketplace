@@ -205,6 +205,7 @@ public class ItemService {
         }
 
         response.setCreatedAt(item.getCreatedAt());
+        response.setOwnerProfileImagePath(item.getUser() != null ? item.getUser().getProfileImagePath() : null);
         response.setCategoryId(item.getCategory() != null ? item.getCategory().getId() : null);
         response.setCityId(item.getCity() != null ? item.getCity().getId() : null);
         if (item.getUser() != null && ratingRepository.countBySellerId(item.getUser().getId()) > 0) {
