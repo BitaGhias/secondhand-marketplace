@@ -3,6 +3,16 @@ package com.secondhand.backend.dto.item;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * Data Transfer Object carrying "item response" data between client and server.
+ * <p>
+ * This class is used purely for transferring data between client and server and is not mapped to the database directly, keeping the internal structure of the entities hidden from the client.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ItemResponse {
     private Long id;
     private String title;
@@ -14,6 +24,7 @@ public class ItemResponse {
     private String cityName;
     private String ownerUsername;
     private Long ownerId;
+    private String ownerProfileImagePath;
     private List<ImageResponse> images;
     private String rejectionReason;
     private Long buyerId;
@@ -24,6 +35,9 @@ public class ItemResponse {
     // تاریخ ثبت آگهی
     private LocalDateTime createdAt;
 
+    /**
+     * Creates a new {@code ItemResponse} instance.
+     */
     public ItemResponse() {}
 
     public ItemResponse(Long id, String title, String description, Long price, String status,
@@ -54,6 +68,7 @@ public class ItemResponse {
     public String getCityName() { return cityName; }
     public String getOwnerUsername() { return ownerUsername; }
     public Long getOwnerId() { return ownerId; }
+    public String getOwnerProfileImagePath() { return ownerProfileImagePath; }
     public List<ImageResponse> getImages() { return images; }
     public String getRejectionReason() { return rejectionReason; }
     public Long getBuyerId() { return buyerId; }
@@ -73,6 +88,7 @@ public class ItemResponse {
     public void setCityName(String cityName) { this.cityName = cityName; }
     public void setOwnerUsername(String ownerUsername) { this.ownerUsername = ownerUsername; }
     public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
+    public void setOwnerProfileImagePath(String ownerProfileImagePath) { this.ownerProfileImagePath = ownerProfileImagePath; }
     public void setImages(List<ImageResponse> images) { this.images = images; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
     public void setBuyerId(Long buyerId) { this.buyerId = buyerId; }

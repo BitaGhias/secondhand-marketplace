@@ -13,7 +13,7 @@
     <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" spacing="10" nodeOrientation="LEFT_TO_RIGHT"
           style="-fx-background-color: #0e2433; -fx-padding: 12 16;">
-        <Label text="دست‌دوم مارکت — آگهی‌های کاربر" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+        <Label text="دیباچه — آگهی‌های کاربر" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
         <HBox HBox.hgrow="ALWAYS"/>
         <Button text="─" onAction="#minimizeWindow"
                 style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>
@@ -120,6 +120,16 @@
                     <Region style="-fx-background-color: #e7ecf2; -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
                 </HBox>
                 <FlowPane fx:id="deletedFlowPane" hgap="20" vgap="20" alignment="TOP_RIGHT" style="-fx-background-color: transparent;"/>
+
+                <!-- آگهی‌های ردشده -->
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <Region minWidth="10" minHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #9333ea; -fx-background-radius: 50;"/>
+                    <Label text="آگهی‌های ردشده" style="-fx-text-fill: #0f172a; -fx-font-size: 15px; -fx-font-weight: bold;"/>
+                    <Label fx:id="rejectedCountLabel" text="۰"
+                           style="-fx-background-color: #f3e8ff; -fx-background-radius: 20; -fx-padding: 2 10; -fx-text-fill: #7e22ce; -fx-font-size: 11px; -fx-font-weight: bold;"/>
+                    <Region style="-fx-background-color: #e7ecf2; -fx-pref-height: 1;" HBox.hgrow="ALWAYS"/>
+                </HBox>
+                <FlowPane fx:id="rejectedFlowPane" hgap="20" vgap="20" alignment="TOP_RIGHT" style="-fx-background-color: transparent;"/>
             </VBox>
         </content>
     </ScrollPane>

@@ -2,6 +2,16 @@ package com.secondhand.backend.dto.purchase;
 
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object carrying "purchase request response" data between client and server.
+ * <p>
+ * This class is used purely for transferring data between client and server and is not mapped to the database directly, keeping the internal structure of the entities hidden from the client.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class PurchaseRequestResponse {
     private Long id;
     private Long itemId;

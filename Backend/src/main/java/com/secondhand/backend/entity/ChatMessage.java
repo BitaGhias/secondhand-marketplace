@@ -8,6 +8,16 @@ import java.time.LocalDateTime;
         @Index(name = "idx_chat_messages_conversation_time", columnList = "conversation_id, timestamp"),
         @Index(name = "idx_chat_messages_conversation_read", columnList = "conversation_id, is_read")
 })
+/**
+ * JPA entity representing a "chat message" record in the database.
+ * <p>
+ * This class defines the structure of the matching table in the SQLite database and is managed by Hibernate; relations between tables are declared with JPA annotations.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ChatMessage {
 
     @Id
@@ -37,6 +47,9 @@ public class ChatMessage {
     @JoinColumn(name = "sender_id", nullable = false)
     private User sender;
 
+    /**
+     * Creates a new {@code ChatMessage} instance.
+     */
     public ChatMessage() {}
 
     public ChatMessage(Long id, String text, LocalDateTime timestamp, boolean isRead,

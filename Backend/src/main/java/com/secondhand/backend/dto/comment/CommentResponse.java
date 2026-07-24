@@ -2,6 +2,16 @@ package com.secondhand.backend.dto.comment;
 
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object carrying "comment response" data between client and server.
+ * <p>
+ * This class is used purely for transferring data between client and server and is not mapped to the database directly, keeping the internal structure of the entities hidden from the client.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class CommentResponse {
     private Long id;
     private String text;
@@ -13,6 +23,9 @@ public class CommentResponse {
     // FIX (مورد ۴): نشانگر ویرایش‌شدن کامنت
     private boolean edited;
 
+    /**
+     * Creates a new {@code CommentResponse} instance.
+     */
     public CommentResponse() {}
 
     public CommentResponse(Long id, String text, Long itemId, String itemTitle,

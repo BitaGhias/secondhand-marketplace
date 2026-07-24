@@ -2,6 +2,16 @@ package com.secondhand.backend.entity;
 
 import jakarta.persistence.*;
 
+/**
+ * JPA entity representing a "image" record in the database.
+ * <p>
+ * This class defines the structure of the matching table in the SQLite database and is managed by Hibernate; relations between tables are declared with JPA annotations.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Entity
 @Table(name = "images")
 public class Image {

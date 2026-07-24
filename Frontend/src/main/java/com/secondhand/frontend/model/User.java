@@ -1,5 +1,15 @@
 package com.secondhand.frontend.model;
 
+/**
+ * Client-side model representing "user" data returned by the server.
+ * <p>
+ * This class is the client-side representation of data received from the server and is deserialized from JSON by Jackson.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class User {
     private Long id;
     private String fullName;
@@ -10,6 +20,9 @@ public class User {
     private String email;
     private String profileImagePath;
 
+    /**
+     * Creates a new {@code User} instance.
+     */
     public User() {}
 
     public User(Long id, String fullName, String username, String role,
@@ -36,6 +49,11 @@ public class User {
     public void setRole(String role) { this.role = role; }
 
     public boolean isBlocked() { return blocked; }
+    /**
+     * Sets blocked.
+     *
+     * @param blocked the "blocked" value of type {@code boolean}
+     */
     public void setBlocked(boolean blocked) { this.blocked = blocked; }
 
     public String getPhoneNumber() { return phoneNumber; }
@@ -47,9 +65,6 @@ public class User {
     public String getProfileImagePath() { return profileImagePath; }
     public void setProfileImagePath(String profileImagePath) { this.profileImagePath = profileImagePath; }
 
-    /**
-     * آدرس کامل عکس پروفایل روی سرور (یا null اگر عکس ندارد)
-     */
     public String getProfileImageUrl() {
         if (profileImagePath == null || profileImagePath.isBlank()) return null;
         String normalized = profileImagePath.replace("\\", "/");
@@ -58,6 +73,11 @@ public class User {
         return "http://127.0.0.1:8080" + normalized;
     }
 
+    /**
+     * Performs the "to string" operation.
+     *
+     * @return the resulting string
+     */
     @Override
     public String toString() {
         return username != null ? username : "";

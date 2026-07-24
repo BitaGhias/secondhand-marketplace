@@ -19,10 +19,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * کنترلر دیالوگ فیلتر جست‌وجو — مطابق filter_dialogue.fxml
- * دسته‌بندی مانند فرم ثبت آگهی با منوی فلای‌اوت تو در تو (CategoryPicker) انتخاب می‌شود،
- * نه ComboBox تخت. نتیجه از طریق FilterListener به AdListController برمی‌گردد
- * و جست‌وجو با POST /api/items/search/advanced انجام می‌شود.
+ * JavaFX controller of the advanced filter dialog (category, city, price range and sort order).
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
  */
 public class FilterDialogController {
 
@@ -40,7 +44,6 @@ public class FilterDialogController {
     private FilterListener listener;
     private Category selectedCategory;
 
-    /** برچسب فارسی مرتب‌سازی ← کد مورد انتظار بک‌اند (ItemSearchRequest.sortBy) */
     private static final Map<String, String> SORT_OPTIONS = new LinkedHashMap<>();
     static {
         SORT_OPTIONS.put("جدیدترین", "newest");
@@ -50,27 +53,44 @@ public class FilterDialogController {
     }
     private static final String DEFAULT_SORT_LABEL = "جدیدترین";
 
+    /**
+     * Listener notified when a filter is applied or cleared; implemented by the ad-list screen.
+     */
     public interface FilterListener {
         void onFilterApplied(Long categoryId, Long cityId, Long minPrice, Long maxPrice, String sortBy);
         void onFilterCleared();
     }
 
+    /**
+     * Sets listener.
+     *
+     * @param listener the callback listener
+     */
     public void setListener(FilterListener listener) {
         this.listener = listener;
     }
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         setupSortComboBox();
         loadOptionsInBackground();
     }
 
+    /**
+     * Sets up sort combo box.
+     */
     private void setupSortComboBox() {
         if (sortComboBox == null) return;
         sortComboBox.getItems().setAll(SORT_OPTIONS.keySet());
         sortComboBox.setValue(DEFAULT_SORT_LABEL);
     }
 
+    /**
+     * Loads options in background.
+     */
     private void loadOptionsInBackground() {
         new Thread(() -> {
             try {
@@ -89,6 +109,9 @@ public class FilterDialogController {
         }).start();
     }
 
+    /**
+     * Applies filter.
+     */
     @FXML
     private void applyFilter() {
         hideError();
@@ -128,6 +151,9 @@ public class FilterDialogController {
         close();
     }
 
+    /**
+     * Clears filter.
+     */
     @FXML
     private void clearFilter() {
         selectedCategory = null;
@@ -145,7 +171,13 @@ public class FilterDialogController {
         close();
     }
 
-    /** تبدیل متن قیمت به عدد — ارقام فارسی و جداکننده‌ها را هم می‌پذیرد */
+    /**
+     * Parses price.
+     *
+     * @param text the text value
+     * @return the resulting numeric value
+     * @throws NumberFormatException if the text cannot be parsed as a valid number
+     */
     private Long parsePrice(String text) throws NumberFormatException {
         if (text == null || text.isBlank()) return null;
         String normalized = text.trim()
@@ -159,15 +191,26 @@ public class FilterDialogController {
         return Long.parseLong(sb.toString());
     }
 
+    /**
+     * Shows error.
+     *
+     * @param message the message text
+     */
     private void showError(String message) {
         filterErrorLabel.setText(message);
         filterErrorLabel.setVisible(true);
     }
 
+    /**
+     * Hides error.
+     */
     private void hideError() {
         filterErrorLabel.setVisible(false);
     }
 
+    /**
+     * Closes.
+     */
     private void close() {
         Stage stage = (Stage) applyFilterButton.getScene().getWindow();
         stage.close();

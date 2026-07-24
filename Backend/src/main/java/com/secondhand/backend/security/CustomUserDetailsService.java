@@ -11,12 +11,29 @@ import org.springframework.stereotype.Service;
 
 import java.util.Collections;
 
+/**
+ * Configuration class: "custom user details service".
+ * <p>
+ * This class is part of the application security configuration and is loaded by Spring at startup.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
     @Autowired
     private UserRepository userRepository;
 
+    /**
+     * Loads user by username.
+     *
+     * @param username the username
+     * @return the resulting {@code UserDetails} instance
+     * @throws UsernameNotFoundException if an error occurs
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 

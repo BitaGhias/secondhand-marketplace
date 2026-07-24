@@ -8,6 +8,16 @@ import jakarta.persistence.*;
         @Index(name = "idx_conversations_buyer", columnList = "buyer_id"),
         @Index(name = "idx_conversations_seller", columnList = "seller_id")
 })
+/**
+ * JPA entity representing a "conversation" record in the database.
+ * <p>
+ * This class defines the structure of the matching table in the SQLite database and is managed by Hibernate; relations between tables are declared with JPA annotations.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class Conversation {
 
     @Id
@@ -26,6 +36,9 @@ public class Conversation {
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
 
+    /**
+     * Creates a new {@code Conversation} instance.
+     */
     public Conversation() {}
 
     public Conversation(Long id, Item item, User buyer, User seller) {

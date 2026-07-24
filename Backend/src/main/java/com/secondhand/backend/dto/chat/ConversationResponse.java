@@ -2,6 +2,16 @@ package com.secondhand.backend.dto.chat;
 
 import java.time.LocalDateTime;
 
+/**
+ * Data Transfer Object carrying "conversation response" data between client and server.
+ * <p>
+ * This class is used purely for transferring data between client and server and is not mapped to the database directly, keeping the internal structure of the entities hidden from the client.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class ConversationResponse {
     private Long id;
     private Long itemId;
@@ -19,6 +29,9 @@ public class ConversationResponse {
     private String lastMessageSender;
     private long unreadCount;
 
+    /**
+     * Creates a new {@code ConversationResponse} instance.
+     */
     public ConversationResponse() {}
 
     public ConversationResponse(Long id, Long itemId, String itemTitle,
@@ -46,6 +59,20 @@ public class ConversationResponse {
         this.unreadCount = unreadCount;
     }
 
+    /**
+     * Creates a new {@code ConversationResponse} instance.
+     *
+     * @param id unique identifier of the record
+     * @param itemId id of the ad (item)
+     * @param itemTitle the "item title" value of type {@code String}
+     * @param buyerId id of the buyer
+     * @param buyerUsername the "buyer username" value of type {@code String}
+     * @param sellerId id of the seller
+     * @param sellerUsername the "seller username" value of type {@code String}
+     * @param lastMessage the "last message" value of type {@code String}
+     * @param lastMessageTime the "last message time" value of type {@code LocalDateTime}
+     * @param unreadCount number of unread messages
+     */
     public ConversationResponse(Long id, Long itemId, String itemTitle,
                                 Long buyerId, String buyerUsername,
                                 Long sellerId, String sellerUsername,

@@ -10,12 +10,30 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Client-side service for "auth" operations against the backend API.
+ * <p>
+ * This class is the client-to-server communication layer; it sends requests to the backend API through {@code ApiClient} and converts JSON responses into Java models with Jackson. On a non-successful response the server error message is propagated as an exception.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class AuthService {
 
     private static final ObjectMapper objectMapper = ApiClient.getMapper();
 
     /**
-     * ثبت‌نام کاربر به صورت کاملاً ناهمگام (Async)
+     * Registers.
+     *
+     * @param fullName the "full name" value of type {@code String}
+     * @param username the username
+     * @param email the email address
+     * @param phone the "phone" value of type {@code String}
+     * @param password the password
+     * @param confirmPassword the "confirm password" value of type {@code String}
+     * @return a {@code CompletableFuture} that completes asynchronously with the result
      */
     public static CompletableFuture<String> register(String fullName, String username, String email, String phone, String password, String confirmPassword) {
         CompletableFuture<String> future = new CompletableFuture<>();
@@ -55,8 +73,11 @@ public class AuthService {
     }
 
     /**
-     * ورود کاربر به صورت ناهمگام (Async).
-     * پس از ورود موفق، نشست (توکن + کاربر) برای اجراهای بعدی برنامه ذخیره می‌شود.
+     * Logs in.
+     *
+     * @param username the username
+     * @param password the password
+     * @return a {@code CompletableFuture} that completes asynchronously with the result
      */
     public static CompletableFuture<LoginResponse> login(String username, String password) {
         CompletableFuture<LoginResponse> future = new CompletableFuture<>();
@@ -100,6 +121,12 @@ public class AuthService {
     }
 
     // دریافت پروفایل
+    /**
+     * Gets profile.
+     *
+     * @return the resulting {@code User} instance
+     * @throws Exception if the request fails or the server cannot be reached
+     */
     public static User getProfile() throws Exception {
         HttpResponse<String> response = ApiClient.get("/auth/profile");
         if (response.statusCode() == 200) {
@@ -112,19 +139,40 @@ public class AuthService {
     }
 
     // خروج
+    /**
+     * Logs out.
+     */
     public static void logout() {
         ApiClient.clearToken();
         SessionStore.clear();
     }
 
     // بررسی احراز هویت
+    /**
+     * Checks whether the "authenticated" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public static boolean isAuthenticated() {
         return ApiClient.isAuthenticated();
     }
 
     // ===== کلاس‌های داخلی DTO =====
+    /**
+     * Nested class used by {@code AuthService}.
+     */
     public static class RegisterRequest {
         public String fullName, username, password, confirmPassword, phoneNumber, email;
+        /**
+         * Registers request.
+         *
+         * @param fullName the "full name" value of type {@code String}
+         * @param username the username
+         * @param password the password
+         * @param confirmPassword the "confirm password" value of type {@code String}
+         * @param phoneNumber the phone number
+         * @param email the email address
+         */
         public RegisterRequest(String fullName, String username, String password, String confirmPassword, String phoneNumber, String email) {
             this.fullName = fullName;
             this.username = username;
@@ -135,14 +183,26 @@ public class AuthService {
         }
     }
 
+    /**
+     * Nested class used by {@code AuthService}.
+     */
     public static class LoginRequest {
         public String username, password;
+        /**
+         * Logs in request.
+         *
+         * @param username the username
+         * @param password the password
+         */
         public LoginRequest(String username, String password) {
             this.username = username;
             this.password = password;
         }
     }
 
+    /**
+     * Nested class used by {@code AuthService}.
+     */
     public static class LoginResponse {
         private User user;
         private String token;

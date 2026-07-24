@@ -19,6 +19,16 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Business-logic service for "rating" operations.
+ * <p>
+ * This class implements the core business logic and sits between the controller layer and the repository layer. Validation and access control are enforced here and a proper exception is thrown when a rule is violated.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Service
 public class RatingService {
 
@@ -34,6 +44,12 @@ public class RatingService {
     @Autowired
     private ConversationRepository conversationRepository;
 
+    /**
+     * Converts to response.
+     *
+     * @param rating the rating object
+     * @return the resulting {@code RatingResponse} instance
+     */
     private RatingResponse convertToResponse(Rating rating) {
         return new RatingResponse(
                 rating.getId(),
@@ -48,6 +64,13 @@ public class RatingService {
         );
     }
 
+    /**
+     * Adds rating.
+     *
+     * @param request request body received from the client
+     * @param raterId the "rater id" value of type {@code Long}
+     * @return the resulting {@code RatingResponse} instance
+     */
     public RatingResponse addRating(RatingCreateRequest request, Long raterId) {
         if (request.getScore() < 1 || request.getScore() > 5)
             throw new BadRequestException("امتیاز وارد شده باید عددی بین ۱ تا ۵ باشد!");
@@ -94,18 +117,36 @@ public class RatingService {
         return convertToResponse(ratingRepository.save(rating));
     }
 
+    /**
+     * Gets seller average rating.
+     *
+     * @param sellerId id of the seller
+     * @return the resulting numeric value
+     */
     public double getSellerAverageRating(Long sellerId) {
         if (!userRepository.existsById(sellerId))
             throw new ResourceNotFoundException("فروشنده یافت نشد");
         return ratingRepository.averageScoreBySellerId(sellerId);
     }
 
+    /**
+     * Gets seller rating count.
+     *
+     * @param sellerId id of the seller
+     * @return the resulting numeric value
+     */
     public long getSellerRatingCount(Long sellerId) {
         if (!userRepository.existsById(sellerId))
             throw new ResourceNotFoundException("فروشنده یافت نشد");
         return ratingRepository.countBySellerId(sellerId);
     }
 
+    /**
+     * Gets seller ratings.
+     *
+     * @param sellerId id of the seller
+     * @return a {@code List<RatingResponse>} with the results; empty if nothing matches
+     */
     public List<RatingResponse> getSellerRatings(Long sellerId) {
         if (!userRepository.existsById(sellerId))
             throw new ResourceNotFoundException("فروشنده یافت نشد");
@@ -114,6 +155,13 @@ public class RatingService {
                 .toList();
     }
 
+    /**
+     * Checks whether the "user rated item" condition holds.
+     *
+     * @param raterId the "rater id" value of type {@code Long}
+     * @param itemId id of the ad (item)
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean hasUserRatedItem(Long raterId, Long itemId) {
         return ratingRepository.findByRaterIdAndItemId(raterId, itemId).isPresent();
     }

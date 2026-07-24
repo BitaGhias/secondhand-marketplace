@@ -13,11 +13,18 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.StackPane;
+import com.secondhand.frontend.util.ImageLoaderUtil;
 
 /**
- * کارت آگهی:
- * • badge وضعیت روی تصویر (کارکرده / فروخته شد / در انتظار / رد شد)
- * • دکمهٔ قلب علاقه‌مندی با توگل زنده (بدون باز شدن صفحهٔ جزئیات)
+ * JavaFX controller of the "ad item" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
  */
 public class AdItemController {
 
@@ -30,6 +37,8 @@ public class AdItemController {
     @FXML private Label adTitleLabel;
     @FXML private Label adPriceLabel;
     @FXML private Label usernameLabel;
+    @FXML private StackPane sellerAvatarStack;
+    @FXML private Label sellerAvatarIcon;
     @FXML private Label cityLabel;
     @FXML private Label ratingLabel;
     @FXML private Label statusLabel;
@@ -39,18 +48,36 @@ public class AdItemController {
     private Item item;
     private boolean isFavorite;
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         // کلیک روی قلب نباید به کارت برسد و صفحهٔ جزئیات را باز کند
         if (favoriteButton != null) favoriteButton.setOnMouseClicked(Event::consume);
     }
 
+    /**
+     * Sets item.
+     *
+     * @param item the ad (item) object
+     */
     public void setItem(Item item) {
         this.item = item;
 
         if (adTitleLabel != null) adTitleLabel.setText(item.getTitle());
         if (adPriceLabel != null) adPriceLabel.setText(item.getFormattedPrice());
         if (usernameLabel != null) usernameLabel.setText(item.getOwnerUsername());
+        if (sellerAvatarStack != null) {
+            sellerAvatarStack.getChildren().removeIf(node -> node instanceof ImageView);
+            ImageView sellerAvatar = ImageLoaderUtil.circularAvatar(item.getOwnerProfileImageUrl(), 22);
+            if (sellerAvatar != null) {
+                if (sellerAvatarIcon != null) sellerAvatarIcon.setVisible(false);
+                sellerAvatarStack.getChildren().add(sellerAvatar);
+            } else if (sellerAvatarIcon != null) {
+                sellerAvatarIcon.setVisible(true);
+            }
+        }
         if (cityLabel != null) cityLabel.setText(item.getCityName());
         if (ratingLabel != null) ratingLabel.setText(item.getFormattedRating());
         if (statusLabel != null) {
@@ -75,7 +102,11 @@ public class AdItemController {
         }
     }
 
-    /** badge وضعیت گوشهٔ تصویر — همهٔ کالاهای فعال در این بازار دست‌دوم (کارکرده) هستند */
+    /**
+     * Updates badge.
+     *
+     * @param item the ad (item) object
+     */
     private void updateBadge(Item item) {
         if (cardBadgeLabel == null) return;
         String status = item.getStatus() != null ? item.getStatus().toUpperCase() : "";
@@ -93,7 +124,11 @@ public class AdItemController {
                 + "; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 999; -fx-padding: 3 10;");
     }
 
-    /** وضعیت اولیهٔ قلب را از سرور می‌خواند (فقط برای کاربر لاگین‌کرده) */
+    /**
+     * Loads favorite state.
+     *
+     * @param item the ad (item) object
+     */
     private void loadFavoriteState(Item item) {
         if (favoriteButton == null) return;
         if (SessionManager.getCurrentUser() == null || item.getId() == null) {
@@ -110,6 +145,11 @@ public class AdItemController {
         }).start();
     }
 
+    /**
+     * Applies heart.
+     *
+     * @param fav the "fav" value of type {@code boolean}
+     */
     private void applyHeart(boolean fav) {
         isFavorite = fav;
         if (favoriteButton == null) return;
@@ -117,6 +157,9 @@ public class AdItemController {
         favoriteButton.setStyle(fav ? HEART_ON : HEART_OFF);
     }
 
+    /**
+     * Toggles favorite.
+     */
     @FXML
     private void toggleFavorite() {
         if (item == null || item.getId() == null) return;
@@ -132,6 +175,9 @@ public class AdItemController {
         }).start();
     }
 
+    /**
+     * Loads default image.
+     */
     private void loadDefaultImage() {
         try {
             var imageStream = getClass().getResourceAsStream(
@@ -144,10 +190,18 @@ public class AdItemController {
         }
     }
 
+    /**
+     * Gets item.
+     *
+     * @return the resulting {@code Item} instance
+     */
     public Item getItem() {
         return item;
     }
 
+    /**
+     * Handles card click.
+     */
     @FXML
     private void handleCardClick() {
         if (item == null) return;

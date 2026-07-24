@@ -23,6 +23,16 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
+/**
+ * Business-logic service for "user" operations.
+ * <p>
+ * This class implements the core business logic and sits between the controller layer and the repository layer. Validation and access control are enforced here and a proper exception is thrown when a rule is violated.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Service
 public class UserService {
 
@@ -32,12 +42,24 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Checks whether the "valid email" condition holds.
+     *
+     * @param email the email address
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private boolean isValidEmail(String email) {
         if (email == null) return false;
         String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         return email.matches(emailRegex);
     }
 
+    /**
+     * Checks whether the "valid phone number" condition holds.
+     *
+     * @param phone the "phone" value of type {@code String}
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private boolean isValidPhoneNumber(String phone) {
         if (phone == null) return false;
         String phoneRegex = "^09[0-9]{9}$";
@@ -45,6 +67,12 @@ public class UserService {
     }
 
     // FIX: تبدیل ارقام فارسی/عربی به انگلیسی (مثلاً شماره تلفن با کیبورد فارسی تایپ‌شده)
+    /**
+     * Performs the "normalize digits" operation.
+     *
+     * @param input the "input" value of type {@code String}
+     * @return the resulting string
+     */
     private String normalizeDigits(String input) {
         if (input == null) return null;
         StringBuilder sb = new StringBuilder();
@@ -61,18 +89,35 @@ public class UserService {
     }
 
     // FIX: بررسی فرمت نام کامل (فقط حروف و فاصله، بین ۳ تا ۵۰ کاراکتر)
+    /**
+     * Checks whether the "valid full name" condition holds.
+     *
+     * @param fullName the "full name" value of type {@code String}
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private boolean isValidFullName(String fullName) {
         if (fullName == null) return false;
         return fullName.trim().matches("^[\\p{L} ]{3,50}$");
     }
 
     // FIX: بررسی فرمت نام کاربری (فقط حروف انگلیسی، عدد و _ ، بین ۳ تا ۲۰ کاراکتر)
+    /**
+     * Checks whether the "valid username" condition holds.
+     *
+     * @param username the username
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private boolean isValidUsername(String username) {
         if (username == null) return false;
         return username.trim().matches("^[A-Za-z0-9_]{3,20}$");
     }
 
     // FIX: بررسی حداقل/حداکثر طول رمز عبور و عدم وجود فاصله
+    /**
+     * Validates password.
+     *
+     * @param password the password
+     */
     private void validatePassword(String password) {
         if (password == null || password.trim().isEmpty())
             throw new BadRequestException("رمز عبور الزامی است!");
@@ -84,6 +129,12 @@ public class UserService {
             throw new BadRequestException("رمز عبور نباید شامل فاصله باشد!");
     }
 
+    /**
+     * Converts to response.
+     *
+     * @param user the user object
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse convertToResponse(User user) {
         UserResponse response = new UserResponse(
                 user.getId(),
@@ -98,6 +149,12 @@ public class UserService {
         return response;
     }
 
+    /**
+     * Registers user.
+     *
+     * @param request request body received from the client
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse registerUser(UserRegisterRequest request) {
         if (request.getFullName() == null || request.getFullName().trim().isEmpty())
             throw new BadRequestException("نام کامل الزامی است!");
@@ -159,6 +216,13 @@ public class UserService {
         return convertToResponse(savedUser);
     }
 
+    /**
+     * Logs in user.
+     *
+     * @param username the username
+     * @param password the password
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse loginUser(String username, String password) {
         if (username == null || username.trim().isEmpty())
             throw new BadRequestException("نام کاربری الزامی است!");
@@ -185,24 +249,48 @@ public class UserService {
         return convertToResponse(user);
     }
 
+    /**
+     * Gets user by id.
+     *
+     * @param userId id of the user
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse getUserById(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
         return convertToResponse(user);
     }
 
+    /**
+     * Gets user by username.
+     *
+     * @param username the username
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse getUserByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
         return convertToResponse(user);
     }
 
+    /**
+     * Gets user id by username.
+     *
+     * @param username the username
+     * @return the resulting numeric value
+     */
     public Long getUserIdByUsername(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
         return user.getId();
     }
 
+    /**
+     * Gets all users.
+     *
+     * @param requesterId the "requester id" value of type {@code Long}
+     * @return a {@code List<UserResponse>} with the results; empty if nothing matches
+     */
     public List<UserResponse> getAllUsers(Long requesterId) {
         User requester = userRepository.findById(requesterId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -218,6 +306,14 @@ public class UserService {
         return responses;
     }
 
+    /**
+     * Toggles user block status.
+     *
+     * @param adminId the "admin id" value of type {@code Long}
+     * @param userId id of the user
+     * @param block the "block" value of type {@code boolean}
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse toggleUserBlockStatus(Long adminId, Long userId, boolean block) {
         User requester = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -235,6 +331,13 @@ public class UserService {
         return convertToResponse(userRepository.save(targetUser));
     }
 
+    /**
+     * Performs the "make admin" operation.
+     *
+     * @param adminId the "admin id" value of type {@code Long}
+     * @param userId id of the user
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse makeAdmin(Long adminId, Long userId) {
         User requester = userRepository.findById(adminId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر درخواست‌کننده یافت نشد"));
@@ -249,6 +352,13 @@ public class UserService {
         return convertToResponse(userRepository.save(targetUser));
     }
 
+    /**
+     * Updates user profile.
+     *
+     * @param userId id of the user
+     * @param request request body received from the client
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse updateUserProfile(Long userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -279,6 +389,14 @@ public class UserService {
         return convertToResponse(userRepository.save(user));
     }
 
+    /**
+     * Changes password.
+     *
+     * @param userId id of the user
+     * @param oldPassword the "old password" value of type {@code String}
+     * @param newPassword the "new password" value of type {@code String}
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse changePassword(Long userId, String oldPassword, String newPassword) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -296,6 +414,13 @@ public class UserService {
         return convertToResponse(userRepository.save(user));
     }
 
+    /**
+     * Updates profile image.
+     *
+     * @param userId id of the user
+     * @param image the image
+     * @return the resulting {@code UserResponse} instance
+     */
     public UserResponse updateProfileImage(Long userId, MultipartFile image) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -357,6 +482,12 @@ public class UserService {
         }
     }
 
+    /**
+     * Checks whether the "admin" condition holds.
+     *
+     * @param userId id of the user
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isAdmin(Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));

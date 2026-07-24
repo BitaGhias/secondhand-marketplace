@@ -8,6 +8,16 @@ import jakarta.persistence.*;
                 @UniqueConstraint(columnNames = {"user_id", "item_id"})
         }
 )
+/**
+ * JPA entity representing a "favorite" record in the database.
+ * <p>
+ * This class defines the structure of the matching table in the SQLite database and is managed by Hibernate; relations between tables are declared with JPA annotations.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class Favorite {
 
     @Id
@@ -22,6 +32,9 @@ public class Favorite {
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
+    /**
+     * Creates a new {@code Favorite} instance.
+     */
     public Favorite() {}
 
     public Favorite(Long id, User user, Item item) {

@@ -13,16 +13,39 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Business-logic service for "category" operations.
+ * <p>
+ * This class implements the core business logic and sits between the controller layer and the repository layer. Validation and access control are enforced here and a proper exception is thrown when a rule is violated.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Service
 public class CategoryService {
 
     @Autowired
     private CategoryRepository categoryRepository;
 
+    /**
+     * Converts to response.
+     *
+     * @param category the category object
+     * @return the resulting {@code CategoryResponse} instance
+     */
     private CategoryResponse convertToResponse(Category category) {
         return convertToResponseWithCount(category, 0L);
     }
 
+    /**
+     * Converts to response with count.
+     *
+     * @param category the category object
+     * @param itemCount the "item count" value of type {@code Long}
+     * @return the resulting {@code CategoryResponse} instance
+     */
     private CategoryResponse convertToResponseWithCount(Category category, Long itemCount) {
         Long parentId = category.getParent() != null ? category.getParent().getId() : null;
         String parentName = category.getParent() != null ? category.getParent().getName() : null;
@@ -38,6 +61,12 @@ public class CategoryService {
         );
     }
 
+    /**
+     * Creates category.
+     *
+     * @param request request body received from the client
+     * @return the resulting {@code CategoryResponse} instance
+     */
     public CategoryResponse createCategory(CategoryRequest request) {
         categoryRepository.findByName(request.getName())
                 .ifPresent(c -> {
@@ -59,6 +88,11 @@ public class CategoryService {
     }
 
 
+    /**
+     * Gets all categories with count.
+     *
+     * @return a {@code List<CategoryResponse>} with the results; empty if nothing matches
+     */
     public List<CategoryResponse> getAllCategoriesWithCount() {
         List<Category> categories = categoryRepository.findAll();
 
@@ -88,6 +122,11 @@ public class CategoryService {
     }
 
     //  ساخت map از categoryId -> itemCount با یک query
+    /**
+     * Builds count map.
+     *
+     * @return the resulting {@code Map<Long, Long>} instance
+     */
     private Map<Long, Long> buildCountMap() {
         List<Object[]> results = categoryRepository.countItemsByCategory();
         Map<Long, Long> map = new HashMap<>();
@@ -98,6 +137,12 @@ public class CategoryService {
     }
 
     //  ساخت map از parentId -> hasChildren با یک query (تمام categories)
+    /**
+     * Builds has children map.
+     *
+     * @param categories the "categories" value of type {@code List<Category>}
+     * @return the resulting {@code Map<Long, Boolean>} instance
+     */
     private Map<Long, Boolean> buildHasChildrenMap(List<Category> categories) {
         Map<Long, Boolean> map = new HashMap<>();
         for (Category c : categories) {
@@ -108,6 +153,11 @@ public class CategoryService {
         return map;
     }
 
+    /**
+     * Gets all categories.
+     *
+     * @return a {@code List<CategoryResponse>} with the results; empty if nothing matches
+     */
     public List<CategoryResponse> getAllCategories() {
         List<Category> categories = categoryRepository.findAll();
         List<CategoryResponse> responses = new ArrayList<>();
@@ -117,6 +167,11 @@ public class CategoryService {
         return responses;
     }
 
+    /**
+     * Gets root categories.
+     *
+     * @return a {@code List<CategoryResponse>} with the results; empty if nothing matches
+     */
     public List<CategoryResponse> getRootCategories() {
         List<Category> roots = categoryRepository.findByParentIsNull();
         Map<Long, Long> countMap = buildCountMap();
@@ -136,6 +191,12 @@ public class CategoryService {
         return responses;
     }
 
+    /**
+     * Gets subcategories.
+     *
+     * @param parentId the "parent id" value of type {@code Long}
+     * @return a {@code List<CategoryResponse>} with the results; empty if nothing matches
+     */
     public List<CategoryResponse> getSubcategories(Long parentId) {
         if (!categoryRepository.existsById(parentId)) {
             throw new ResourceNotFoundException("دسته‌بندی والد یافت نشد");
@@ -155,6 +216,12 @@ public class CategoryService {
         return responses;
     }
 
+    /**
+     * Gets category by id.
+     *
+     * @param id unique identifier of the record
+     * @return the resulting {@code CategoryResponse} instance
+     */
     public CategoryResponse getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی یافت نشد"));
@@ -162,6 +229,13 @@ public class CategoryService {
         return convertToResponseWithCount(category, count);
     }
 
+    /**
+     * Updates category.
+     *
+     * @param id unique identifier of the record
+     * @param request request body received from the client
+     * @return the resulting {@code CategoryResponse} instance
+     */
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی یافت نشد"));
@@ -198,6 +272,11 @@ public class CategoryService {
         return convertToResponseWithCount(updated, count);
     }
 
+    /**
+     * Deletes category.
+     *
+     * @param id unique identifier of the record
+     */
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("دسته‌بندی یافت نشد"));
@@ -215,6 +294,12 @@ public class CategoryService {
         categoryRepository.delete(category);
     }
 
+    /**
+     * Gets popular categories.
+     *
+     * @param limit the "limit" value of type {@code int}
+     * @return a {@code List<CategoryResponse>} with the results; empty if nothing matches
+     */
     public List<CategoryResponse> getPopularCategories(int limit) {
         List<Object[]> results = categoryRepository.countItemsByCategory();
         results.sort((a, b) -> Long.compare((Long) b[1], (Long) a[1]));

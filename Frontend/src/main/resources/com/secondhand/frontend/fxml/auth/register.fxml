@@ -30,7 +30,7 @@
               style="-fx-background-color: #0e2433;
                      -fx-background-radius: 24 24 0 0;
                      -fx-padding: 12 16;">
-            <Label text="دست‌دوم مارکت" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
+            <Label text="دیباچه" style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;"/>
             <HBox HBox.hgrow="ALWAYS"/>
             <Button text="─" onAction="#minimizeWindow"
                     style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;"/>

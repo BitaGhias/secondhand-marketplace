@@ -2,11 +2,24 @@ package com.secondhand.frontend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
+/**
+ * Client-side model representing "image" data returned by the server.
+ * <p>
+ * This class is the client-side representation of data received from the server and is deserialized from JSON by Jackson.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Image {
     private Long id;
     private String imagePath;
 
+    /**
+     * Creates a new {@code Image} instance.
+     */
     public Image() {}
 
     public Image(Long id, String imagePath) {
@@ -14,6 +27,11 @@ public class Image {
         this.imagePath = imagePath;
     }
 
+    /**
+     * Gets id.
+     *
+     * @return the resulting numeric value
+     */
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -34,10 +52,20 @@ public class Image {
         return "http://localhost:8080/uploads/" + getFileName();
     }
 
+    /**
+     * Checks whether the "valid" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isValid() {
         return imagePath != null && !imagePath.trim().isEmpty();
     }
 
+    /**
+     * Gets file name.
+     *
+     * @return the resulting string
+     */
     public String getFileName() {
         if (imagePath == null) return null;
         String normalized = imagePath.replace('\\', '/');

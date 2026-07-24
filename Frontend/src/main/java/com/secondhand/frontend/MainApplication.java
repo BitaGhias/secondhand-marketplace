@@ -33,12 +33,24 @@ import javafx.util.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * Application entry point: shows the "Dibache" brand splash screen and then opens the main window.
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class MainApplication extends Application {
 
     private static Stage primaryStage;
     private static final int DEFAULT_WIDTH  = 1000;
     private static final int DEFAULT_HEIGHT = 1000;
 
+    /**
+     * Starts.
+     *
+     * @param stage the JavaFX stage (window)
+     */
     @Override
     public void start(Stage stage) {
         primaryStage = stage;
@@ -47,7 +59,9 @@ public class MainApplication extends Application {
         showSplash();
     }
 
-    /** بارگذاری فونت فارسی همراه برنامه (Noto Sans Arabic) */
+    /**
+     * Loads bundled fonts.
+     */
     private static void loadBundledFonts() {
         try {
             javafx.scene.text.Font.loadFont(MainApplication.class.getResourceAsStream("fonts/Vazirmatn-Regular.ttf"), 13);
@@ -55,16 +69,17 @@ public class MainApplication extends Application {
         } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
     }
 
+    /**
+     * Shows the "Dibache" brand splash screen before opening the main window.
+     */
     private void showSplash() {
         Stage splash = new Stage(StageStyle.TRANSPARENT);
         splash.setAlwaysOnTop(true);
 
-        // برند دو رنگ: «دست‌دوم» سفید + «مارکت» نارنجی
-        Label titlePart1 = new Label("دست‌دوم ");
-        titlePart1.setStyle("-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
-        Label titlePart2 = new Label("مارکت");
-        titlePart2.setStyle("-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: #f97316;");
-        HBox title = new HBox(titlePart2, titlePart1); // RTL: مارکت بعد از دست‌دوم نمایش داده می‌شود
+        // برند «دیباچه»
+        Label brandLabel = new Label("دیباچه");
+        brandLabel.setStyle("-fx-font-size: 34px; -fx-font-weight: bold; -fx-text-fill: #ffffff;");
+        HBox title = new HBox(brandLabel);
         title.setAlignment(Pos.CENTER);
         title.setNodeOrientation(javafx.geometry.NodeOrientation.RIGHT_TO_LEFT);
 
@@ -119,9 +134,9 @@ public class MainApplication extends Application {
             } catch (Exception ignored) { FrontendErrorHandler.log(ignored); }
             try {
                 if (restored) {
-                    showMainWindow(Routes.USER_PANEL, "دست‌دوم مارکت — پنل کاربر");
+                    showMainWindow(Routes.USER_PANEL, "دیباچه — پنل کاربر");
                 } else {
-                    showMainWindow(Routes.LOGIN, "دست‌دوم مارکت — ورود");
+                    showMainWindow(Routes.LOGIN, "دیباچه — ورود");
                 }
             } catch (Exception ex) { FrontendErrorHandler.log(ex); }
         });
@@ -129,9 +144,9 @@ public class MainApplication extends Application {
     }
 
     /**
-     * تلاش برای بازیابی نشست قبلی: توکن ذخیره‌شده روی کلاینت ست می‌شود و
-     * با دریافت پروفایل از سرور اعتبارسنجی می‌شود. اگر توکن نامعتبر باشد،
-     * نشست پاک شده و کاربر به صفحه ورود هدایت می‌شود.
+     * Performs the "try restore session async" operation.
+     *
+     * @return a {@code CompletableFuture} that completes asynchronously with the result
      */
     private CompletableFuture<Boolean> tryRestoreSessionAsync() {
         return CompletableFuture.supplyAsync(() -> {
@@ -151,6 +166,13 @@ public class MainApplication extends Application {
         });
     }
 
+    /**
+     * Shows main window.
+     *
+     * @param fxmlPath the "fxml path" value of type {@code String}
+     * @param title the title
+     * @throws Exception if the request fails or the server cannot be reached
+     */
     private void showMainWindow(String fxmlPath, String title) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
         Parent root = loader.load();
@@ -165,6 +187,13 @@ public class MainApplication extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Replaces the current scene with the given FXML file and applies the global stylesheet.
+     *
+     * @param fxmlPath the "fxml path" value of type {@code String}
+     * @param title the title
+     * @throws Exception if the request fails or the server cannot be reached
+     */
     public static void changeScene(String fxmlPath, String title) throws Exception {
         FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource(fxmlPath));
         Parent root = loader.load();
@@ -178,6 +207,12 @@ public class MainApplication extends Application {
         primaryStage.show();
     }
 
+    /**
+     * Navigates to to item detail.
+     *
+     * @param item the ad (item) object
+     * @throws Exception if the request fails or the server cannot be reached
+     */
     public static void goToItemDetail(Item item) throws Exception {
         FXMLLoader loader = new FXMLLoader(MainApplication.class.getResource(Routes.ITEM_DETAIL));
         Parent root = loader.load();

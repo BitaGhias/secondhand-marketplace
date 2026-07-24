@@ -16,6 +16,16 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
+/**
+ * Configuration class: "data initializer".
+ * <p>
+ * This class is part of the application configuration and is loaded by Spring at startup.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Component
 public class DataInitializer implements CommandLineRunner { // بعد از اینکه برنامه کامل راه افتاد متد run() رو اجرا کن
 
@@ -33,6 +43,11 @@ public class DataInitializer implements CommandLineRunner { // بعد از ای�
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    /**
+     * Runs.
+     *
+     * @param args the "args" value of type {@code String...}
+     */
     @Override
     public void run(String... args) {
         createDefaultAdmin();
@@ -41,6 +56,9 @@ public class DataInitializer implements CommandLineRunner { // بعد از ای�
         createDefaultCategories();
     }
 
+    /**
+     * Creates default admin.
+     */
     private void createDefaultAdmin() {
         if (!userRepository.existsByUsername("admin")) {
             User admin = new User();
@@ -59,6 +77,9 @@ public class DataInitializer implements CommandLineRunner { // بعد از ای�
         }
     }
 
+    /**
+     * Creates default test user.
+     */
     private void createDefaultTestUser() {
         if (!userRepository.existsByUsername("testuser")) {
             User testUser = new User();
@@ -78,6 +99,9 @@ public class DataInitializer implements CommandLineRunner { // بعد از ای�
         }
     }
 
+    /**
+     * Creates default cities.
+     */
     private void createDefaultCities() {
         if (cityRepository.count() == 0) {
             List<String> cityNames = List.of(
@@ -95,6 +119,9 @@ public class DataInitializer implements CommandLineRunner { // بعد از ای�
         }
     }
 
+    /**
+     * Creates default categories.
+     */
     private void createDefaultCategories() {
         if (categoryRepository.count() == 0) {
             Category electronics = createCategory("الکترونیک", null);
@@ -117,6 +144,13 @@ public class DataInitializer implements CommandLineRunner { // بعد از ای�
         }
     }
 
+    /**
+     * Creates category.
+     *
+     * @param name the name
+     * @param parent the "parent" value of type {@code Category}
+     * @return the resulting {@code Category} instance
+     */
     private Category createCategory(String name, Category parent) {
         Category category = new Category();
         category.setName(name);

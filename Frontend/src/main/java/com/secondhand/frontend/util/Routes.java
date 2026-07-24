@@ -6,6 +6,9 @@ package com.secondhand.frontend.util;
  */
 public final class Routes {
 
+    /**
+     * Creates a new {@code Routes} instance.
+     */
     private Routes() {}
 
     private static final String BASE = "/com/secondhand/frontend";

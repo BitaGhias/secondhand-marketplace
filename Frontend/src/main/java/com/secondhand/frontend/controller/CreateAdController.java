@@ -29,6 +29,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * JavaFX controller of the "create ad" screen.
+ * <p>
+ * This class is the JavaFX controller bound to its FXML file; it receives UI elements through the {@code @FXML} annotation, handles user events and talks to the backend through the service layer. Network calls run on a background thread and their results are applied on the UI thread via {@code Platform.runLater}.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class CreateAdController extends BaseController {
 
     @FXML private Label      pageTitle;
@@ -67,6 +77,9 @@ public class CreateAdController extends BaseController {
     private boolean        isEditMode      = false;
     private int            currentStep     = 1;
 
+    /**
+     * Initializes the controller after the FXML is loaded; wires event handlers and loads the initial data of the screen.
+     */
     @FXML
     public void initialize() {
         WindowUtil.makeDraggable(titleBar);
@@ -79,6 +92,11 @@ public class CreateAdController extends BaseController {
                 change.getControlNewText().matches("[0-9,]*") ? change : null));
     }
 
+    /**
+     * Sets item for edit.
+     *
+     * @param item the ad (item) object
+     */
     public void setItemForEdit(Item item) {
         this.editingItem = item;
         this.isEditMode  = true;
@@ -87,6 +105,9 @@ public class CreateAdController extends BaseController {
         Platform.runLater(this::fillFormWithItemData);
     }
 
+    /**
+     * Fills form with item data.
+     */
     private void fillFormWithItemData() {
         if (editingItem == null) return;
         titleField.setText(editingItem.getTitle());
@@ -112,6 +133,9 @@ public class CreateAdController extends BaseController {
 
     // ===================== ویزارد =====================
 
+    /**
+     * Performs the "next step" operation.
+     */
     @FXML
     private void nextStep() {
         hideErrorLabel();
@@ -120,12 +144,20 @@ public class CreateAdController extends BaseController {
         if (currentStep < 3) showStep(currentStep + 1);
     }
 
+    /**
+     * Performs the "prev step" operation.
+     */
     @FXML
     private void prevStep() {
         hideErrorLabel();
         if (currentStep > 1) showStep(currentStep - 1);
     }
 
+    /**
+     * Shows step.
+     *
+     * @param step the "step" value of type {@code int}
+     */
     private void showStep(int step) {
         currentStep = step;
         setStepVisible(step1Box, step == 1);
@@ -152,12 +184,25 @@ public class CreateAdController extends BaseController {
         }
     }
 
+    /**
+     * Sets step visible.
+     *
+     * @param box the "box" value of type {@code VBox}
+     * @param visible the "visible" value of type {@code boolean}
+     */
     private void setStepVisible(VBox box, boolean visible) {
         if (box == null) return;
         box.setVisible(visible);
         box.setManaged(visible);
     }
 
+    /**
+     * Styles step indicator.
+     *
+     * @param label the "label" value of type {@code Label}
+     * @param stepOfLabel the "step of label" value of type {@code int}
+     * @param activeStep the "active step" value of type {@code int}
+     */
     private void styleStepIndicator(Label label, int stepOfLabel, int activeStep) {
         if (label == null) return;
         if (stepOfLabel == activeStep) {
@@ -172,6 +217,11 @@ public class CreateAdController extends BaseController {
         }
     }
 
+    /**
+     * Validates step1.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private boolean validateStep1() {
         if (titleField.getText() == null || titleField.getText().trim().isEmpty()) {
             showErrorLabel("لطفاً عنوان آگهی را وارد کنید");
@@ -188,6 +238,11 @@ public class CreateAdController extends BaseController {
         return true;
     }
 
+    /**
+     * Validates step2.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private boolean validateStep2() {
         if (descriptionArea.getText() == null || descriptionArea.getText().trim().isEmpty()) {
             showErrorLabel("لطفاً توضیحات را وارد کنید");
@@ -210,6 +265,11 @@ public class CreateAdController extends BaseController {
         }
         return true;
     }
+    /**
+     * Checks whether the "changes" condition holds.
+     *
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private boolean hasChanges()
     {
         if (!isEditMode || editingItem == null) return true;
@@ -232,11 +292,17 @@ public class CreateAdController extends BaseController {
 
         return false;
     }
+    /**
+     * Refreshes submit state.
+     */
     private void refreshSubmitState()
     {
         if (isEditMode && submitButton != null) submitButton.setDisable(!hasChanges());
     }
 
+    /**
+     * Sets up change tracking.
+     */
     private void setupChangeTracking()
     {
         titleField.textProperty().addListener((obs, oldV, newV) -> refreshSubmitState());
@@ -248,6 +314,9 @@ public class CreateAdController extends BaseController {
 
     // ===================== دسته‌بندی و شهر =====================
 
+    /**
+     * Loads categories.
+     */
     private void loadCategories() {
         new Thread(() -> {
             try {
@@ -267,12 +336,20 @@ public class CreateAdController extends BaseController {
         }).start();
     }
 
+    /**
+     * Selects category.
+     *
+     * @param category the category object
+     */
     private void selectCategory(Category category) {
         selectedCategory = category;
         categoryMenuButton.setText("📂 " + CategoryPicker.displayName(category));
         refreshSubmitState();
     }
 
+    /**
+     * Applies pending category selection.
+     */
     private void applyPendingCategorySelection() {
         if (!isEditMode || editingItem == null || editingItem.getCategoryName() == null) return;
         for (Category cat : allCategories) {
@@ -283,6 +360,9 @@ public class CreateAdController extends BaseController {
         }
     }
 
+    /**
+     * Loads the city list from the server on a background thread and shows it in the admin panel together with a counter.
+     */
     private void loadCities() {
         new Thread(() -> {
             try {
@@ -299,6 +379,9 @@ public class CreateAdController extends BaseController {
 
     // ===================== تصاویر =====================
 
+    /**
+     * Adds image.
+     */
     @FXML
     private void addImage() {
         FileChooser fileChooser = new FileChooser();
@@ -311,7 +394,9 @@ public class CreateAdController extends BaseController {
         }
     }
 
-    /** پشتیبانی از کشیدن و رها کردن تصویر روی ناحیه آپلود */
+    /**
+     * Sets up drag and drop.
+     */
     private void setupDragAndDrop() {
         if (dropZone == null) return;
 
@@ -348,6 +433,12 @@ public class CreateAdController extends BaseController {
         dropZone.setStyle(dropZoneStyle(false));
     }
 
+    /**
+     * Performs the "drop zone style" operation.
+     *
+     * @param active the "active" value of type {@code boolean}
+     * @return the resulting string
+     */
     private static String dropZoneStyle(boolean active) {
         return "-fx-background-color: " + (active ? "#fff1e6" : "#f8fafc") + ";"
                 + "-fx-background-radius: 14;"
@@ -355,6 +446,12 @@ public class CreateAdController extends BaseController {
                 + "-fx-border-style: dashed; -fx-border-width: 2; -fx-border-radius: 14;";
     }
 
+    /**
+     * Checks whether the "image file" condition holds.
+     *
+     * @param file the input file
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     private static boolean isImageFile(File file) {
         String name = file.getName().toLowerCase(Locale.ROOT);
         for (String ext : IMAGE_EXTENSIONS) {
@@ -363,10 +460,20 @@ public class CreateAdController extends BaseController {
         return false;
     }
 
+    /**
+     * Performs the "total image count" operation.
+     *
+     * @return the resulting numeric value
+     */
     private int totalImageCount() {
         return existingImages.size() + imagePaths.size();
     }
 
+    /**
+     * Adds image file.
+     *
+     * @param file the input file
+     */
     private void addImageFile(File file) {
         String imagePath = file.getAbsolutePath();
         if (imagePaths.contains(imagePath)) return;
@@ -383,6 +490,11 @@ public class CreateAdController extends BaseController {
         refreshSubmitState();
     }
 
+    /**
+     * Adds image preview.
+     *
+     * @param imagePath the "image path" value of type {@code String}
+     */
     private void addImagePreview(String imagePath) {
         try {
             ImageView imageView = new ImageView(new Image(new File(imagePath).toURI().toString()));
@@ -402,6 +514,11 @@ public class CreateAdController extends BaseController {
         }
     }
 
+    /**
+     * Adds existing image preview.
+     *
+     * @param img the "img" value of type {@code com.secondhand.frontend.model.Image}
+     */
     private void addExistingImagePreview(com.secondhand.frontend.model.Image img) {
         try {
             ImageView imageView = new ImageView(new Image(img.getFullUrl()));
@@ -424,6 +541,9 @@ public class CreateAdController extends BaseController {
 
     // ===================== ثبت نهایی =====================
 
+    /**
+     * Submits ad.
+     */
     @FXML
     private void submitAd() {
         String title       = titleField.getText().trim();
@@ -478,6 +598,9 @@ public class CreateAdController extends BaseController {
         }
     }
 
+    /**
+     * Navigates to back.
+     */
     @FXML
     private void goBack() { goToAdList(); }
 
@@ -489,6 +612,11 @@ public class CreateAdController extends BaseController {
 
     // ─── Label helpers ───
 
+    /**
+     * Shows error label.
+     *
+     * @param message the message text
+     */
     private void showErrorLabel(String message) {
         Platform.runLater(() -> {
             errorLabel.setText("❌ " + message);
@@ -497,6 +625,11 @@ public class CreateAdController extends BaseController {
         });
     }
 
+    /**
+     * Shows success label.
+     *
+     * @param message the message text
+     */
     private void showSuccessLabel(String message) {
         Platform.runLater(() -> {
             errorLabel.setText("✅ " + message);
@@ -505,6 +638,9 @@ public class CreateAdController extends BaseController {
         });
     }
 
+    /**
+     * Hides error label.
+     */
     private void hideErrorLabel() {
         if (errorLabel != null) errorLabel.setVisible(false);
     }

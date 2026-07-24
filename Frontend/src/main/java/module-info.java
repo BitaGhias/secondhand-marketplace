@@ -1,3 +1,12 @@
+/**
+ * Module descriptor of the Dibache JavaFX frontend; declares the required
+ * JavaFX, HTTP-client and Jackson modules and opens the packages needed
+ * for FXML injection and JSON deserialization.
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 module com.secondhand.frontend {
     requires javafx.controls;
     requires javafx.fxml;

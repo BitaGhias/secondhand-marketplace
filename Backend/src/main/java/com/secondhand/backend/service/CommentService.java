@@ -19,6 +19,16 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Business-logic service for "comment" operations.
+ * <p>
+ * This class implements the core business logic and sits between the controller layer and the repository layer. Validation and access control are enforced here and a proper exception is thrown when a rule is violated.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Service
 public class CommentService {
 
@@ -31,6 +41,12 @@ public class CommentService {
     @Autowired
     private ItemRepository itemRepository;
 
+    /**
+     * Converts to response.
+     *
+     * @param comment the comment object
+     * @return the resulting {@code CommentResponse} instance
+     */
     private CommentResponse convertToResponse(Comment comment) {
         return new CommentResponse(
                 comment.getId(),
@@ -44,6 +60,13 @@ public class CommentService {
         );
     }
 
+    /**
+     * Adds comment.
+     *
+     * @param request request body received from the client
+     * @param userId id of the user
+     * @return the resulting {@code CommentResponse} instance
+     */
     public CommentResponse addComment(CommentCreateRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -69,6 +92,12 @@ public class CommentService {
         return convertToResponse(savedComment);
     }
 
+    /**
+     * Gets comments by item.
+     *
+     * @param itemId id of the ad (item)
+     * @return a {@code List<CommentResponse>} with the results; empty if nothing matches
+     */
     public List<CommentResponse> getCommentsByItem(Long itemId) {
         if (!itemRepository.existsById(itemId)) {
             throw new ResourceNotFoundException("آگهی یافت نشد");
@@ -82,6 +111,12 @@ public class CommentService {
         return responses;
     }
 
+    /**
+     * Deletes comment.
+     *
+     * @param commentId id of the comment
+     * @param requesterId the "requester id" value of type {@code Long}
+     */
     public void deleteComment(Long commentId, Long requesterId) {
         User requester = userRepository.findById(requesterId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -99,6 +134,14 @@ public class CommentService {
         commentRepository.delete(comment);
     }
 
+    /**
+     * Updates comment.
+     *
+     * @param commentId id of the comment
+     * @param userId id of the user
+     * @param newText the "new text" value of type {@code String}
+     * @return the resulting {@code CommentResponse} instance
+     */
     public CommentResponse updateComment(Long commentId, Long userId, String newText) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));

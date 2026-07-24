@@ -9,6 +9,16 @@ import jakarta.persistence.*;
                 @UniqueConstraint(columnNames = {"rater_id", "item_id"})
         }
 )
+/**
+ * JPA entity representing a "rating" record in the database.
+ * <p>
+ * This class defines the structure of the matching table in the SQLite database and is managed by Hibernate; relations between tables are declared with JPA annotations.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public class Rating {
 
     @Id
@@ -32,6 +42,9 @@ public class Rating {
     @JoinColumn(name = "seller_id", nullable = false)
     private User seller;
 
+    /**
+     * Creates a new {@code Rating} instance.
+     */
     public Rating() {}
 
     public Rating(Long id, int score, String comment, Item item, User rater, User seller) {

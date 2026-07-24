@@ -11,16 +11,22 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.shape.StrokeLineJoin;
 
 /**
- * لوگوی برند «دست‌دوم مارکت» — کیسه خرید سفید با تیک نارنجی گرم (نماد خرید مطمئن)
- * روی کاشی گرادیان نفتی‌تیره با گوشه‌های گرد. کاملاً وکتوری و بدون فایل تصویری.
+ * Reusable UI component that renders the "Dibache" brand logo.
+ * <p>
+ * This class is a helper utility whose methods are used across different parts of the application.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
  */
 public final class BrandLogo {
 
+    /**
+     * Creates a new {@code BrandLogo} instance.
+     */
     private BrandLogo() {}
 
-    /**
-     * ساخت نود لوگو با اندازه دلخواه (طول ضلع کاشی بر حسب پیکسل)
-     */
     public static Node create(double size) {
         // کاشی پس‌زمینه با گرادیان نفتی
         Region tile = new Region();

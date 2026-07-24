@@ -6,18 +6,30 @@ import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 /**
- * ابزار کنترل پنجره برای پنجره‌های بدون فریم (StageStyle.TRANSPARENT).
- * چون پنجره فریم سیستم‌عامل ندارد، بزرگ‌نمایی باید به صورت دستی
- * با تنظیم ابعاد پنجره روی ابعاد صفحه‌نمایش انجام شود
- * (setMaximized روی این نوع پنجره‌ها به‌خصوص وقتی resizable=false است کار نمی‌کند).
+ * Utility class providing "window util" helpers.
+ * <p>
+ * This class is a helper utility whose methods are used across different parts of the application.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
  */
 public final class WindowUtil {
 
     private static final String PREV_BOUNDS_KEY = "windowUtil.prevBounds";
 
+    /**
+     * Creates a new {@code WindowUtil} instance.
+     */
     private WindowUtil() {
     }
 
+    /**
+     * Performs the "minimize" operation.
+     *
+     * @param anyNode the "any node" value of type {@code Node}
+     */
     public static void minimize(Node anyNode) {
         Stage stage = getStage(anyNode);
         if (stage != null) {
@@ -25,7 +37,11 @@ public final class WindowUtil {
         }
     }
 
-    /** بزرگ‌نمایی / بازگرداندن به اندازه قبلی */
+    /**
+     * Toggles maximize.
+     *
+     * @param anyNode the "any node" value of type {@code Node}
+     */
     public static void toggleMaximize(Node anyNode) {
         Stage stage = getStage(anyNode);
         if (stage == null) return;
@@ -50,6 +66,11 @@ public final class WindowUtil {
         }
     }
 
+    /**
+     * Closes.
+     *
+     * @param anyNode the "any node" value of type {@code Node}
+     */
     public static void close(Node anyNode) {
         Stage stage = getStage(anyNode);
         if (stage != null) {
@@ -57,11 +78,22 @@ public final class WindowUtil {
         }
     }
 
+    /**
+     * Gets stage.
+     *
+     * @param node the "node" value of type {@code Node}
+     * @return the resulting {@code Stage} instance
+     */
     private static Stage getStage(Node node) {
         if (node == null || node.getScene() == null) return null;
         return node.getScene().getWindow() instanceof Stage stage ? stage : null;
     }
 
+    /**
+     * Performs the "make draggable" operation.
+     *
+     * @param handle the "handle" value of type {@code Node}
+     */
     public static void makeDraggable(Node handle) {
         final double[] offset = new double[2];
         handle.setOnMousePressed(e -> {

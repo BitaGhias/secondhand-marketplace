@@ -11,10 +11,23 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Utility class providing "category picker" helpers.
+ * <p>
+ * This class is a helper utility whose methods are used across different parts of the application.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 public final class CategoryPicker {
 
     private static final int MAX_DEPTH = 8;
 
+    /**
+     * Creates a new {@code CategoryPicker} instance.
+     */
     private CategoryPicker() {}
 
     public static void populate(MenuButton button,
@@ -52,6 +65,16 @@ public final class CategoryPicker {
         }
     }
 
+    /**
+     * Builds node.
+     *
+     * @param button the "button" value of type {@code MenuButton}
+     * @param cat the "cat" value of type {@code Category}
+     * @param all the "all" value of type {@code List<Category>}
+     * @param onSelect the "on select" value of type {@code Consumer<Category>}
+     * @param depth the "depth" value of type {@code int}
+     * @return the resulting {@code MenuItem} instance
+     */
     private static MenuItem buildNode(MenuButton button, Category cat, List<Category> all,
                                       Consumer<Category> onSelect, int depth) {
         List<Category> children = new ArrayList<>();
@@ -79,12 +102,25 @@ public final class CategoryPicker {
         return menu;
     }
 
+    /**
+     * Selects.
+     *
+     * @param button the "button" value of type {@code MenuButton}
+     * @param cat the "cat" value of type {@code Category}
+     * @param onSelect the "on select" value of type {@code Consumer<Category>}
+     */
     private static void select(MenuButton button, Category cat, Consumer<Category> onSelect) {
         button.setText("📂 " + displayName(cat));
         button.setStyle("-fx-background-color: #fff1e6; -fx-background-radius: 10; -fx-border-color: #f97316; -fx-border-radius: 10; -fx-border-width: 1.5px; -fx-padding: 8 12; -fx-cursor: hand; -fx-text-fill: #0f172a;");
         if (onSelect != null) onSelect.accept(cat);
     }
 
+    /**
+     * Displays name.
+     *
+     * @param c the "c" value of type {@code Category}
+     * @return the resulting string
+     */
     public static String displayName(Category c) {
         if (c == null) return "";
         if (c.getParentName() != null && !c.getParentName().isBlank()) {
@@ -93,6 +129,13 @@ public final class CategoryPicker {
         return c.getName();
     }
 
+    /**
+     * Finds by id.
+     *
+     * @param all the "all" value of type {@code List<Category>}
+     * @param id unique identifier of the record
+     * @return the resulting {@code Category} instance
+     */
     private static Category findById(List<Category> all, Long id) {
         if (id == null) return null;
         for (Category c : all) {

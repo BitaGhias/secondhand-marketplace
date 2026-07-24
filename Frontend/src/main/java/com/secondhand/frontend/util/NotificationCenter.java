@@ -12,13 +12,20 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * مرکز اعلان‌ها — منبع مشترک صفحهٔ اعلان‌ها و badge زنگوله:
- *  1) وضعیت آگهی‌های من (تایید/رد/در انتظار/فروخته‌شده)
- *  2) درخواست‌های خرید رسیده برای آگهی‌های من
- *  3) پاسخ فروشنده به درخواست‌های خرید من
+ * Utility class providing "notification center" helpers.
+ * <p>
+ * This class is a helper utility whose methods are used across different parts of the application.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
  */
 public final class NotificationCenter {
 
+    /**
+     * Creates a new {@code NotificationCenter} instance.
+     */
     private NotificationCenter() {}
 
     public static class Entry {
@@ -36,12 +43,21 @@ public final class NotificationCenter {
         public boolean openableItem;
     }
 
+    /**
+     * Performs the "user key" operation.
+     *
+     * @return the resulting string
+     */
     private static String userKey() {
         Long id = SessionManager.getCurrentUserId();
         return id != null ? String.valueOf(id) : "anonymous";
     }
 
-    /** فراخوانی فقط در ترد پس‌زمینه (blocking) */
+    /**
+     * Fetches all.
+     *
+     * @return a {@code List<Entry>} with the results; empty if nothing matches
+     */
     public static List<Entry> fetchAll() {
         List<Entry> out = new ArrayList<>();
 
@@ -119,21 +135,40 @@ public final class NotificationCenter {
         return out;
     }
 
+    /**
+     * Performs the "read keys" operation.
+     *
+     * @return a {@code Set<String>} with the results; empty if nothing matches
+     */
     public static Set<String> readKeys() {
         return ReadNotificationsStore.readKeys(userKey());
     }
 
+    /**
+     * Marks read.
+     *
+     * @param key the "key" value of type {@code String}
+     */
     public static void markRead(String key) {
         ReadNotificationsStore.markRead(userKey(), key);
     }
 
+    /**
+     * Marks all read.
+     *
+     * @param entries the "entries" value of type {@code List<Entry>}
+     */
     public static void markAllRead(List<Entry> entries) {
         List<String> keys = new ArrayList<>();
         for (Entry e : entries) keys.add(e.key);
         ReadNotificationsStore.markAllRead(userKey(), keys);
     }
 
-    /** تعداد اعلان‌های خوانده‌نشده (blocking) */
+    /**
+     * Performs the "unread count" operation.
+     *
+     * @return the resulting numeric value
+     */
     public static long unreadCount() {
         Set<String> read = readKeys();
         return fetchAll().stream().filter(e -> !read.contains(e.key)).count();

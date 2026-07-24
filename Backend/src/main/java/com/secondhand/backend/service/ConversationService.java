@@ -19,6 +19,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Business-logic service for "conversation" operations.
+ * <p>
+ * This class implements the core business logic and sits between the controller layer and the repository layer. Validation and access control are enforced here and a proper exception is thrown when a rule is violated.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Service
 public class ConversationService {
 
@@ -37,6 +47,13 @@ public class ConversationService {
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm");
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm");
 
+    /**
+     * Converts to conversation response.
+     *
+     * @param conv the "conv" value of type {@code Conversation}
+     * @param userId id of the user
+     * @return the resulting {@code ConversationResponse} instance
+     */
     private ConversationResponse convertToConversationResponse(Conversation conv, Long userId) {
         List<ChatMessage> messages = chatMessageRepository
                 .findByConversationIdAndIsDeletedFalseOrderByTimestampAsc(conv.getId());
@@ -74,6 +91,12 @@ public class ConversationService {
         );
     }
 
+    /**
+     * Converts to message response.
+     *
+     * @param msg the "msg" value of type {@code ChatMessage}
+     * @return the resulting {@code ChatMessageResponse} instance
+     */
     private ChatMessageResponse convertToMessageResponse(ChatMessage msg) {
         return new ChatMessageResponse(
                 msg.getId(),
@@ -90,6 +113,12 @@ public class ConversationService {
         );
     }
 
+    /**
+     * Validates conversation membership.
+     *
+     * @param conversation the conversation object
+     * @param userId id of the user
+     */
     private void validateConversationMembership(Conversation conversation, Long userId) {
         boolean isBuyer = conversation.getBuyer().getId().equals(userId);
         boolean isSeller = conversation.getSeller().getId().equals(userId);
@@ -98,6 +127,13 @@ public class ConversationService {
         }
     }
 
+    /**
+     * Starts conversation.
+     *
+     * @param itemId id of the ad (item)
+     * @param buyerId id of the buyer
+     * @return the resulting {@code ConversationResponse} instance
+     */
     public ConversationResponse startConversation(Long itemId, Long buyerId) {
         User buyer = userRepository.findById(buyerId)
                 .orElseThrow(() -> new ResourceNotFoundException("خریدار یافت نشد"));
@@ -133,6 +169,13 @@ public class ConversationService {
         return convertToConversationResponse(saved, buyerId);
     }
 
+    /**
+     * Sends message.
+     *
+     * @param request request body received from the client
+     * @param senderId the "sender id" value of type {@code Long}
+     * @return the resulting {@code ChatMessageResponse} instance
+     */
     @Transactional
     public ChatMessageResponse sendMessage(ChatMessageRequest request, Long senderId) {
         User sender = userRepository.findById(senderId)
@@ -169,6 +212,13 @@ public class ConversationService {
         return convertToMessageResponse(saved);
     }
 
+    /**
+     * Gets messages.
+     *
+     * @param conversationId id of the conversation
+     * @param userId id of the user
+     * @return a {@code List<ChatMessageResponse>} with the results; empty if nothing matches
+     */
     public List<ChatMessageResponse> getMessages(Long conversationId, Long userId) {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException("مکالمه یافت نشد"));
@@ -186,6 +236,12 @@ public class ConversationService {
         return responses;
     }
 
+    /**
+     * Gets user conversations.
+     *
+     * @param userId id of the user
+     * @return a {@code List<ConversationResponse>} with the results; empty if nothing matches
+     */
     public List<ConversationResponse> getUserConversations(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("کاربر یافت نشد");
@@ -200,6 +256,14 @@ public class ConversationService {
         return responses;
     }
 
+    /**
+     * Edits message.
+     *
+     * @param messageId the "message id" value of type {@code Long}
+     * @param userId id of the user
+     * @param newText the "new text" value of type {@code String}
+     * @return the resulting {@code ChatMessageResponse} instance
+     */
     @Transactional
     public ChatMessageResponse editMessage(Long messageId, Long userId, String newText) {
         ChatMessage message = chatMessageRepository.findById(messageId)
@@ -223,6 +287,13 @@ public class ConversationService {
         return convertToMessageResponse(updated);
     }
 
+    /**
+     * Deletes message.
+     *
+     * @param messageId the "message id" value of type {@code Long}
+     * @param userId id of the user
+     * @return the resulting {@code ChatMessageResponse} instance
+     */
     @Transactional
     public ChatMessageResponse deleteMessage(Long messageId, Long userId) {
         ChatMessage message = chatMessageRepository.findById(messageId)
@@ -241,6 +312,12 @@ public class ConversationService {
         return convertToMessageResponse(deleted);
     }
 
+    /**
+     * Gets last message.
+     *
+     * @param conversationId id of the conversation
+     * @return the resulting {@code ChatMessageResponse} instance
+     */
     public ChatMessageResponse getLastMessage(Long conversationId) {
         List<ChatMessage> messages = chatMessageRepository
                 .findByConversationIdAndIsDeletedFalseOrderByTimestampAsc(conversationId);

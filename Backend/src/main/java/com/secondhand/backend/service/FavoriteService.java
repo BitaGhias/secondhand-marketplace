@@ -18,6 +18,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Business-logic service for "favorite" operations.
+ * <p>
+ * This class implements the core business logic and sits between the controller layer and the repository layer. Validation and access control are enforced here and a proper exception is thrown when a rule is violated.
+ * </p>
+ *
+ * @author Bita Ghiasvand Jozani
+ * @author Ata Torkamani Zadeh Alamdari
+ * @version 1.0
+ */
 @Service
 public class FavoriteService {
 
@@ -30,6 +40,12 @@ public class FavoriteService {
     @Autowired
     private ItemRepository itemRepository;
 
+    /**
+     * Converts to response.
+     *
+     * @param favorite the "favorite" value of type {@code Favorite}
+     * @return the resulting {@code FavoriteResponse} instance
+     */
     private FavoriteResponse convertToResponse(Favorite favorite) {
         return new FavoriteResponse(
                 favorite.getId(),
@@ -41,6 +57,13 @@ public class FavoriteService {
         );
     }
 
+    /**
+     * Adds favorite.
+     *
+     * @param request request body received from the client
+     * @param userId id of the user
+     * @return the resulting {@code FavoriteResponse} instance
+     */
     public FavoriteResponse addFavorite(FavoriteRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -70,6 +93,12 @@ public class FavoriteService {
         return convertToResponse(saved);
     }
 
+    /**
+     * Removes favorite.
+     *
+     * @param request request body received from the client
+     * @param userId id of the user
+     */
     public void removeFavorite(FavoriteRequest request, Long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("کاربر یافت نشد"));
@@ -81,6 +110,12 @@ public class FavoriteService {
         favoriteRepository.delete(favorite);
     }
 
+    /**
+     * Gets user favorites.
+     *
+     * @param userId id of the user
+     * @return a {@code List<FavoriteResponse>} with the results; empty if nothing matches
+     */
     public List<FavoriteResponse> getUserFavorites(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new ResourceNotFoundException("کاربر یافت نشد");
@@ -94,6 +129,13 @@ public class FavoriteService {
         return responses;
     }
 
+    /**
+     * Checks whether the "favorite" condition holds.
+     *
+     * @param userId id of the user
+     * @param itemId id of the ad (item)
+     * @return {@code true} if the condition holds or the operation succeeds, {@code false} otherwise
+     */
     public boolean isFavorite(Long userId, Long itemId) {
         return favoriteRepository.findByUserIdAndItemId(userId, itemId).isPresent();
     }

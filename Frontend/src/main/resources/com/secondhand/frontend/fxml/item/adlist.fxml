@@ -9,7 +9,7 @@
 
     <!-- ===== نوار پنجره ===== -->
     <HBox fx:id="titleBar" alignment="CENTER_LEFT" nodeOrientation="LEFT_TO_RIGHT" spacing="10" style="-fx-background-color: #0e2433; -fx-background-radius: 24 24 0 0; -fx-padding: 10 16;">
-        <Label style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;" text="دست‌دوم مارکت" />
+        <Label style="-fx-text-fill: #ffffff; -fx-font-weight: bold; -fx-font-size: 13px;" text="دیباچه" />
         <HBox HBox.hgrow="ALWAYS" />
         <Button onAction="#minimizeWindow" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 16px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" text="─" />
         <Button onAction="#maximizeWindow" style="-fx-background-color: transparent; -fx-text-fill: #94a3b8; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 6;" text="☐" />
@@ -23,7 +23,7 @@
             <SVGPath content="M5.6 8 H18.4 L19.5 18.9 A2.3 2.3 0 0 1 17.2 21.4 H6.8 A2.3 2.3 0 0 1 4.5 18.9 Z M9 9.6 V7.4 A3 3 0 0 1 15 7.4 V9.6 H13.6 V7.4 A1.6 1.6 0 0 0 10.4 7.4 V9.6 Z" scaleX="1.15" scaleY="1.15" style="-fx-fill: #ffffff;" />
             <SVGPath content="M8.7 14.4 L11.1 16.8 L15.6 12.1" scaleX="1.15" scaleY="1.15" style="-fx-fill: transparent; -fx-stroke: #f97316; -fx-stroke-width: 1.8;" />
         </StackPane>
-        <Label style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="دست‌دوم مارکت" />
+        <Label style="-fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;" text="دیباچه" />
 
         <MenuButton fx:id="categoryQuickMenuButton" style="-fx-background-color: #143449; -fx-text-fill: white; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 10; -fx-padding: 7 14; -fx-cursor: hand;" styleClass="nav-flyout" text="🗂 همه دسته‌ها" />
 
